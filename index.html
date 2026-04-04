@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Smart Menu PWA</title>
+    <link id="font-link" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <style id="master-styles">
+        :root { --primary: #000; --bg: #fff; --card: #fff; --radius: 12px; }
+        body { margin: 0; background: var(--bg); font-family: 'Roboto', sans-serif; transition: 0.3s; color: #333; }
+        header { padding: 20px; text-align: center; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .container { padding: 15px; max-width: 600px; margin: auto; }
+        
+        .search-box { margin: 15px 0; display: none; }
+        .search-box input { width: 100%; padding: 12px; border-radius: 25px; border: 1px solid #ddd; outline: none; box-sizing: border-box; }
+
+        .category-title { color: var(--primary); border-bottom: 2px solid var(--primary); margin: 25px 0 15px; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 1px; }
+        
+        .item-card { background: var(--card); border-radius: var(--radius); padding: 12px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.05); backdrop-filter: blur(5px); }
+        .item-img { width: 80px; height: 80px; object-fit: cover; margin-right: 15px; }
+        .item-info { flex: 1; }
+        .item-name { font-weight: bold; font-size: 1.1rem; margin: 0; }
+        .item-desc { font-size: 0.85rem; color: #666; margin: 4px 0; }
+        .item-price { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
+
+        .lang-bar { display: flex; justify-content: center; gap: 5px; margin-bottom: 15px; flex-wrap: wrap; }
+        .lang-btn { background: #eee; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.7rem; cursor: pointer; }
+        .lang-btn.active { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+<div id="loader" style="position:fixed; inset:0; background:white; display:flex; align-items:center; justify-content:center; z-index:1000;">Caricamento...</div>
+
+<header>
+    <img id="logo" src="" style="max-height:80px; margin-bottom:10px; display:none;">
+    <div class="lang-bar" id="lang-bar"></div>
+    <div class="search-box" id="search-box"><input type="text" id="q" placeholder="Cerca nel menu..."></div>
+</header>
+
+<div class="container" id="menu-container"></div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const SHEET_ID = urlParams.get('id'); // Prende l'ID dal link ?id=...
+    let currentLang = navigator.language.split('-')[0] || 'it';
+    let fullData = [];
+
+    async function start() {
+        if(!SHEET_ID) { document.body.innerHTML = "<h1>Errore: ID Foglio mancante nell'URL</h1>"; return; }
+        
+        const [confRaw, menuRaw] = await Promise.all([
+            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`).then(r => r.text()),
+            fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Menu`).then(r => r.text())
+        ]);
+
+        const config = parseCSV(confRaw).reduce((acc, row) => ({ ...acc, [row.Parametro]: row.Valore }), {});
+        fullData = parseCSV(menuRaw);
+
+        applyStyles(config);
+        render(config);
+        document.getElementById('loader').remove();
+    }
+
+    function parseCSV(text) {
+        const lines = text.split('\n').filter(l => l.trim() !== "");
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
+        return lines.slice(1).map(line => {
+            const values = line.split(',').map(v => v.replace(/"/g, '').trim());
+            return headers.reduce((obj, h, i) => ({ ...obj, [h]: values[i] }), {});
+        });
+    }
+
+    function applyStyles(c) {
+        const root = document.documentElement.style;
+        root.setProperty('--primary', c.Theme_Primary);
+        root.setProperty('--bg', c.App_Bg);
+        root.setProperty('--card', c.Card_Bg);
+        root.setProperty('--radius', c.Card_Radius);
+
+        if(c.Logo_URL) { const l = document.getElementById('logo'); l.src = c.Logo_URL; l.style.display = 'inline'; }
+        if(c.Show_Search === 'SI') document.getElementById('search-box').style.display = 'block';
+        if(c.Font_Main) {
+            document.getElementById('font-link').href = `https://fonts.googleapis.com/css2?family=${c.Font_Main.replace(/ /g, '+')}&display=swap`;
+            document.body.style.fontFamily = `'${c.Font_Main}', sans-serif`;
+        }
+        
+        // Stile immagini
+        const styleSheet = document.createElement("style");
+        styleSheet.innerText = `.item-img { border-radius: ${c.Img_Style === 'circle' ? '50%' : '8px'}; }`;
+        document.head.appendChild(styleSheet);
+    }
+
+    function render(config) {
+        const container = document.getElementById('menu-container');
+        const langBar = document.getElementById('lang-bar');
+        const langs = ['it', 'es', 'en', 'fr', 'de', 'sv', 'zh'];
+        
+        // Render Lingue
+        langBar.innerHTML = langs.map(l => `<button class="lang-btn ${l===currentLang?'active':''}" onclick="changeLang('${l}')">${l.toUpperCase()}</button>`).join('');
+
+        // Render Menu raggruppato per categorie
+        const activeItems = fullData.filter(i => i.Attivo === 'SI');
+        const categories = [...new Set(activeItems.map(i => i.Categoria))];
+        
+        container.innerHTML = categories.map(cat => `
+            <div class="category-title">${cat}</div>
+            ${activeItems.filter(i => i.Categoria === cat).map(item => `
+                <div class="item-card">
+                    <img src="${item.Foto_URL}" class="item-img" onerror="this.style.display='none'">
+                    <div class="item-info">
+                        <p class="item-name">${item['Nome_'+currentLang.toUpperCase()] || item.Nome_EN}</p>
+                        <p class="item-desc">${item['Desc_'+currentLang.toUpperCase()] || item.Desc_EN}</p>
+                        <span class="item-price">${item.Prezzo}€</span>
+                    </div>
+                </div>
+            `).join('')}
+        `).join('');
+    }
+
+    window.changeLang = (l) => { currentLang = l; start(); };
+    window.onload = start;
+</script>
+</body>
+</html>
