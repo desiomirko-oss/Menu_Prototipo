@@ -3,77 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Menu PWA - AutoLang</title>
-    <link id="font-link" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
-    <style id="master-styles">
-        :root { --primary: #000; --bg: #fff; --card: #fff; --radius: 12px; }
-        body { margin: 0; background: var(--bg); font-family: 'Roboto', sans-serif; transition: 0.3s; color: #333; overflow-x: hidden; }
-        header { padding: 30px 20px; text-align: center; background: white; box-shadow: 0 2px 15px rgba(0,0,0,0.05); }
-        .container { padding: 15px; max-width: 600px; margin: auto; }
-        
-        /* Barra di ricerca opzionale */
-        .search-box { margin: 15px 0; display: none; }
-        .search-box input { width: 100%; padding: 15px; border-radius: 30px; border: 1px solid #eee; outline: none; box-sizing: border-box; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); }
+    <title>Smart Menu Pro - Navigation Edition</title>
+    <link id="font-link" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap">
+    <style>
+        :root { --primary: #8B0000; --bg: #fff; --card: #fff; --radius: 15px; }
+        body { margin: 0; background: var(--bg); font-family: 'Montserrat', sans-serif; transition: 0.3s; color: #333; }
+        #loader { position:fixed; inset:0; background:white; display:flex; align-items:center; justify-content:center; z-index:1000; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        header { padding: 30px 20px; text-align: center; background: white; }
+        .container { padding: 0 20px 60px; max-width: 600px; margin: auto; min-height: 80vh; }
 
-        /* Barra lingue nascosta come richiesto */
-        .lang-bar { display: none; } 
+        /* BOTTONI CATEGORIE */
+        .cat-card { 
+            background: var(--card); padding: 22px; border-radius: var(--radius); 
+            margin-bottom: 12px; text-align: center; font-weight: bold; 
+            text-transform: uppercase; letter-spacing: 1px; color: var(--primary);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); cursor: pointer; border: 1px solid rgba(0,0,0,0.02);
+        }
 
-        .category-title { color: var(--primary); border-bottom: 2px solid var(--primary); margin: 35px 0 15px; text-transform: uppercase; font-size: 0.85rem; font-weight: bold; letter-spacing: 1.5px; }
+        /* NAVIGAZIONE */
+        .back-btn { display: inline-block; padding: 10px 0; color: var(--primary); font-weight: bold; cursor: pointer; margin-bottom: 15px; text-transform: uppercase; font-size: 0.75rem; }
         
-        .item-card { background: var(--card); border-radius: var(--radius); padding: 12px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 5px 20px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease forwards; }
-        .item-img { width: 90px; height: 90px; object-fit: cover; margin-right: 15px; border-radius: var(--radius); flex-shrink: 0; }
+        /* TASTO TORNA SU (Floating) */
+        #scroll-top {
+            position: fixed; bottom: 20px; right: 20px; background: var(--primary);
+            color: white; width: 45px; height: 45px; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); cursor: pointer; z-index: 99;
+            font-size: 20px; border: none;
+        }
+
+        .category-header { font-size: 1.4rem; color: var(--primary); margin: 30px 0 15px; text-transform: uppercase; font-weight: 800; border-left: 5px solid var(--primary); padding-left: 12px; }
+
+        .item-card { background: var(--card); border-radius: var(--radius); padding: 12px; margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); animation: fadeIn 0.4s ease; }
+        .item-img { width: 85px; height: 85px; object-fit: cover; border-radius: var(--radius); margin-right: 15px; flex-shrink: 0; background: #eee; }
         .item-info { flex: 1; }
-        .item-name { font-weight: bold; font-size: 1.1rem; margin: 0; color: var(--primary); }
-        .item-desc { font-size: 0.85rem; color: #777; margin: 5px 0; line-height: 1.3; }
+        .item-name { font-weight: bold; font-size: 1rem; margin: 0; color: var(--primary); }
+        .item-desc { font-size: 0.8rem; color: #777; margin: 4px 0; line-height: 1.2; }
         .item-price { font-weight: 800; color: var(--primary); font-size: 1.1rem; display: block; margin-top: 5px; }
 
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loader" style="position:fixed; inset:0; background:white; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; font-weight:bold; color:#8B0000;">
-    <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #8B0000; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom:15px;"></div>
-    CARICAMENTO...
-</div>
+<div id="loader"><div class="spinner"></div></div>
 
-<header>
-    <img id="logo" src="" style="max-height:100px; margin-bottom:10px; display:none;">
-    <div class="search-box" id="search-box"><input type="text" id="q" onkeyup="filterMenu()" placeholder="..."></div>
+<header onclick="window.scrollTo({top:0, behavior:'smooth'})" style="cursor:pointer;">
+    <img id="logo" src="" style="max-height:90px; display:none;">
 </header>
 
-<div class="container" id="menu-container"></div>
+<div class="container" id="app-container"></div>
+
+<button id="scroll-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
 
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const SHEET_ID = urlParams.get('id');
-    
-    // Rilevamento automatico lingua browser
     let currentLang = (navigator.language || navigator.userLanguage).split('-')[0].toLowerCase();
-    const supportedLangs = ['it', 'es', 'en', 'fr', 'de', 'sv', 'zh'];
-    if (!supportedLangs.includes(currentLang)) currentLang = 'en'; // Fallback su Inglese
+    if (!['it','es','en','fr','de','sv','zh'].includes(currentLang)) currentLang = 'en';
 
-    let fullData = [];
+    let fullMenu = [];
+    let config = {};
 
-    async function start() {
-        if(!SHEET_ID) { document.body.innerHTML = "<div style='padding:50px; text-align:center;'><h2>Configurazione Incompleta</h2><p>Manca l'ID del menu nell'URL.</p></div>"; return; }
-        
+    async function init() {
+        if(!SHEET_ID) return;
         try {
             const [confRaw, menuRaw] = await Promise.all([
                 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config`).then(r => r.text()),
                 fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Menu`).then(r => r.text())
             ]);
-
-            const config = parseCSV(confRaw).reduce((acc, row) => ({ ...acc, [row.Parametro]: row.Valore }), {});
-            fullData = parseCSV(menuRaw);
-
-            applyStyles(config);
-            render();
+            config = parseCSV(confRaw).reduce((acc, row) => ({ ...acc, [row.Parametro]: row.Valore }), {});
+            fullMenu = parseCSV(menuRaw).filter(i => i.Attivo === 'SI');
+            applyStyles();
+            renderMain();
             document.getElementById('loader').remove();
-        } catch (e) {
-            console.error(e);
-            document.getElementById('loader').innerText = "Errore di connessione al menu.";
-        }
+        } catch (e) { document.getElementById('loader').innerText = "Errore dati."; }
     }
 
     function parseCSV(text) {
@@ -85,61 +91,12 @@
         });
     }
 
-    function applyStyles(c) {
+    function applyStyles() {
         const root = document.documentElement.style;
-        root.setProperty('--primary', c.Theme_Primary || '#000');
-        root.setProperty('--bg', c.App_Bg || '#fff');
-        root.setProperty('--card', c.Card_Bg || '#fff');
-        root.setProperty('--radius', c.Card_Radius || '12px');
-
-        if(c.Logo_URL) { const l = document.getElementById('logo'); l.src = c.Logo_URL; l.style.display = 'inline'; }
-        if(c.Show_Search === 'SI') {
-            const sb = document.getElementById('search-box');
-            sb.style.display = 'block';
-            sb.querySelector('input').placeholder = (currentLang === 'es' ? 'Buscar...' : (currentLang === 'it' ? 'Cerca...' : 'Search...'));
-        }
-        if(c.Font_Main) {
-            document.getElementById('font-link').href = `https://fonts.googleapis.com/css2?family=${c.Font_Main.replace(/ /g, '+')}&display=swap`;
-            document.body.style.fontFamily = `'${c.Font_Main}', sans-serif`;
-        }
-        
-        const styleSheet = document.createElement("style");
-        styleSheet.innerText = `.item-img { border-radius: ${c.Img_Style === 'circle' ? '50%' : 'var(--radius)'}; }`;
-        document.head.appendChild(styleSheet);
-    }
-
-    function render() {
-        const container = document.getElementById('menu-container');
-        const activeItems = fullData.filter(i => i.Attivo === 'SI');
-        const categories = [...new Set(activeItems.map(i => i.Categoria))];
-        
-        container.innerHTML = categories.map(cat => `
-            <div class="category-title">${cat}</div>
-            ${activeItems.filter(i => i.Categoria === cat).map(item => `
-                <div class="item-card">
-                    <img src="${item.Foto_URL}" class="item-img" onerror="this.style.opacity='0'">
-                    <div class="item-info">
-                        <p class="item-name">${item['Nome_'+currentLang.toUpperCase()] || item.Nome_EN}</p>
-                        <p class="item-desc">${item['Desc_'+currentLang.toUpperCase()] || item.Desc_EN}</p>
-                        <span class="item-price">${item.Prezzo}€</span>
-                    </div>
-                </div>
-            `).join('')}
-        `).join('');
-    }
-
-    function filterMenu() {
-        const query = document.getElementById('q').value.toLowerCase();
-        const cards = document.querySelectorAll('.item-card');
-        cards.forEach(card => {
-            const text = card.innerText.toLowerCase();
-            card.style.display = text.includes(query) ? 'flex' : 'none';
-        });
-    }
-
-    window.onload = start;
-</script>
-
-<style> @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } } </style>
-</body>
-</html>
+        root.setProperty('--primary', config.Theme_Primary);
+        root.setProperty('--bg', config.App_Bg);
+        root.setProperty('--card', config.Card_Bg);
+        root.setProperty('--radius', config.Card_Radius);
+        if(config.Logo_URL) { const l = document.getElementById('logo'); l.src = config.Logo_URL; l.style.display = 'inline'; }
+        if(config.Font_Main) {
+            document.getElementById('
