@@ -76,7 +76,7 @@ async function startEngine() {
         if(cfg.Loading_Msg) document.getElementById('slow-connection-msg').innerText = cfg.Loading_Msg;
         else document.getElementById('slow-connection-msg').innerText = SLOW_MSG_DEFAULT;
 
-        const menuData = await fetchCSV(1832483838); // <--- SOSTITUISCI QUESTO GID CON QUELLO DEL TUO FOGLIO MENU
+        const menuData = await fetchCSV(595974812); // <--- SOSTITUISCI QUESTO GID CON QUELLO DEL TUO FOGLIO MENU
 
         applyDesign(cfg);
         renderContent(menuData, cfg);
