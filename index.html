@@ -3,234 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PWA Universal Master</title>
-    
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="manifest.json">
-
+    <title>Master PWA Navigation Engine</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link id="dynamic-font" rel="stylesheet">
-
     <style>
-        :root { --accent: #ffcc00; --bg: #ffffff; --text: #000000; --card: #f9f9f9; }
+        :root { --accent: #ffcc00; --bg: #fff; --text-main: #000; }
+        body { margin: 0; background-color: var(--bg); color: var(--text-main); transition: 0.3s; overflow-x: hidden; }
         
-        body { 
-            margin: 0; padding: 0; font-family: sans-serif; 
-            background: var(--bg); color: var(--text); 
-            transition: background 0.5s ease;
-        }
+        /* Loader */
+        #loader { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000; transition: 0.5s; }
+        .spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Schermata di Caricamento Divina */
-        #loader { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: #fff; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; z-index: 9999;
-            transition: opacity 0.6s ease;
-        }
-        .spinner { 
-            width: 60px; height: 60px; border: 6px solid #f3f3f3; 
-            border-top: 6px solid var(--accent); border-radius: 50%; 
-            animation: spin 1s linear infinite; 
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #loader-text { margin-top: 20px; font-weight: bold; font-size: 1.2rem; color: #333; }
-        #slow-msg { 
-            margin-top: 15px; font-size: 0.9rem; color: #888; 
-            max-width: 80%; text-align: center; display: none; 
-        }
+        /* Navigation Header */
+        header { padding: 20px; text-align: center; position: sticky; top: 0; z-index: 100; background: inherit; }
+        #nav-controls { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; }
+        .back-btn { cursor: pointer; border: none; background: var(--accent); padding: 8px 15px; border-radius: 8px; font-weight: bold; display: none; }
 
-        /* Header e Logo */
-        header { padding: 40px 20px; text-align: center; }
-        header h1 { margin: 0; font-size: 2.5rem; }
-        header p { margin: 5px 0; opacity: 0.8; }
+        /* Filtri */
+        #filter-bar { display: none; justify-content: center; gap: 8px; padding: 10px; margin-bottom: 10px; }
+        .filter-btn { padding: 6px 12px; border: none; border-radius: 15px; font-size: 0.75rem; cursor: pointer; border: 1px solid #ddd; }
+        .filter-btn.active { background: var(--accent) !important; color: #000 !important; border-color: var(--accent); }
 
-        /* Struttura Menu */
-        .category-section { margin-bottom: 40px; }
-        .category-title { 
-            padding: 15px 20px; font-size: 1.4rem; font-weight: 900; 
-            text-transform: uppercase; letter-spacing: 1px;
-            position: sticky; top: 0; z-index: 10;
-            background: var(--accent); color: #000;
+        /* Layout Livelli */
+        .view-container { padding: 15px; display: none; animation: fadeIn 0.3s ease; }
+        .view-container.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Pulsanti Macro e Categorie */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .nav-card { 
+            aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            border-radius: 20px; cursor: pointer; text-align: center; background-size: cover; background-position: center;
+            position: relative; overflow: hidden; font-weight: bold;
         }
+        .nav-card span { z-index: 2; position: relative; padding: 10px; }
+        .nav-card::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 1; }
 
-        .layout-GRID { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 15px; }
-        .layout-LIST { display: flex; flex-direction: column; gap: 12px; padding: 15px; }
-
-        .card { 
-            background: var(--card); padding: 18px; border-radius: 16px; 
-            display: flex; flex-direction: column; justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        .item-name { font-weight: bold; font-size: 1.1rem; }
-        .item-desc { font-size: 0.85rem; margin: 8px 0; opacity: 0.7; line-height: 1.3; }
-        .item-allergens { font-size: 0.75rem; color: #d9534f; font-style: italic; }
-        .item-price { font-weight: 900; font-size: 1.2rem; margin-top: 12px; color: var(--accent); }
-
-        /* Traduttore nascosto */
-        #google_translate_element { display: none; }
-        .goog-te-banner-frame { display: none !important; }
-        body { top: 0 !important; }
+        /* Piatti */
+        .item-list { display: flex; flex-direction: column; gap: 15px; }
+        .item-card { padding: 15px; border-radius: 15px; position: relative; transition: 0.2s; }
+        .item-price { font-weight: bold; font-size: 1.2rem; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <div id="loader-text">Sincronizzazione Divina...</div>
-        <div id="slow-msg">Il collegamento è lento, ma il gusto sta arrivando...</div>
+<div id="loader"><div class="spinner"></div></div>
+
+<header>
+    <div id="logo-area"></div>
+    <div id="nav-controls">
+        <button id="btn-back" class="back-btn" onclick="goBack()">← Indietro</button>
+        <div id="current-title" style="font-weight: bold;"></div>
     </div>
+    <div id="filter-bar"></div>
+</header>
 
-    <div id="google_translate_element"></div>
+<div id="view-macro" class="view-container">
+    <div id="macro-list" class="btn-grid"></div>
+</div>
 
-    <header id="app-header"></header>
-    <main id="app-content"></main>
+<div id="view-cat" class="view-container">
+    <div id="cat-list" class="btn-grid"></div>
+</div>
+
+<div id="view-items" class="view-container">
+    <div id="items-list" class="item-list"></div>
+</div>
+
+<div id="google_translate_element" style="display:none"></div>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const SHEET_ID = urlParams.get('id');
-    
-    // Timer per messaggi lenti
-    const slowConnection = setTimeout(() => {
-        const sm = document.getElementById('slow-msg');
-        if(sm) sm.style.display = 'block';
-    }, 3500);
+const params = new URLSearchParams(window.location.search);
+const ID = params.get('id');
+const GID_MENU = "1832483838";
 
-    async function initialize() {
-        if (!SHEET_ID) {
-            showError("Manca l'ID del foglio!<br>Aggiungi ?id=IL_TUO_ID all'URL.");
-            return;
-        }
+let menuData = [];
+let config = {};
+let history = ['MACRO']; // Navigazione
+let state = { macro: null, cat: null, filters: { 'Senza Glutine': false, 'Vegano': false, 'Analcolico': false } };
 
-        try {
-            // 1. Carica Config (GID 0 è il primo foglio)
-            const configData = await fetchGoogleSheet(SHEET_ID, 0);
-            const cfg = {};
-            configData.forEach(row => cfg[row.Parametro] = row.Valore);
-
-            // Applica subito il messaggio di caricamento personalizzato se esiste
-            if(cfg.Loading_Msg) document.getElementById('slow-msg').innerText = cfg.Loading_Msg;
-
-            // 2. Carica Menu (Cerchiamo di intuire il GID del secondo foglio)
-            // Se hai un GID specifico, cambialo qui sotto. Altrimenti il sistema prova a 
-            // caricare il foglio 'Menu' se pubblicato correttamente.
-            const menuGid = "595974812"; // <-- Inserisci qui il tuo GID numerico
-            const menuData = await fetchGoogleSheet(SHEET_ID, menuGid);
-
-            // 3. Costruisci l'universo
-            applyTheme(cfg);
-            renderMenu(menuData, cfg);
-
-            // 4. Libera la vista
-            clearTimeout(slowConnection);
-            hideLoader();
-            initTranslator();
-
-        } catch (err) {
-            showError("Connessione fallita.<br>Verifica che il foglio sia 'Pubblicato sul Web' come CSV.");
-            console.error(err);
-        }
-    }
-
-    async function fetchGoogleSheet(id, gid) {
-        // Forza il download CSV ignorando la cache del browser
-        const url = `https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}&cachebuster=${Date.now()}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Sheet non raggiungibile");
-        const text = await response.text();
-        return new Promise(resolve => {
-            Papa.parse(text, { header: true, skipEmptyLines: true, complete: results => resolve(results.data) });
-        });
-    }
-
-    function applyTheme(cfg) {
-        const root = document.documentElement;
+async function start() {
+    if(!ID) return;
+    try {
+        const cData = await fetchCSV(0);
+        cData.forEach(r => config[r.Parametro] = r.Valore);
+        menuData = await fetchCSV(GID_MENU);
         
-        // Font Dinamico
-        if(cfg.Font_Main) {
-            const link = document.getElementById('dynamic-font');
-            link.href = `https://fonts.googleapis.com/css2?family=${cfg.Font_Main.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
-            document.body.style.fontFamily = `'${cfg.Font_Main}', sans-serif`;
+        applyTheme();
+        
+        // Gestione Layout Mode
+        if(config.Layout_Mode === 'UNICA') {
+            renderUnica();
+        } else {
+            renderMacro();
         }
 
-        // Colori
-        root.style.setProperty('--bg', cfg.App_Bg_Color || '#fff');
-        root.style.setProperty('--text', cfg.Logo_Text_Color || '#000');
-        root.style.setProperty('--accent', cfg.Filter_Active_Color || '#ffcc00');
-        root.style.setProperty('--card', cfg.Card_Bg || '#f9f9f9');
+        document.getElementById('loader').style.display = 'none';
+        initTranslate();
+    } catch (e) { console.error(e); }
+}
 
-        // Header
-        const header = document.getElementById('app-header');
-        let logoHtml = cfg.Logo_Type === 'TEXT' ? `<h1>${cfg.Logo_Text}</h1>` : `<img src="${cfg.Logo_URL}" style="max-height:80px">`;
-        if(cfg.Show_Subtitle === 'SI') logoHtml += `<p style="color:${cfg.Subtitle_Color}; font-weight:${cfg.Subtitle_Weight}">${cfg.App_Subtitle}</p>`;
-        header.innerHTML = logoHtml;
+async function fetchCSV(gid) {
+    const url = `https://docs.google.com/spreadsheets/d/${ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
+    const res = await fetch(url);
+    const text = await res.text();
+    return new Promise(resolve => Papa.parse(text, {header:true, skipEmptyLines:true, complete: r => resolve(r.data)}));
+}
+
+function applyTheme() {
+    const r = document.documentElement;
+    if(config.Font_Main) {
+        document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g, '+')}&display=swap`;
+        document.body.style.fontFamily = config.Font_Main;
     }
+    r.style.setProperty('--bg', config.App_Bg_Color);
+    r.style.setProperty('--accent', config.Filter_Active_Color);
+    r.style.setProperty('--text-main', config.Logo_Text_Color);
 
-    function renderMenu(data, cfg) {
-        const content = document.getElementById('app-content');
-        const categories = [...new Set(data.map(i => i.Categoria))].filter(c => c);
+    const logo = document.getElementById('logo-area');
+    logo.innerHTML = config.Logo_Type === 'TEXT' ? `<h1 style="color:${config.Logo_Text_Color}">${config.Logo_Text}</h1>` : `<img src="${config.Logo_URL}" style="max-height:80px">`;
+}
 
-        categories.forEach(cat => {
-            const section = document.createElement('div');
-            section.className = 'category-section';
-            section.innerHTML = `<div class="category-title">${cat}</div>`;
-            
-            const list = document.createElement('div');
-            list.className = `layout-${cfg.Cat_Layout || 'LIST'}`;
+// NAVIGAZIONE
+function renderMacro() {
+    switchView('view-macro');
+    document.getElementById('btn-back').style.display = 'none';
+    document.getElementById('filter-bar').style.display = 'none';
+    
+    const macros = [...new Set(menuData.map(i => i.Macro))];
+    const list = document.getElementById('macro-list');
+    list.innerHTML = macros.map(m => `
+        <div class="nav-card" onclick="selectMacro('${m}')" style="background-color:${config.Filter_BG_Color}; color:${config.Macro_Text_Color}; font-size:${config.Macro_Text_Size}">
+            <span>${m}</span>
+        </div>
+    `).join('');
+}
 
-            data.filter(i => i.Categoria === cat && i.Attivo === 'SI').forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                if(cfg.Show_Cards === 'NO') card.style.boxShadow = 'none';
-                
-                card.innerHTML = `
-                    <div>
-                        <div class="item-name">${item.Nome_IT}</div>
-                        <div class="item-desc">${item.Desc_IT || ''}</div>
-                        ${item.Allerg_IT ? `<div class="item-allergens">⚠️ ${item.Allerg_IT}</div>` : ''}
-                    </div>
-                    <div class="item-price">€${item.Prezzo}</div>
-                `;
-                list.appendChild(card);
-            });
-            section.appendChild(list);
-            content.appendChild(section);
-        });
+function selectMacro(m) {
+    state.macro = m;
+    if(config.Layout_Mode === 'MACRO') {
+        renderCategories();
+    } else { // Se Mode è CATEGORIE o UNICA salta passaggi
+        renderCategories();
     }
+}
 
-    function initTranslator() {
-        const lang = navigator.language.split('-')[0];
-        if (lang === 'it') return;
+function renderCategories() {
+    switchView('view-cat');
+    document.getElementById('btn-back').style.display = 'block';
+    document.getElementById('filter-bar').style.display = 'none';
 
-        window.googleTranslateElementInit = () => {
-            new google.translate.TranslateElement({pageLanguage: 'it', autoDisplay: true}, 'google_translate_element');
-            setTimeout(() => {
-                const sel = document.querySelector('.goog-te-combo');
-                if(sel) { sel.value = lang; sel.dispatchEvent(new Event('change')); }
-            }, 1000);
-        };
-        const s = document.createElement('script');
-        s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        document.head.appendChild(s);
-    }
+    const cats = [...new Set(menuData.filter(i => i.Macro === state.macro).map(i => i.Categoria))];
+    const list = document.getElementById('cat-list');
+    list.innerHTML = cats.map(c => `
+        <div class="nav-card" onclick="selectCat('${c}')" style="background-color:${config.Filter_Active_Color}; color:${config.Text_CatTitle_Color}">
+            <span>${c}</span>
+        </div>
+    `).join('');
+}
 
-    function hideLoader() {
-        const l = document.getElementById('loader');
-        l.style.opacity = '0';
-        setTimeout(() => l.style.display = 'none', 600);
-    }
+function selectCat(c) {
+    state.cat = c;
+    renderItems();
+}
 
-    function showError(msg) {
-        document.getElementById('loader-text').innerHTML = `⚠️ ${msg}`;
-        document.querySelector('.spinner').style.display = 'none';
-    }
+function renderItems() {
+    switchView('view-items');
+    document.getElementById('btn-back').style.display = 'block';
+    setupFilters();
 
-    // Registrazione Service Worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
+    let items = menuData.filter(i => i.Categoria === state.cat && i.Attivo === 'SI');
+    
+    // Applica Filtri
+    Object.keys(state.filters).forEach(f => {
+        if(state.filters[f]) items = items.filter(i => i[f] === 'SI');
+    });
 
-    window.onload = initialize;
+    const list = document.getElementById('items-list');
+    list.innerHTML = items.map(i => `
+        <div class="item-card" style="background:${config.Card_Bg}; color:${config.Logo_Text_Color}; box-shadow:${config.Show_Cards === 'SI' ? '0 4px 10px rgba(0,0,0,0.1)' : 'none'}">
+            <div style="font-weight:bold; font-size:1.1rem; color:${config.Logo_Text_Color}">${i.Nome_IT}</div>
+            <div style="font-size:0.85rem; margin:5px 0; opacity:0.8; color:${config.Subtitle_Color}">${i.Desc_IT}</div>
+            <div style="color:red; font-size:0.75rem">${i.Allerg_IT || ''}</div>
+            <div class="item-price" style="color:${config.Filter_Active_Color}">€${i.Prezzo}</div>
+        </div>
+    `).join('');
+}
+
+function setupFilters() {
+    if(config.Show_Filters !== 'SI') return;
+    const bar = document.getElementById('filter-bar');
+    bar.style.display = 'flex';
+    bar.innerHTML = ['Senza Glutine', 'Vegano', 'Analcolico'].map(f => `
+        <button class="filter-btn ${state.filters[f] ? 'active' : ''}" onclick="toggleFilter('${f}')">${f}</button>
+    `).join('');
+}
+
+function toggleFilter(f) {
+    state.filters[f] = !state.filters[f];
+    renderItems();
+}
+
+function goBack() {
+    const current = document.querySelector('.view-container.active').id;
+    if(current === 'view-items') renderCategories();
+    else if(current === 'view-cat') renderMacro();
+}
+
+function switchView(id) {
+    document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+}
+
+function initTranslate() {
+    const lang = navigator.language.split('-')[0];
+    if (lang === 'it') return;
+    window.googleTranslateElementInit = () => {
+        new google.translate.TranslateElement({pageLanguage: 'it'}, 'google_translate_element');
+        setTimeout(() => {
+            const s = document.querySelector('.goog-te-combo');
+            if(s) { s.value = lang; s.dispatchEvent(new Event('change')); }
+        }, 1000);
+    };
+    const s = document.createElement('script'); s.src = "//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.head.appendChild(s);
+}
+
+window.onload = start;
 </script>
 </body>
 </html>
