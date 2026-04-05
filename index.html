@@ -3,57 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Menu Multi-Language</title>
-    <link id="f-link" rel="stylesheet" href="">
+    <title>Ultimate Smart Menu</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        :root { --p: #000; --bg: #fff; --c-bg: #fff; --m-h: 180px; --m-fs: 2rem; --m-c: #fff; }
-        body { margin:0; font-family: sans-serif; background-color: var(--bg); min-height: 100vh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        #bg-layer { position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; background-attachment:fixed; }
+        :root { --p: #0307fc; --bg: #f8f9fa; --c-bg: #fff; --m-h: 200px; --m-fs: 2rem; --m-c: #fff; --f-main: 'Arial'; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; font-family: var(--f-main), sans-serif; background-color: var(--bg); 
+            min-height: 100vh; transition: background 0.5s ease; color: #333;
+        }
+        #bg-layer { position: fixed; inset: 0; z-index: -1; background-size: cover; background-position: center; transition: 0.8s; }
         
-        #loader { position:fixed; inset:0; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; transition: 0.5s; }
-        .spin { width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid var(--p); border-radius:50%; animation: s 1s linear infinite; }
-        @keyframes s { 100% { transform:rotate(360deg); } }
+        /* Loader Divino */
+        #loader { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .spin { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--p); border-radius: 50%; animation: s 1s linear infinite; }
+        @keyframes s { 100% { transform: rotate(360deg); } }
 
-        header { padding: 30px 15px; text-align:center; position:sticky; top:0; z-index:100; transition: 0.3s; }
-        .h-blur { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        /* Header & Logo */
+        header { padding: 40px 20px; text-align: center; position: sticky; top: 0; z-index: 100; transition: 0.3s; }
+        .h-blur { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); box-shadow: 0 4px 30px rgba(0,0,0,0.1); padding: 20px; }
+        #logo-wrap h1 { margin: 0; font-size: var(--l-fs); color: var(--l-c); font-weight: 900; text-transform: uppercase; letter-spacing: -1px; }
+        #logo-wrap img { max-height: 100px; display: block; margin: 0 auto; }
+        #subt { font-size: 0.9rem; margin-top: 10px; font-weight: 500; }
 
-        #logo-wrap h1 { margin:0; font-size: var(--l-fs, 2rem); color: var(--l-c, #000); font-weight:900; text-transform:uppercase; cursor:pointer; }
-        #logo-wrap img { max-height: 80px; display:block; margin:0 auto; cursor:pointer; }
-        #subt { font-size: 0.9rem; margin-top:8px; font-weight: 600; opacity: 0.8; }
+        .container { padding: 20px; max-width: 900px; margin: auto; }
 
-        .container { padding:15px; max-width:800px; margin:auto; }
+        /* Layout Dinamici */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .list { display: flex; flex-direction: column; gap: 15px; }
+
+        /* Card BG Mode (Rettangoli con foto) */
+        .card-bg { 
+            height: var(--h); border-radius: 25px; overflow: hidden; position: relative; 
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .card-bg img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .card-bg .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); z-index: 2; }
+        .card-bg span { position: relative; z-index: 3; color: var(--m-c); font-size: var(--m-fs); font-weight: 900; text-transform: uppercase; text-align: center; padding: 10px; }
+
+        /* Card CLIP Mode (Icone Tonde) */
+        .card-clip { 
+            background: var(--c-bg); border-radius: 20px; padding: 20px; text-align: center; 
+            cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.05); animation: fadeIn 0.5s ease forwards;
+        }
+        .card-clip img { width: 100px; height: 100px; object-fit: cover; border-radius: 50%; margin: 0 auto 15px; border: 4px solid var(--p); }
+        .card-clip b { display: block; font-size: 1.1rem; text-transform: uppercase; color: #222; }
+
+        /* Piatti */
+        .dish-card { 
+            background: var(--c-bg); border-radius: 20px; padding: 15px; display: flex; align-items: center; 
+            margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.04); border: 1px solid #eee;
+        }
+        .dish-img { width: 90px; height: 90px; object-fit: cover; border-radius: 15px; margin-right: 18px; }
+        .dish-info { flex: 1; }
+        .dish-name { font-weight: 800; font-size: 1.2rem; margin: 0; }
+        .dish-desc { font-size: 0.9rem; color: #666; margin: 5px 0; }
+        .dish-price { font-weight: 900; color: var(--p); font-size: 1.3rem; margin-top: 10px; }
+
+        .back-btn { display: inline-flex; align-items: center; padding: 12px 25px; background: #000; color: #fff; border-radius: 50px; font-weight: 700; margin-bottom: 25px; cursor: pointer; text-transform: uppercase; font-size: 0.8rem; }
         
-        /* MACRO E CATEGORIE "BG MODE" */
-        .grid-layout { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
-        .list-layout { display:flex; flex-direction:column; gap:15px; }
-        
-        .full-card { height: var(--m-h); border-radius: 20px; overflow:hidden; position:relative; display:flex; align-items:center; justify-content: center; cursor:pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.1); }
-        .full-card img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-        .full-card .ov { position:absolute; inset:0; background: rgba(0,0,0,0.4); z-index:2; }
-        .full-card span { position:relative; z-index:3; color: var(--m-c); font-size: var(--m-fs); font-weight: 900; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-
-        /* CATEGORIE "CLIP MODE" */
-        .clip-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:15px; }
-        .clip-card { background: var(--c-bg); border-radius: 20px; padding: 15px; text-align:center; cursor:pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .clip-card img { width: 80px; height: 80px; object-fit:cover; border-radius: 50%; margin-bottom:10px; border: 3px solid var(--p); }
-        .clip-card b { display:block; text-transform: uppercase; font-size: 13px; }
-
-        /* DISHES (PIATTI) */
-        .dish-card { background: var(--c-bg); border-radius: 18px; padding:15px; display:flex; align-items:center; margin-bottom:12px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
-        .dish-img { width: 85px; height: 85px; object-fit:cover; border-radius: 15px; margin-right: 15px; }
-        .dish-info { flex:1; }
-        .dish-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 4px; }
-        .dish-desc { font-size: 0.85rem; color: #666; line-height: 1.3; }
-        .dish-price { font-weight: 900; color: var(--p); margin-top: 8px; font-size: 1.15rem; }
-
-        .btn-back { display:inline-flex; align-items:center; padding:10px 20px; background:rgba(0,0,0,0.05); border-radius:50px; font-weight:800; margin-bottom:20px; cursor:pointer; font-size: 13px; text-transform: uppercase; }
-        .ani { animation: slideUp 0.4s ease-out forwards; }
-        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-<div id="loader"><div class="spin"></div></div>
+<div id="loader"><div class="spin"></div><p>Traduzione neurale in corso...</p></div>
 <div id="bg-layer"></div>
 
 <header id="h-main">
@@ -67,57 +83,78 @@
 
 <script>
     const SID = new URLSearchParams(window.location.search).get('id');
-    const LANG = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase(); // IT, ES, EN...
+    const USER_LANG = navigator.language.split('-')[0]; // Rileva lingua (it, en, es, fr...)
     let db = [], cfg = {}, st = { m: null, c: null };
 
-    const cl = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+    // Normalizzazione chiavi per evitare errori di battitura nel foglio
+    const norm = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+
+    // MOTORE DI TRADUZIONE AUTOMATICA
+    async function autoTranslate(text) {
+        if (USER_LANG === 'it' || !text || text === 'https://') return text;
+        try {
+            const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=it&tl=${USER_LANG}&dt=t&q=${encodeURI(text)}`);
+            return res.data[0][0][0];
+        } catch (e) { return text; }
+    }
 
     async function init() {
-        if(!SID) return;
+        if(!SID) return alert("Manca ID Foglio!");
+        const ts = Date.now();
         try {
-            const t = Date.now();
-            const [resC, resM] = await Promise.all([
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${t}`).then(r => r.text()),
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${t}`).then(r => r.text())
+            const [csvC, csvM] = await Promise.all([
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`).then(r => r.text()),
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`).then(r => r.text())
             ]);
 
-            // Config Parsing (Robust)
-            resC.split('\n').forEach(row => {
-                const cells = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                if(cells.length >= 2) cfg[cl(cells[0])] = cells[1];
+            // Parse Config
+            csvC.split('\n').forEach(row => {
+                const parts = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                if(parts.length >= 2) cfg[norm(parts[0])] = parts[1];
             });
 
-            // Menu Parsing
-            const rowsM = resM.split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
-            const headerM = rowsM[0].map(h => cl(h));
-            db = rowsM.slice(1).map(row => {
-                let item = {};
-                headerM.forEach((h, i) => item[h] = row[i]);
-                return item;
-            }).filter(i => cl(i.attivo) === 'si');
+            // Parse Menu & Traduzione Automatica
+            const rowsM = csvM.split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+            const headM = rowsM[0].map(h => norm(h));
+            
+            const rawItems = rowsM.slice(1).map(row => {
+                let obj = {};
+                headM.forEach((h, i) => obj[h] = row[i]);
+                return obj;
+            }).filter(i => norm(i.attivo) === 'si');
 
-            applyStyles();
+            // Traduciamo tutto il database in un colpo solo se necessario
+            if (USER_LANG !== 'it') {
+                for (let item of rawItems) {
+                    item.nomeit = await autoTranslate(item.nomeit);
+                    item.descit = await autoTranslate(item.descit);
+                    item.categoria = await autoTranslate(item.categoria);
+                    item.macro = await autoTranslate(item.macro);
+                }
+            }
+            db = rawItems;
+
+            applyStyle();
             render();
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => document.getElementById('loader').remove(), 500);
+            document.getElementById('loader').style.display = 'none';
         } catch (e) { console.error(e); }
     }
 
-    function applyStyles() {
+    function applyStyle() {
         const s = document.documentElement.style;
-        const bg = document.getElementById('bg-layer');
         const lw = document.getElementById('logo-wrap');
-
-        // Sfondo
-        if(cl(cfg.appbgtype) === 'image' && cfg.appbgimage) {
-            bg.style.backgroundImage = `url('${cfg.appbgimage}')`;
+        
+        // Background logic
+        const bgType = norm(cfg.appbgtype);
+        if(bgType === 'image' && cfg.appbgimage) {
+            document.getElementById('bg-layer').style.backgroundImage = `url('${cfg.appbgimage}')`;
             s.setProperty('--bg', 'transparent');
         } else {
             s.setProperty('--bg', cfg.appbgcolor || '#f8f9fa');
         }
 
-        // Logo
-        if(cl(cfg.logotype) === 'text') {
+        // Logo Logic
+        if(norm(cfg.logotype) === 'text') {
             lw.innerHTML = `<h1 onclick="goHome()">${cfg.logotext || 'MENU'}</h1>`;
             s.setProperty('--l-c', cfg.logotextcolor || '#000');
             s.setProperty('--l-fs', cfg.logotextsize || '2rem');
@@ -125,72 +162,73 @@
             lw.innerHTML = `<img src="${cfg.logourl}" onclick="goHome()">`;
         }
 
-        if(cl(cfg.showsubtitle) === 'si') {
-            document.getElementById('subt').innerText = cfg.appsubtitle || '';
-            document.getElementById('subt').style.color = cfg.subtitlecolor || '#666';
+        // Subtitle
+        if(norm(cfg.showsubtitle) === 'si') {
+            const subt = document.getElementById('subt');
+            subt.innerText = cfg.subtitletext || '';
+            subt.style.color = cfg.subtitlecolor || '#666';
         }
 
-        s.setProperty('--p', cfg.themeprimary || '#000');
+        // CSS Variables da Config
+        s.setProperty('--p', cfg.themeprimary || '#0307fc');
         s.setProperty('--c-bg', cfg.cardbg || '#fff');
-        s.setProperty('--m-h', cfg.macroheight || '180px');
+        s.setProperty('--m-h', cfg.macroheight || '200px');
         s.setProperty('--m-fs', cfg.macrotextsize || '2rem');
         s.setProperty('--m-c', cfg.macrotextcolor || '#fff');
+        if(cfg.fontmain) s.setProperty('--f-main', cfg.fontmain);
     }
 
     function render() {
-        const out = document.getElementById('view');
-        const mode = (cfg.layoutmode || 'CATEGORIE').toUpperCase();
-        out.innerHTML = '';
+        const view = document.getElementById('view');
+        const mode = norm(cfg.layoutmode);
+        view.innerHTML = '';
 
-        // TRADUZIONE DINAMICA: Cerca Nome_ES se lingua è ES, altrimenti Nome_IT
-        const getT = (item, field) => {
-            const key = cl(field + '_' + LANG);
-            const fallback = cl(field + '_it');
-            return item[key] || item[fallback] || item[cl(field)];
-        };
-
-        if(mode === 'MACRO' && !st.m) {
-            const macros = [...new Set(db.map(i => i.macro).filter(m => m))];
-            let h = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid-layout' : 'list-layout'} ani">`;
-            macros.forEach(m => {
-                const img = db.find(i => i.macro === m && i.catfotourl)?.catfotourl || '';
-                h += `<div class="full-card" onclick="st.m='${m}';render()"><img src="${img}"><div class="ov"></div><span>${m}</span></div>`;
+        if(mode === 'macro' && !st.m) {
+            const ms = [...new Set(db.map(i => i.macro))];
+            let html = `<div class="${norm(cfg.macrolayout) === 'grid' ? 'grid' : 'list'}">`;
+            ms.forEach(m => {
+                const img = db.find(i => i.macro === m && i.fotourl)?.fotourl || '';
+                html += `<div class="card-bg" style="--h: var(--m-h)" onclick="st.m='${m}';render()">
+                            <img src="${img}"><div class="overlay"></div><span>${m}</span>
+                         </div>`;
             });
-            out.innerHTML = h + '</div>';
+            view.innerHTML = html + '</div>';
         } 
-        else if((mode === 'MACRO' && st.m && !st.c) || (mode !== 'MACRO' && !st.c)) {
+        else if((mode === 'macro' && st.m && !st.c) || (mode !== 'macro' && !st.c)) {
             const filtered = st.m ? db.filter(i => i.macro === st.m) : db;
             const cats = [...new Set(filtered.map(i => i.categoria))];
-            const useClip = cl(cfg.catlayoutmode) === 'clip';
+            const isClip = norm(cfg.catlayoutmode) === 'clip';
 
-            let h = st.m ? `<div class="btn-back" onclick="st.m=null;render()">← Menu</div>` : '';
-            h += `<div class="${useClip ? 'clip-grid' : (cl(cfg.catlayout) === 'grid' ? 'grid-layout' : 'list-layout')} ani">`;
+            let html = st.m ? `<div class="back-btn" onclick="st.m=null;render()">← Torna Indietro</div>` : '';
+            html += `<div class="${isClip ? 'grid' : (norm(cfg.catlayout) === 'grid' ? 'grid' : 'list')}">`;
             
             cats.forEach(c => {
-                const img = filtered.find(i => i.categoria === c && i.catfotourl)?.catfotourl || '';
-                if(useClip) {
-                    h += `<div class="clip-card" onclick="st.c='${c}';render()"><img src="${img}"><b>${c}</b></div>`;
+                const img = filtered.find(i => i.categoria === c && i.fotourl)?.fotourl || '';
+                if(isClip) {
+                    html += `<div class="card-clip" onclick="st.c='${c}';render()"><img src="${img}"><b>${c}</b></div>`;
                 } else {
-                    h += `<div class="full-card" style="height:${cfg.catheight || '120px'}" onclick="st.c='${c}';render()"><img src="${img}"><div class="ov"></div><span>${c}</span></div>`;
+                    html += `<div class="card-bg" style="--h: ${cfg.catheight || '120px'}" onclick="st.c='${c}';render()">
+                                <img src="${img}"><div class="overlay"></div><span>${c}</span>
+                             </div>`;
                 }
             });
-            out.innerHTML = h + '</div>';
+            view.innerHTML = html + '</div>';
         } 
         else {
             const items = db.filter(i => i.categoria === st.c);
-            let h = `<div class="btn-back" onclick="st.c=null;render()">← ${st.c}</div><div class="ani">`;
+            let html = `<div class="back-btn" onclick="st.c=null;render()">← ${st.c}</div>`;
             items.forEach(i => {
-                const price = (i.prezzo || '0').toString().replace(':', '.');
-                h += `<div class="dish-card">
-                    ${i.fotourl ? `<img src="${i.fotourl}" class="dish-img">` : ''}
+                const p = i.prezzo ? i.prezzo.replace(':', '.') : '0';
+                html += `<div class="dish-card">
+                    ${i.fotourl && i.fotourl !== 'https://' ? `<img src="${i.fotourl}" class="dish-img">` : ''}
                     <div class="dish-info">
-                        <div class="dish-name">${getT(i, 'nome')}</div>
-                        <div class="dish-desc">${getT(i, 'desc')}</div>
-                        <div class="dish-price">${price}€</div>
+                        <div class="dish-name">${i.nomeit}</div>
+                        <div class="dish-desc">${i.descit || ''}</div>
+                        <div class="dish-price">${p}€</div>
                     </div>
                 </div>`;
             });
-            out.innerHTML = h + '</div>';
+            view.innerHTML = html;
         }
     }
 
