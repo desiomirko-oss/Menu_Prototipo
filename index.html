@@ -3,73 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PWA Master Engine</title>
+    <title>PWA Master V5</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link id="dynamic-font" rel="stylesheet">
     <style>
-        :root { --accent: #ffcc00; --bg: #000; --text: #fff; }
+        :root { --accent: #ffcc00; --bg: #0307fc; --text: #fff; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; transition: 0.3s; }
         #loader { position: fixed; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 10000; }
         .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        header { padding: 15px; text-align: center; sticky: top; z-index: 100; background: inherit; }
-        .nav-ui { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; }
-        #btn-back { border: none; background: var(--accent); color: #000; padding: 10px 18px; border-radius: 12px; font-weight: bold; cursor: pointer; visibility: hidden; font-family: inherit; }
-        .view { display: none; padding: 15px; animation: fadeIn 0.4s ease; }
+        
+        header { padding: 15px; text-align: center; position: sticky; top: 0; z-index: 100; background: inherit; }
+        .nav-ui { display: flex; justify-content: space-between; align-items: center; padding: 0 15px; height: 45px; }
+        #btn-back { border: none; background: var(--accent); color: #000; padding: 8px 15px; border-radius: 10px; font-weight: bold; cursor: pointer; visibility: hidden; }
+
+        .view { display: none; padding: 15px; animation: slideUp 0.4s ease; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        .grid { display: grid; gap: 15px; }
-        .m-card { border-radius: 25px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .m-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.45); }
-        .m-txt { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; }
-        .c-card { padding: 25px; border-radius: 20px; text-align: center; font-weight: bold; text-transform: uppercase; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .p-card { padding: 20px; border-radius: 22px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.15); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Macro Cards */
+        .m-grid { display: grid; gap: 15px; }
+        .m-card { border-radius: 25px; overflow: hidden; position: relative; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .m-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+        .m-title { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; }
+
+        /* Cat Cards */
+        .c-grid { display: grid; gap: 12px; }
+        .c-card { padding: 25px; border-radius: 15px; text-align: center; font-weight: bold; text-transform: uppercase; cursor: pointer; }
+
+        /* Item Cards */
+        .p-card { padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
         #filter-bar { display: none; gap: 8px; padding: 10px; overflow-x: auto; justify-content: center; }
-        .f-btn { padding: 8px 16px; border: none; border-radius: 25px; font-size: 0.8rem; cursor: pointer; font-family: inherit; }
-        .f-btn.active { background: var(--accent) !important; color: #000 !important; font-weight: bold; }
+        .f-btn { padding: 6px 15px; border: none; border-radius: 20px; font-size: 0.75rem; cursor: pointer; }
+        .f-btn.active { background: var(--accent) !important; color: #000 !important; }
     </style>
 </head>
 <body>
     <div id="loader"><div class="spinner"></div></div>
+    
     <header>
-        <div id="brand"></div>
+        <div id="logo-wrap"></div>
         <div class="nav-ui">
-            <button id="btn-back" onclick="goBack()">INDIETRO</button>
-            <div id="v-title" style="font-weight: 900; letter-spacing: 1px;"></div>
+            <button id="btn-back" onclick="goBack()">← INDIETRO</button>
+            <div id="view-name" style="font-weight: 900;"></div>
             <div style="width:50px"></div>
         </div>
         <div id="filter-bar"></div>
     </header>
+
     <main>
-        <div id="v1" class="view"><div id="g1" class="grid"></div></div>
-        <div id="v2" class="view"><div id="g2" class="grid"></div></div>
-        <div id="v3" class="view"><div id="l3"></div></div>
+        <div id="v-macro" class="view"><div id="g-macro" class="m-grid"></div></div>
+        <div id="v-cat" class="view"><div id="g-cat" class="c-grid"></div></div>
+        <div id="v-items" class="view"><div id="l-items"></div></div>
     </main>
+
 <script>
-const p = new URLSearchParams(window.location.search);
-const ID = p.get('id');
-const GID_MENU = "1832483838"; // CONTROLLA SEMPRE IL GID DEL FOGLIO MENU
+const urlP = new URLSearchParams(window.location.search);
+const ID = urlP.get('id');
+const GID_M = "1832483838"; 
 
-let db = [], cfg = {}, state = { m: null, c: null, f: {} };
+let fullMenu = [];
+let cfg = {};
+let nav = { macro: null, cat: null, f: {} };
 
-async function start() {
+async function boot() {
     if(!ID) return;
-    const cR = await load(0);
-    cR.forEach(r => cfg[r.Parametro] = r.Valore);
-    db = await load(GID_MENU);
-    initUI();
-    if(cfg.Layout_Mode === 'MACRO') renderL1(); else renderL2(null);
+    const cData = await loadCSV(0);
+    cData.forEach(r => cfg[r.Parametro] = r.Valore);
+    fullMenu = await loadCSV(GID_M);
+    
+    applyVisuals();
+    
+    if(cfg.Layout_Mode === 'MACRO') renderLevel1();
+    else renderLevel2(null);
+
     document.getElementById('loader').style.display = 'none';
 }
 
-async function load(g) {
-    const u = `https://docs.google.com/spreadsheets/d/${ID}/export?format=csv&gid=${g}&t=${Date.now()}`;
+async function loadCSV(gid) {
+    const u = `https://docs.google.com/spreadsheets/d/${ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
     const r = await fetch(u);
     const t = await r.text();
     return new Promise(res => Papa.parse(t, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
 }
 
-function initUI() {
+function applyVisuals() {
     const r = document.documentElement;
     if(cfg.Font_Main) {
         document.getElementById('dynamic-font').href = `https://fonts.googleapis.com/css2?family=${cfg.Font_Main.replace(/ /g, '+')}:wght@400;700;900&display=swap`;
@@ -78,73 +96,79 @@ function initUI() {
     r.style.setProperty('--bg', cfg.App_Bg_Color);
     r.style.setProperty('--accent', cfg.Filter_Active_Color);
     r.style.setProperty('--text', cfg.Logo_Text_Color);
-    document.getElementById('brand').innerHTML = cfg.Logo_Type === 'TEXT' ? `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; margin:0">${cfg.Logo_Text}</h1>` : `<img src="${cfg.Logo_URL}" style="max-height:60px">`;
+
+    const logo = document.getElementById('logo-wrap');
+    logo.innerHTML = cfg.Logo_Type === 'TEXT' ? `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; margin:0">${cfg.Logo_Text}</h1>` : `<img src="${cfg.Logo_URL}" style="max-height:60px">`;
 }
 
-function renderL1() {
-    sw('v1');
+function renderLevel1() {
+    showV('v-macro');
     document.getElementById('btn-back').style.visibility = 'hidden';
-    document.getElementById('v-title').innerText = "SELEZIONA";
-    const ms = [...new Set(db.map(i => i.Macro))].filter(m => m);
-    const g = document.getElementById('g1');
+    document.getElementById('view-name').innerText = "SCEGLI";
+    const macros = [...new Set(fullMenu.map(i => i.Macro))].filter(m => m);
+    const g = document.getElementById('g-macro');
     g.style.gridTemplateColumns = cfg.Macro_Layout === 'GRID' ? '1fr 1fr' : '1fr';
-    g.innerHTML = ms.map(m => {
+    g.innerHTML = macros.map(m => {
         const img = m.toUpperCase().includes('BEV') ? cfg.Macro_Img_Bevande : cfg.Macro_Img_Cibo;
-        return `<div class="m-card" onclick="toL2('${m}')" style="height:${cfg.Macro_Height}; background-image:url('${img}')">
+        return `<div class="m-card" onclick="goToL2('${m}')" style="height:${cfg.Macro_Height}; background-image:url('${img}')">
             <div class="m-overlay"></div>
-            <div class="m-txt" style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}">${m}</div>
+            <div class="m-title" style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}">${m}</div>
         </div>`;
     }).join('');
 }
 
-function toL2(m) { state.m = m; renderL2(m); }
+function goToL2(m) { nav.macro = m; renderLevel2(m); }
 
-function renderL2(m) {
-    sw('v2');
+function renderLevel2(m) {
+    showV('v-cat');
     document.getElementById('btn-back').style.visibility = 'visible';
-    document.getElementById('v-title').innerText = m || "MENU";
-    const fil = m ? db.filter(i => i.Macro === m) : db;
-    const cs = [...new Set(fil.map(i => i.Categoria))].filter(c => c);
-    const g = document.getElementById('g2');
+    document.getElementById('view-name').innerText = m || "MENU";
+    const filtered = m ? fullMenu.filter(i => i.Macro === m) : fullMenu;
+    const cats = [...new Set(filtered.map(i => i.Categoria))].filter(c => c);
+    const g = document.getElementById('g-cat');
     g.style.gridTemplateColumns = cfg.Cat_Layout === 'GRID' ? '1fr 1fr' : '1fr';
-    g.innerHTML = cs.map(c => `<div class="c-card" onclick="toL3('${c}')" style="background:${cfg.Filter_Active_Color}; color:${cfg.Text_CatTitle_Color}">${c}</div>`).join('');
+    g.innerHTML = cats.map(c => `<div class="c-card" onclick="goToL3('${c}')" style="background:${cfg.Filter_Active_Color}; color:${cfg.Text_CatTitle_Color}">${c}</div>`).join('');
 }
 
-function toL3(c) { state.c = c; renderL3(); }
+function goToL3(c) { nav.cat = c; renderLevel3(); }
 
-function renderL3() {
-    sw('v3');
-    document.getElementById('v-title').innerText = state.c;
-    const fb = document.getElementById('filter-bar');
+function renderLevel3() {
+    showV('v-items');
+    document.getElementById('view-name').innerText = nav.cat;
     if(cfg.Show_Filters === 'SI') {
+        const fb = document.getElementById('filter-bar');
         fb.style.display = 'flex';
-        fb.innerHTML = ['Senza Glutine', 'Vegano', 'Analcolico'].map(f => `<button class="f-btn ${state.f[f]?'active':''}" style="background:${cfg.Filter_BG_Color}; color:#fff" onclick="togF('${f}')">${f}</button>`).join('');
+        fb.innerHTML = ['Senza Glutine', 'Vegano', 'Analcolico'].map(f => `
+            <button class="f-btn ${nav.f[f] ? 'active' : ''}" style="background:${cfg.Filter_BG_Color}" onclick="toggleF('${f}')">${f}</button>
+        `).join('');
     }
-    let is = db.filter(i => i.Categoria === state.c && i.Attivo === 'SI');
-    Object.keys(state.f).forEach(f => { if(state.f[f]) is = is.filter(i => i[f] === 'SI'); });
-    document.getElementById('l3').innerHTML = is.map(i => `
-        <div class="p-card" style="background:${cfg.Card_Bg}; box-shadow:${cfg.Show_Cards==='SI'?'0 10px 25px rgba(0,0,0,0.3)':'none'}">
-            <div style="font-weight:900; color:${cfg.Card_Name_Color}">${i.Nome_IT}</div>
-            <div style="font-size:0.9rem; margin:8px 0; color:${cfg.Card_Desc_Color}; opacity:0.8">${i.Desc_IT || ''}</div>
-            <div style="color:${cfg.Card_Allerg_Color}; font-size:0.75rem; font-style:italic">${i.Allerg_IT || ''}</div>
-            <div style="color:${cfg.Filter_Active_Color}; font-weight:900; font-size:1.3rem; margin-top:12px">€${i.Prezzo}</div>
+    let items = fullMenu.filter(i => i.Categoria === nav.cat && i.Attivo === 'SI');
+    Object.keys(nav.f).forEach(f => { if(nav.f[f]) items = items.filter(i => i[f] === 'SI'); });
+    document.getElementById('l-items').innerHTML = items.map(i => `
+        <div class="p-card" style="background:${cfg.Card_Bg}; box-shadow:${cfg.Show_Cards === 'SI' ? '0 10px 20px rgba(0,0,0,0.1)' : 'none'}">
+            <div style="font-weight:900; color:${cfg.Card_Name_Color || '#fff'}">${i.Nome_IT}</div>
+            <div style="font-size:0.85rem; margin:8px 0; color:${cfg.Card_Desc_Color || '#ccc'}">${i.Desc_IT || ''}</div>
+            <div style="color:${cfg.Card_Allerg_Color || 'red'}; font-size:0.7rem; font-style:italic">${i.Allerg_IT || ''}</div>
+            <div style="color:${cfg.Filter_Active_Color}; font-weight:900; font-size:1.2rem; margin-top:10px">€${i.Prezzo}</div>
         </div>`).join('');
 }
 
-function togF(f) { state.f[f] = !state.f[f]; renderL3(); }
+function toggleF(f) { nav.f[f] = !nav.f[f]; renderLevel3(); }
 
 function goBack() {
     const a = document.querySelector('.view.active').id;
-    if(a === 'v3') renderL2(state.m); else if(a === 'v2') renderL1();
+    if(a === 'v-items') renderLevel2(nav.macro);
+    else if(a === 'v-cat') renderLevel1();
 }
 
-function sw(id) {
+function showV(id) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     document.getElementById('filter-bar').style.display = 'none';
     window.scrollTo(0,0);
 }
-window.onload = start;
+
+window.onload = boot;
 </script>
 </body>
 </html>
