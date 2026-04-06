@@ -3,267 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PWA Menu - Professional Master</title>
+    <title>Menu Celestiale PWA</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
     <link id="dynamic-fonts" rel="stylesheet">
 
     <style>
         :root { --accent: #f4fc03; --bg: #e8e8e8; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; min-height: 100vh; background-attachment: fixed; transition: 0.3s; overflow-x: hidden; color: #333; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
-        /* Loader: Solo Spinner, No Logo come richiesto */
-        #master-loader { position: fixed; inset: 0; z-index: 10000; background: var(--bg); display: flex; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid rgba(0,0,0,0.1); border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+        body { 
+            margin: 0; min-height: 100vh; background-attachment: fixed; 
+            transition: 0.3s ease; overflow-x: hidden; font-family: sans-serif;
+        }
+
+        /* Loader - Solo Spinner */
+        #loader { 
+            position: fixed; inset: 0; z-index: 9999; background: var(--bg); 
+            display: flex; align-items: center; justify-content: center; 
+        }
+        .spinner { 
+            width: 50px; height: 50px; border: 5px solid rgba(0,0,0,0.1); 
+            border-top: 5px solid var(--accent); border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 900; background: inherit; }
-        #app-subtitle { transition: 0.3s; }
+        /* Header */
+        header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; background: inherit; }
+        #app-logo img { width: auto; transition: 0.3s; }
+        #app-subtitle { margin-top: 10px; transition: 0.3s; }
 
-        .nav-ui { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 10px auto; padding: 0 15px; }
-        .back-btn { border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        /* Navigazione */
+        .nav-bar { 
+            display: flex; justify-content: space-between; align-items: center; 
+            max-width: 600px; margin: 15px auto 0; padding: 0 15px; 
+        }
+        #btn-back { 
+            border: none; padding: 10px 20px; border-radius: 12px; 
+            font-weight: 900; cursor: pointer; opacity: 0; pointer-events: none;
+            transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        #btn-back.visible { opacity: 1; pointer-events: auto; }
 
-        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.4s ease; }
+        /* View Container */
+        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeUp 0.4s ease; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .list { display: flex; flex-direction: column; gap: 15px; }
 
-        .clip-card { 
-            border-radius: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-            background-size: cover; background-position: center; box-shadow: 0 8px 20px rgba(0,0,0,0.2); cursor: pointer; transition: 0.2s;
+        /* Card Macro e Categorie */
+        .card-link {
+            border-radius: 20px; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            background-size: cover; background-position: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
         }
-        .clip-card:active { transform: scale(0.97); }
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
-        .clip-txt { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+        .card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
+        .card-label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; padding: 10px; }
 
-        .p-card { padding: 20px; border-radius: 25px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); }
-        .p-img { width: 100%; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        /* Card Piatti */
+        .p-card { 
+            padding: 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); margin-bottom: 10px;
+        }
+        .p-img { width: 100%; border-radius: 15px; margin-bottom: 15px; object-fit: cover; }
+        .p-price { font-weight: 900; margin-top: 10px; }
 
+        /* Filtri */
         #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px; overflow-x: auto; }
-        .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; }
+        .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
 
-        #btn-top { position: fixed; width: 50px; height: 50px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 1000; font-size: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        /* Torna Su */
+        #btn-top {
+            position: fixed; width: 50px; height: 50px; border-radius: 50%;
+            border: none; cursor: pointer; display: none; align-items: center; justify-content: center;
+            z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 20px;
+        }
         
-        .ar-btn { background: #000; color: #fff; border: none; padding: 10px 20px; border-radius: 50px; font-size: 0.8rem; cursor: pointer; margin-top: 15px; display: inline-flex; align-items: center; gap: 8px; }
+        .ar-btn {
+            background: #000; color: #fff; border: none; padding: 10px 20px;
+            border-radius: 50px; font-size: 0.8rem; margin-top: 15px; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 8px; font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <div id="master-loader"><div class="spinner"></div></div>
+    <div id="loader"><div class="spinner"></div></div>
 
     <header>
         <div id="app-logo"></div>
         <div id="app-subtitle"></div>
-        <div class="nav-ui">
-            <button id="btn-back" class="back-btn" onclick="goBack()">←</button>
-            <div id="v-title" style="font-weight: 900; text-transform: uppercase;"></div>
-            <div style="width:40px"></div>
+        
+        <div class="nav-bar">
+            <button id="btn-back" onclick="goBack()">← INDIEETRO</button>
+            <div id="page-title" style="font-weight: 900; text-transform: uppercase;"></div>
+            <div style="width: 40px;"></div>
         </div>
+
         <div id="filter-bar"></div>
     </header>
 
     <main>
-        <div id="v-macro" class="view"></div>
-        <div id="v-cat" class="view"></div>
-        <div id="v-items" class="view"></div>
+        <div id="view-macro" class="view"></div>
+        <div id="view-cat" class="view"></div>
+        <div id="view-items" class="view"></div>
     </main>
 
     <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
 
 <script>
-    const params = new URLSearchParams(window.location.search);
-    const SHEET_ID = params.get('id');
-    const GID_MENU = "1832483838"; // Se cambi foglio, verifica questo ID
+    const urlParams = new URLSearchParams(window.location.search);
+    const SHEET_ID = urlParams.get('id');
+    const GID_MENU = "1832483838"; 
 
-    let menuData = [], config = {}, state = { step: 'macro', m: null, c: null, filters: {} };
+    let db = [], cfg = {}, state = { step: 'macro', m: null, c: null, filters: {} };
 
-    // Helper per pulire i dati (God Mode)
-    const clean = (str) => str ? str.toString().trim() : "";
-    const isYes = (str) => {
-        const s = clean(str).toUpperCase();
-        return s === "SI" || s === "SÌ" || s === "Sì" || s === "YES";
-    };
+    // Funzioni Utility
+    const _c = (s) => s ? s.toString().trim() : "";
+    const _is = (s) => ["SI", "SÌ", "YES"].includes(_c(s).toUpperCase());
 
     async function init() {
-        if(!SHEET_ID) { alert("Manca ID Foglio nell'URL!"); return; }
+        if(!SHEET_ID) { document.body.innerHTML = "<h2 style='text-align:center;padding:50px;'>Manca l'ID del foglio nell'URL!</h2>"; return; }
         
-        const [cRaw, mRaw] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+        const [rawCfg, rawMenu] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
         
-        cRaw.forEach(r => config[clean(r.Parametro)] = clean(r.Valore));
-        menuData = mRaw.map(row => {
-            let newRow = {};
-            Object.keys(row).forEach(k => newRow[clean(k)] = clean(row[k]));
-            return newRow;
+        rawCfg.forEach(r => cfg[_c(r.Parametro)] = _c(r.Valore));
+        db = rawMenu.map(r => {
+            let row = {};
+            Object.keys(r).forEach(k => row[_c(k)] = _c(r[k]));
+            return row;
         });
 
-        applyUI();
-        
-        // Decidi da dove partire (Layout_Mode)
-        if(config.Layout_Mode === 'CATEGORIE') renderCat(true);
-        else renderMacro();
+        applyStyles();
+        startApp();
 
-        setTimeout(() => {
-            document.getElementById('master-loader').style.display = 'none';
-            setupPWA();
-        }, parseInt(config.Loader_Time) || 2000);
+        setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(cfg.Loader_Time) || 1500);
     }
 
     async function fetchCSV(gid) {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
-        const res = await fetch(url);
-        const text = await res.text();
-        return new Promise(res => Papa.parse(text, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
+        const r = await fetch(url);
+        const t = await r.text();
+        return new Promise(res => Papa.parse(t, {header:true, skipEmptyLines:true, complete: results => res(results.data)}));
     }
 
-    function applyUI() {
-        const body = document.body;
+    function applyStyles() {
         const root = document.documentElement;
+        const body = document.body;
+
+        // Background
+        root.style.setProperty('--bg', cfg.App_Bg_Color);
+        root.style.setProperty('--accent', cfg.Filter_Active_Color || '#f4fc03');
         
-        // 1. Sfondo
-        root.style.setProperty('--bg', config.App_Bg_Color);
-        root.style.setProperty('--accent', config.Filter_Active_Color);
-        if(config.App_Bg_Type === 'IMAGE' && config.App_Bg_Image) {
-            body.style.backgroundImage = `url('${config.App_Bg_Image}')`;
-            body.style.backgroundSize = config.App_Bg_Size;
-            body.style.backgroundPosition = config.App_Bg_Pos;
+        if(cfg.App_Bg_Type?.toUpperCase() === 'IMAGE' && cfg.App_Bg_Image) {
+            body.style.backgroundImage = `url('${cfg.App_Bg_Image}')`;
+            body.style.backgroundSize = cfg.App_Bg_Size;
+            body.style.backgroundPosition = cfg.App_Bg_Pos;
         } else {
-            body.style.backgroundColor = config.App_Bg_Color;
+            body.style.backgroundColor = cfg.App_Bg_Color;
         }
 
-        // 2. Font
-        document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g,'+')}&family=${config.Subtitle_Font.replace(/ /g,'+')}&display=swap`;
-        body.style.fontFamily = `'${config.Font_Main}', sans-serif`;
+        // Font
+        const f1 = cfg.Font_Main || 'Montserrat';
+        const f2 = cfg.Subtitle_Font || 'Montserrat';
+        document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${f1.replace(/ /g,'+')}&family=${f2.replace(/ /g,'+')}&display=swap`;
+        body.style.fontFamily = `'${f1}', sans-serif`;
 
-        // 3. Logo & Sottotitolo
-        const logoHTML = (config.Logo_Type === 'IMAGE' && config.Logo_URL) 
-            ? `<img src="${config.Logo_URL}" style="max-height:80px">`
-            : `<h1 style="color:${config.Logo_Text_Color}; font-size:${config.Logo_Text_Size}; margin:0">${config.Logo_Text}</h1>`;
-        document.getElementById('app-logo').innerHTML = logoHTML;
+        // Logo
+        const logoDiv = document.getElementById('app-logo');
+        if(cfg.Logo_Type === 'IMAGE' && cfg.Logo_URL) {
+            const h = cfg.Logo_Img_Size || '80px';
+            logoDiv.innerHTML = `<img src="${cfg.Logo_URL}" style="height:${h}; max-width:90vw;">`;
+        } else {
+            logoDiv.innerHTML = `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; margin:0;">${cfg.Logo_Text}</h1>`;
+        }
 
+        // Sottotitolo
         const sub = document.getElementById('app-subtitle');
-        sub.innerText = config.App_Subtitle;
-        sub.style.cssText = `color:${config.Subtitle_Color}; font-family:'${config.Subtitle_Font}'; font-size:${config.Subtitle_Size}; text-align:${config.Subtitle_Align}; margin-top:${config.Subtitle_Margin};`;
+        sub.innerText = cfg.App_Subtitle;
+        sub.style.cssText = `color:${cfg.Subtitle_Color}; font-size:${cfg.Subtitle_Size}; font-family:'${f2}'; text-align:${cfg.Subtitle_Align}; margin-top:${cfg.Subtitle_Margin}; display:${_is(cfg.Show_Subtitle)?'block':'none'}`;
 
-        // 4. Torna Su (Posizionamento dinamico)
+        // Pulsante Torna Su
         const bTop = document.getElementById('btn-top');
-        bTop.style.background = config.Btn_Top_Bg;
-        bTop.style.color = config.Btn_Top_Simbol_Color;
-        if(config.Btn_Top_Aling.includes('center')) bTop.style.left = 'calc(50% - 25px)';
+        bTop.style.background = cfg.Btn_Top_Bg;
+        bTop.style.color = cfg.Btn_Top_Simbol_Color;
+        if(cfg.Btn_Top_Aling?.includes('center')) bTop.style.left = 'calc(50% - 25px)';
         else bTop.style.right = '20px';
     }
 
-    // --- LOGICA VISTE ---
+    function startApp() {
+        const mode = cfg.Layout_Mode?.toUpperCase();
+        if(mode === 'CATEGORIE') {
+            state.step = 'cat';
+            renderCat(true);
+        } else if(mode === 'UNICA') {
+            state.step = 'items';
+            renderItems(true);
+        } else {
+            state.step = 'macro';
+            renderMacro();
+        }
+    }
+
+    // --- RENDERING ---
 
     function renderMacro() {
-        showV('v-macro');
-        const macros = [...new Set(menuData.map(i => i.Macro))].filter(Boolean);
-        const container = document.getElementById('v-macro');
-        container.className = `view active ${config.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
+        switchView('view-macro');
+        const macros = [...new Set(db.map(i => i.Macro))].filter(Boolean);
+        const container = document.getElementById('view-macro');
+        container.className = `view active ${cfg.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
         
         container.innerHTML = macros.map(m => {
-            const img = m.toUpperCase().includes('BEV') ? config.Macro_Img_Bevande : config.Macro_Img_Cibo;
+            const isBev = m.toUpperCase().includes('BEV');
+            const img = isBev ? cfg.Macro_Img_Bevande : cfg.Macro_Img_Cibo;
             return `
-            <div class="clip-card" onclick="selM('${m}')" style="height:${config.Macro_Height}; background-image:url('${img}')">
-                <div class="overlay"></div>
-                <div class="clip-txt" style="color:${config.Macro_Text_Color}; font-size:${config.Macro_Text_Size}">${m}</div>
-            </div>`;
+                <div class="card-link" onclick="selectM('${m}')" style="height:${cfg.Macro_Height}; background-image:url('${img}')">
+                    <div class="card-overlay"></div>
+                    <div class="card-label" style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}">${m}</div>
+                </div>`;
         }).join('');
     }
 
-    function selM(m) { state.m = m; state.step = 'cat'; renderCat(); }
+    function selectM(m) { state.m = m; state.step = 'cat'; renderCat(); }
 
-    function renderCat(direct = false) {
-        showV('v-cat');
-        let filtered = direct ? menuData : menuData.filter(i => i.Macro === state.m);
+    function renderCat(all = false) {
+        switchView('view-cat');
+        let filtered = all ? db : db.filter(i => i.Macro === state.m);
         const cats = [...new Set(filtered.map(i => i.Categoria))];
-        const container = document.getElementById('v-cat');
-        container.className = `view active ${config.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
+        const container = document.getElementById('view-cat');
+        container.className = `view active ${cfg.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
 
         container.innerHTML = cats.map(c => {
-            const info = filtered.find(i => i.Categoria === c);
-            const img = isYes(config.Cat_Img_Show) ? (info.Cat_Img || '') : '';
+            const item = filtered.find(i => i.Categoria === c);
+            const img = _is(cfg.Cat_Img_Show) ? (item.Cat_Img || '') : '';
             return `
-            <div class="clip-card" onclick="selC('${c}')" style="height:120px; background-image:url('${img}'); background-color:${config.Filter_Active_Color}">
-                ${img ? '<div class="overlay"></div>' : ''}
-                <div class="clip-txt" style="color:${config.Text_CatTitle_Color}">${c}</div>
-            </div>`;
+                <div class="card-link" onclick="selectC('${c}')" style="height:120px; background-image:url('${img}'); background-color:${cfg.Filter_Active_Color}">
+                    ${img ? '<div class="card-overlay"></div>' : ''}
+                    <div class="card-label" style="color:${cfg.Text_CatTitle_Color}">${c}</div>
+                </div>`;
         }).join('');
     }
 
-    function selC(c) { state.c = c; state.step = 'items'; renderItems(); }
+    function selectC(c) { state.c = c; state.step = 'items'; renderItems(); }
 
-    function renderItems() {
-        showV('v-items');
-        const catInfo = menuData.find(i => i.Categoria === state.c);
-        const container = document.getElementById('v-items');
-        container.className = `view active ${catInfo.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
+    function renderItems(all = false) {
+        switchView('view-items');
+        const container = document.getElementById('view-items');
+        
+        // Layout
+        const first = db.find(i => i.Categoria === state.c) || {};
+        const layout = (all || !first.Cat_Layout) ? (cfg.Cat_Layout || 'LIST') : first.Cat_Layout;
+        container.className = `view active ${layout === 'GRID' ? 'grid' : 'list'}`;
 
-        // Filtri Differenziati
+        // Filtri
         const fb = document.getElementById('filter-bar');
         fb.style.display = 'flex';
-        const fSet = (state.m === 'CIBO' || !state.m) ? ['Senza Glutine', 'Vegano'] : ['Analcolico'];
+        const isBev = state.m?.toUpperCase().includes('BEV');
+        const fSet = isBev ? ['Analcolico'] : ['Senza Glutine', 'Vegano'];
+        
         fb.innerHTML = fSet.map(f => `
-            <button class="f-btn" onclick="togF('${f}')" style="background:${state.filters[f] ? config.Filter_Active_Color : '#ddd'}">${f}</button>
+            <button class="f-btn" onclick="toggleF('${f}')" 
+                style="background:${state.filters[f] ? cfg.Filter_Active_Color : '#ddd'}">${f}</button>
         `).join('');
 
-        let items = menuData.filter(i => i.Categoria === state.c && isYes(i.Attivo));
-        Object.keys(state.filters).forEach(f => { if(state.filters[f]) items = items.filter(i => isYes(i[f])); });
+        let items = all ? db : db.filter(i => i.Categoria === state.c && _is(i.Attivo));
+        Object.keys(state.filters).forEach(f => {
+            if(state.filters[f]) items = items.filter(i => _is(i[f]));
+        });
 
         container.innerHTML = items.map(i => `
-            <div class="p-card" style="background:${config.Card_Bg}">
+            <div class="p-card" style="background:${cfg.Card_Bg}">
                 ${i.Foto_URL ? `<img src="${i.Foto_URL}" class="p-img">` : ''}
-                <div style="font-weight:900; color:${config.Card_Name_Color}; font-size:1.3rem">${i.Nome_IT}</div>
-                <div style="font-size:0.9rem; color:${config.Card_Desc_Color}; margin:5px 0">${i.Desc_IT}</div>
-                <div style="color:${config.Price_Color}; font-size:${config.Price_Size}; text-align:${config.Price_Align}; font-weight:900; margin-top:10px">€${i.Prezzo}</div>
-                ${i.Modello_3d ? `<button class="ar-btn" onclick="window.open('${i.Modello_3d}')">📦 VEDI IN 3D (AR)</button>` : ''}
+                <div style="font-weight:900; color:${cfg.Card_Name_Color}; font-size:1.2rem">${i.Nome_IT}</div>
+                <div style="font-size:0.9rem; color:${cfg.Card_Desc_Color}; margin:5px 0">${i.Desc_IT}</div>
+                <div class="p-price" style="color:${cfg.Price_Color}; font-size:${cfg.Price_Size}; text-align:${cfg.Price_Align}">€${i.Prezzo}</div>
+                ${i.Modello_3d ? `<button class="ar-btn" onclick="window.open('${i.Modello_3d}')">📦 VEDI IN 3D</button>` : ''}
             </div>`).join('');
     }
 
-    function togF(f) { state.filters[f] = !state.filters[f]; renderItems(); }
+    // --- NAVIGAZIONE E LOGICA INDIETRO ---
 
-    function showV(id) {
+    function switchView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        const back = document.getElementById('btn-back');
-        const sub = document.getElementById('app-subtitle');
-        if(id === 'v-macro') {
-            back.style.display = 'none';
-            sub.style.display = 'block';
-            document.getElementById('v-title').innerText = '';
-        } else {
-            back.style.display = 'block';
-            back.style.background = config.Btn_Back_Bg;
-            back.style.color = config.Btn_Back_Text;
-            sub.style.display = 'none';
-            document.getElementById('v-title').innerText = id === 'v-cat' ? state.m : state.c;
+        
+        const mode = cfg.Layout_Mode?.toUpperCase();
+        const btn = document.getElementById('btn-back');
+        const title = document.getElementById('page-title');
+        
+        // Logica Indietro Celestiale
+        let showBack = false;
+        if(mode === 'MACRO') {
+            if(id !== 'view-macro') showBack = true;
+        } else if(mode === 'CATEGORIE') {
+            if(id === 'view-items') showBack = true;
+        } else if(mode === 'UNICA') {
+            showBack = false;
         }
-        document.getElementById('filter-bar').style.display = id === 'v-items' ? 'flex' : 'none';
+
+        if(showBack) {
+            btn.classList.add('visible');
+            btn.style.background = cfg.Btn_Back_Bg;
+            btn.style.color = cfg.Btn_Back_Text;
+        } else {
+            btn.classList.remove('visible');
+        }
+
+        title.innerText = (id === 'view-cat') ? state.m : (id === 'view-items' ? state.c : '');
+        document.getElementById('filter-bar').style.display = (id === 'view-items') ? 'flex' : 'none';
         window.scrollTo(0,0);
     }
 
     function goBack() {
-        if(state.step === 'items') { state.step = 'cat'; renderCat(); }
-        else if(state.step === 'cat') { 
-            if(config.Layout_Mode === 'CATEGORIE') return;
-            state.step = 'macro'; renderMacro(); 
+        const mode = cfg.Layout_Mode?.toUpperCase();
+        if(state.step === 'items') {
+            if(mode === 'UNICA') return;
+            state.step = 'cat';
+            renderCat(mode === 'CATEGORIE');
+        } else if(state.step === 'cat') {
+            if(mode === 'CATEGORIE') return;
+            state.step = 'macro';
+            renderMacro();
         }
     }
 
-    window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 400 ? 'flex' : 'none';
+    function toggleF(f) { state.filters[f] = !state.filters[f]; renderItems(cfg.Layout_Mode === 'UNICA'); }
 
-    function setupPWA() {
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            setTimeout(() => {
-                if(confirm("Vuoi salvare l'App sul tuo telefono per consultare il menu più velocemente?")) e.prompt();
-            }, 3000);
-        });
-    }
-
+    window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 300 ? 'flex' : 'none';
     window.onload = init;
 </script>
 </body>
