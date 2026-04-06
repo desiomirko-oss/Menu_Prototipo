@@ -1,237 +1,222 @@
 <!DOCTYPE html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Smart Menu Ultimate PWA</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <style>
-        :root { --p: #000; --bg: #fff; --c-bg: #fff; --m-h: 200px; --m-fs: 2rem; --m-c: #fff; --f-main: 'Segoe UI', sans-serif; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin:0; font-family: var(--f-main); background-color: var(--bg); min-height: 100vh; color: #222; overflow-x: hidden; }
+    <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+            <title>Menu Omnipotente v6</title>
         
-        #bg-layer { position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; transition: 0.8s ease; }
-        
-        /* Loader con effetto blur */
-        #loader { position:fixed; inset:0; background:rgba(255,255,255,0.9); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; transition: 0.5s; }
-        .spin { width:50px; height:50px; border:4px solid #f3f3f3; border-top:4px solid var(--p); border-radius:50%; animation: s 1s linear infinite; }
-        @keyframes s { 100% { transform:rotate(360deg); } }
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+        <link id="dynamic-fonts" rel="stylesheet">
+    
+        <style>
+                    :root { --accent: #f4fc03; --bg: #ffffff; }
+                    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
-        /* Header Professionale */
-        header { padding: 40px 20px; text-align:center; position:sticky; top:0; z-index:100; transition: 0.3s; }
-        .h-blur { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); box-shadow: 0 4px 30px rgba(0,0,0,0.05); padding: 20px; }
-        
-        #logo-wrap h1 { margin:0; font-size: var(--l-fs, 2.2rem); color: var(--l-c, #000); font-weight:900; text-transform:uppercase; letter-spacing:-1px; cursor:pointer; }
-        #logo-wrap img { max-height: 90px; display:block; margin:0 auto; cursor:pointer; }
-        #subt { font-size: 0.95rem; margin-top:8px; font-weight: 600; color: var(--s-c, #666); }
+                    body { min-height: 100vh; background-attachment: fixed; transition: 0.3s; overflow-x: hidden; font-family: sans-serif; }
 
-        .container { padding:15px; max-width:800px; margin:auto; min-height: 70vh; }
+                    /* Loader */
+                    #loader { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; align-items: center; justify-content: center; }
+                    .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+                    @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Layout Grid & List */
-        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:15px; }
-        .list { display:flex; flex-direction:column; gap:15px; }
+                    header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 1000; background: inherit; }
+                    #app-logo img { height: auto; max-width: 90vw; transition: 0.3s; }
 
-        /* Card Full Background (Macro o Categorie BG) */
-        .card-full { 
-            height: var(--h); border-radius: 25px; overflow:hidden; position:relative; 
-            display:flex; align-items:center; justify-content: center; cursor:pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15); transition: 0.3s;
-        }
-        .card-full:active { transform: scale(0.97); }
-        .card-full img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
-        .card-full .ov { position:absolute; inset:0; background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%); z-index:2; }
-        .card-full span { position:relative; z-index:3; color: var(--m-c); font-size: var(--m-fs); font-weight:900; text-transform:uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.4); text-align:center; padding:10px; }
+                    .nav-bar { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 10px auto; padding: 0 15px; }
+                    #btn-back { border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 
-        /* Card Clip (Icone Circolari) */
-        .card-clip { 
-            background: var(--c-bg); border-radius: 20px; padding: 20px; text-align:center; 
-            cursor:pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.05); transition: 0.3s;
-        }
-        .card-clip img { width: 90px; height: 90px; object-fit:cover; border-radius: 50%; margin: 0 auto 12px; border: 3px solid var(--p); }
-        .card-clip b { display:block; font-size: 1rem; text-transform: uppercase; font-weight: 800; color: #333; }
+                    .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeInUp 0.4s ease; }
+                    .view.active { display: block; }
+                    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Dettaglio Piatti */
-        .dish-card { 
-            background: var(--c-bg); border-radius: 22px; padding: 15px; display:flex; align-items:center; 
-            margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;
-        }
-        .dish-img { width: 85px; height: 85px; object-fit:cover; border-radius: 16px; margin-right: 15px; }
-        .dish-info { flex:1; }
-        .dish-name { font-weight: 800; font-size: 1.15rem; margin:0; color: #111; }
-        .dish-desc { font-size: 0.85rem; color: #777; margin: 4px 0; line-height: 1.3; }
-        .dish-price { font-weight: 900; color: var(--p); font-size: 1.2rem; margin-top: 8px; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+                    .list { display: flex; flex-direction: column; gap: 15px; }
 
-        .back-nav { display:inline-flex; align-items:center; padding:12px 25px; background:rgba(0,0,0,0.07); border-radius:50px; font-weight:800; margin-bottom:20px; cursor:pointer; font-size: 13px; text-transform: uppercase; }
-        
-        .ani { animation: up 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
-        @keyframes up { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
-    </style>
-</head>
-<body>
+                    .card-link { 
+                                    border-radius: 25px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+                                    background-size: cover; background-position: center; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
+                    }
+                    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+                    .label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; }
 
-<div id="loader"><div class="spin"></div><p id="l-msg" style="margin-top:15px; font-weight:bold;">Sincronizzazione...</p></div>
-<div id="bg-layer"></div>
+                    .p-card { padding: 20px; border-radius: 25px; margin-bottom: 15px; backdrop-filter: blur(5px); }
+                    .p-img { width: 100%; border-radius: 15px; margin-bottom: 15px; }
 
-<header id="h-main">
-    <div id="logo-wrap"></div>
-    <div id="subt"></div>
-</header>
+                    #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px; overflow-x: auto; }
+                    .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; }
 
-<div class="container">
-    <div id="view"></div>
-</div>
+                    #btn-top { position: fixed; width: 50px; height: 50px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 1001; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+                </style>
+    </head>
+    <body>
 
-<script>
-    const SID = new URLSearchParams(window.location.search).get('id');
-    const LANG = navigator.language.split('-')[0].toLowerCase();
-    let db = [], cfg = {}, st = { m: null, c: null };
+        <div id="loader"><div class="spinner"></div>div></div>div>
 
-    // Pulizia chiavi: "Layout Mode" -> "layoutmode"
-    const cl = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+        <header>
+                <div id="app-logo"></div>div>
+                <div id="app-subtitle"></div>div>
+                <div class="nav-bar">
+                            <button id="btn-back" onclick="goBack()">← INDIEETRO</button>button>
+                            <div id="v-title" style="font-weight: 900; text-transform: uppercase;"></div>div>
+                            <div style="width:40px"></div>div>
+                </div>div>
+                <div id="filter-bar"></div>div>
+        </header>
 
-    // MOTORE DI TRADUZIONE NEURALE (Google Translate API)
-    async function translate(text) {
-        if (!text || LANG === 'it' || text.startsWith('http')) return text;
-        try {
-            const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=it&tl=${LANG}&dt=t&q=${encodeURI(text)}`);
-            return res.data[0][0][0];
-        } catch (e) { return text; }
-    }
+        <main>
+                <div id="v-macro" class="view"></div>div>
+                <div id="v-cat" class="view"></div>div>
+                <div id="v-items" class="view"></div>div>
+        </main>
 
-    async function init() {
-        if(!SID) return;
-        const ts = Date.now();
-        try {
-            const [csvC, csvM] = await Promise.all([
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`).then(r => r.text()),
-                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`).then(r => r.text())
-            ]);
+        <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>button>
 
-            // Parsing Config con logica "Brute Force"
-            csvC.split('\n').forEach(row => {
-                const p = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-                if(p.length >= 2) cfg[cl(p[0])] = p[1];
-            });
+        <script>
+                const urlParams = new URLSearchParams(window.location.search);
+                const SHEET_ID = urlParams.get('id');
+                const GID_MENU = "1832483838"; 
 
-            // Parsing Menu
-            const rowsM = csvM.split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
-            const headM = rowsM[0].map(h => cl(h));
-            
-            const rawItems = rowsM.slice(1).map(row => {
-                let obj = {};
-                headM.forEach((h, i) => obj[h] = row[i]);
-                return obj;
-            }).filter(i => cl(i.attivo) === 'si');
+                let menuData = [], config = {}, state = { step: 'macro', m: null, c: null, filters: {} };
 
-            // Traduzione automatica se lingua non è italiano
-            if (LANG !== 'it') {
-                document.getElementById('l-msg').innerText = "Traduzione in corso...";
-                for (let i of rawItems) {
-                    i.nomeit = await translate(i.nomeit);
-                    i.descit = await translate(i.descit);
-                    i.categoria = await translate(i.categoria);
-                    i.macro = await translate(i.macro);
+                // Sanitizzazione Totale
+                const _clean = (s) => s ? s.toString().trim() : "";
+                const _isYes = (s) => ["SI", "SÌ", "Sì", "YES"].includes(_clean(s).toUpperCase());
+
+                async function init() {
+                            if(!SHEET_ID) return;
+                            try {
+                                            const [cRaw, mRaw] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+
+                                            cRaw.forEach(r => config[_clean(r.Parametro)] = _clean(r.Valore));
+                                            menuData = mRaw.map(r => {
+                                                                let row = {};
+                                                                Object.keys(r).forEach(k => row[_clean(k)] = _clean(r[k]));
+                                                                return row;
+                                            });
+
+                                            applyUI();
+
+                                            const mode = _clean(config.Layout_Mode).toUpperCase();
+                                            if(mode === 'CATEGORIE') { state.step = 'cat'; renderCat(true); }
+                                            else if(mode === 'UNICA') { state.step = 'items'; renderItems(true); }
+                                            else { state.step = 'macro'; renderMacro(); }
+
+                                            setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(config.Loader_Time) || 1000);
+                            } catch(e) { console.error("Error:", e); }
                 }
-            }
-            db = rawItems;
 
-            applyStyles();
-            render();
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => document.getElementById('loader').remove(), 500);
-        } catch (e) { console.error("Errore:", e); }
-    }
-
-    function applyStyles() {
-        const s = document.documentElement.style;
-        const lw = document.getElementById('logo-wrap');
-        
-        // Sfondo dinamico
-        if(cl(cfg.appbgtype) === 'image' && cfg.appbgimage) {
-            document.getElementById('bg-layer').style.backgroundImage = `url('${cfg.appbgimage}')`;
-            s.setProperty('--bg', 'transparent');
-        } else {
-            s.setProperty('--bg', cfg.appbgcolor || '#f8f9fa');
-        }
-
-        // Logo / Titolo
-        if(cl(cfg.logotype) === 'text') {
-            lw.innerHTML = `<h1 onclick="home()">${cfg.logotext || 'MENU'}</h1>`;
-            s.setProperty('--l-c', cfg.logotextcolor || '#000');
-            s.setProperty('--l-fs', cfg.logotextsize || '2.2rem');
-        } else {
-            lw.innerHTML = `<img src="${cfg.logourl}" onclick="home()">`;
-        }
-
-        // Sottotitolo
-        if(cl(cfg.showsubtitle) === 'si') {
-            const stx = document.getElementById('subt');
-            stx.innerText = cfg.appsubtitle || '';
-            s.setProperty('--s-c', cfg.subtitlecolor || '#666');
-        }
-
-        // Variabili CSS dal foglio Config
-        s.setProperty('--p', cfg.themeprimary || '#000');
-        s.setProperty('--c-bg', cfg.cardbg || '#fff');
-        s.setProperty('--m-h', cfg.macroheight || '200px');
-        s.setProperty('--m-fs', cfg.macrotextsize || '2rem');
-        s.setProperty('--m-c', cfg.macrotextcolor || '#fff');
-        if(cfg.fontmain) s.setProperty('--f-main', cfg.fontmain);
-    }
-
-    function render() {
-        const out = document.getElementById('view');
-        const mode = cl(cfg.layoutmode);
-        out.innerHTML = '';
-
-        if(mode === 'macro' && !st.m) {
-            const ms = [...new Set(db.map(i => i.macro).filter(m => m))];
-            let h = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid' : 'list'} ani">`;
-            ms.forEach(m => {
-                const img = db.find(i => i.macro === m && i.catfotourl)?.catfotourl || '';
-                h += `<div class="card-full" style="--h: var(--m-h)" onclick="st.m='${m}';render()"><img src="${img}"><div class="ov"></div><span>${m}</span></div>`;
-            });
-            out.innerHTML = h + '</div>';
-        } 
-        else if((mode === 'macro' && st.m && !st.c) || (mode !== 'macro' && !st.c)) {
-            const filtered = st.m ? db.filter(i => i.macro === st.m) : db;
-            const cats = [...new Set(filtered.map(i => i.categoria))];
-            const isClip = cl(cfg.catlayoutmode) === 'clip';
-
-            let h = st.m ? `<div class="back-nav" onclick="st.m=null;render()">← Menu</div>` : '';
-            h += `<div class="${isClip ? 'grid' : (cl(cfg.catlayout) === 'grid' ? 'grid' : 'list')} ani">`;
-            
-            cats.forEach(c => {
-                const img = filtered.find(i => i.categoria === c && i.catfotourl)?.catfotourl || '';
-                if(isClip) {
-                    h += `<div class="card-clip" onclick="st.c='${c}';render()"><img src="${img}"><b>${c}</b></div>`;
-                } else {
-                    h += `<div class="card-full" style="--h: ${cfg.catheight || '140px'}" onclick="st.c='${c}';render()"><img src="${img}"><div class="ov"></div><span>${c}</span></div>`;
+                async function fetchCSV(gid) {
+                            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
+                            const res = await fetch(url);
+                            const text = await res.text();
+                            return new Promise(res => Papa.parse(text, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
                 }
-            });
-            out.innerHTML = h + '</div>';
-        } 
-        else {
-            const items = db.filter(i => i.categoria === st.c);
-            let h = `<div class="back-nav" onclick="st.c=null;render()">← Indietro</div><div class="ani">`;
-            items.forEach(i => {
-                const p = (i.prezzo || '0').toString().replace(':', '.');
-                h += `<div class="dish-card">
-                    ${i.fotourl && i.fotourl !== 'https://' ? `<img src="${i.fotourl}" class="dish-img">` : ''}
-                    <div class="dish-info">
-                        <div class="dish-name">${i.nomeit}</div>
-                        <div class="dish-desc">${i.descit || ''}</div>
-                        <div class="dish-price">${p}€</div>
-                    </div>
-                </div>`;
-            });
-            out.innerHTML = h + '</div>';
-        }
-    }
 
-    window.home = () => { st.m = st.c = null; render(); };
-    window.onscroll = () => document.getElementById('h-main').classList.toggle('h-blur', window.scrollY > 20);
-    init();
-</script>
-</body>
-</html>
+                function applyUI() {
+                            const root = document.documentElement;
+                            const body = document.body;
+
+                            root.style.setProperty('--bg', config.App_Bg_Color);
+                            root.style.setProperty('--accent', config.Filter_Active_Color || '#f4fc03');
+
+                            // Sfondo
+                            if(_clean(config.App_Bg_Type).toUpperCase() === 'IMAGE' && config.App_Bg_Image) {
+                                            body.style.backgroundImage = `url('${config.App_Bg_Image}')`;
+                                            body.style.backgroundSize = config.App_Bg_Size;
+                                            body.style.backgroundPosition = config.App_Bg_Pos;
+                            } else {
+                                            body.style.backgroundColor = config.App_Bg_Color;
+                            }
+
+                            // Font
+                            const f1 = config.Font_Main || 'Montserrat';
+                            document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${f1.replace(/ /g,'+')}&display=swap`;
+                            body.style.fontFamily = `'${f1}', sans-serif`;
+
+                            // Logo con controllo dimensione
+                            const logoDiv = document.getElementById('app-logo');
+                            if(_clean(config.Logo_Type).toUpperCase() === 'IMAGE' && config.Logo_URL) {
+                                            const size = config.Logo_Img_Size || '100px';
+                                            logoDiv.innerHTML = `<img src="${config.Logo_URL}" style="width:${size}">`;
+                            } else {
+                                            logoDiv.innerHTML = `<h1 style="color:${config.Logo_Text_Color}; font-size:${config.Logo_Text_Size}">${config.Logo_Text}</h1>`;
+                            }
+
+                            // Sottotitolo
+                            const sub = document.getElementById('app-subtitle');
+                            sub.innerText = config.App_Subtitle;
+                            sub.style.cssText = `color:${config.Subtitle_Color}; font-size:${config.Subtitle_Size}; display:${_isYes(config.Show_Subtitle)?'block':'none'}; margin-top:${config.Subtitle_Margin}; text-align:${config.Subtitle_Align}`;
+
+                            // Bottone Top
+                            const bTop = document.getElementById('btn-top');
+                            bTop.style.background = config.Btn_Top_Bg;
+                            bTop.style.color = config.Btn_Top_Simbol_Color;
+                            if(_clean(config.Btn_Top_Aling).includes('center')) bTop.style.left = 'calc(50% - 25px)';
+                            else bTop.style.right = '20px';
+                }
+
+                // VISTE
+                function renderMacro() {
+                            showView('v-macro');
+                            const macros = [...new Set(menuData.map(i => i.Macro))].filter(Boolean);
+                            const container = document.getElementById('v-macro');
+                            container.className = `view active ${config.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
+
+                            container.innerHTML = macros.map(m => {
+                                            const img = m.toUpperCase().includes('BEV') ? config.Macro_Img_Bevande : config.Macro_Img_Cibo;
+                                            return `
+                                                        <div class="card-link" onclick="selectM('${m}')" style="height:${config.Macro_Height}; background-image:url('${img}'); background-color:#333">
+                                                                        <div class="overlay"></div>
+                                                                                        <div class="label" style="color:${config.Macro_Text_Color}; font-size:${config.Macro_Te_iz"{}<v
+                                                                                                                                                                     <v>
+                                                                                                                                                                }.jon
+                                                                                                                                                                }
+                                                                                                                                                                 uio s(m) {state.  ae.stepa' enCt();
+                                                                                                                                                                  fuctendat= se{ w'vca');   etfte= amenatualt(i =.Mcro = ste.)  cnstcs[.nee(itedp => iaeori)fieoa);
+                                                                                                                                                                   cosontin  cu.gtlmetByI('vat')  ntaelaN `e ctve {cnfigC_Layo = GID?r 'it';   cntanT =casap={
+                                                     otie fteredfnd(i iera =   cs_escoigImg_(emCatm  ''
+                                                                                               rur     <div cas=ar-l onslC{c') s"et:2px;bkoun-aerl('i');bckgro-co:${oigt_Ativeo"
+                                                               mg ? 'la"ove/i : '    dila="l"e="coo$figet_Cile_oor"}/v    <iv>;   }jn()}
+
+                                                              fncist) { te. caestep erem(); 
+                                                                        funcionrdeIe(al= ale){
+                                                                               howi'ms
+                                                                                     csctai=ome.gtElentBy(v-tem';
+                                                                                     cstir =enutd(>.Cagoria=tat.c };
+                                                                         tan.clNm = w tie {firsa_Lyout='GR? 'id' s'`;    /Fri constfb= doceeElentBd'firb')  .ste.pay = l
+                                                                           ostiB=a.m ").UpCas)cud'BV)   conSet =ie?[o']:[za ute','Vao
+                                                                              b.erTM tmf>`btn las=tn"ck=togF'${)"te=ard$sateftes]cofiFlerAiClr#}>{}</uto>`jo()
+                                                                          lets  l nata :ufiler(i =i.Catea= sae.c  Yetivo);
+                                                                           ect.y(e.flersfE(f= fstatleiemimsfil(i=>sYsi[f) }
+                                                                                               ciner.L tm.p(i=>  =tn stylebackgrd:00;ol:#ff; i:0%mrntp1x"olcwn.oe({lo_d) EDI<uto`}
+                                                                                                     /d>`.in(') }
+                                                                                                     
+                                                                                                      //NAVZOE  u shoi {  cum.querSectl('e'orch .lsitov(cve')
+                                                                                                         dontetEemetd(d)laLisd('tie;  
+                                                                                                          omod _eaonLaot_MooUpse(
+                                                                                                              ont bt cmegtletyI'nak
+                                                                                                                 ctite=dcmet.mnyd'vl');
+                                                                                                                 
+                                                                                                                    / LOICIEROSL  lshBc = fe
+                                                                                                                     if(moe ='A)howck d! 'maro
+                                                                                                                         ifo = 'AEGE)owk ='vites;
+                                                                                                                           eeswac ale;   btneipl wBa ?bce'  if(Bac {    tye.bakron=onig.BtnB_B   bte. nfg.t_ck_T
+                                                                                                                              }   tienTxd==a'?stem ='vte ? tate. 
+                                                                                                                                 ettEemetyId('ltebar.sespy i=-len'  wdocl(0
+                                                                                                                                  } funtin gc  ntmde =_eancofgLyoud.orCs(   istep= itms') {
+                                                                                                                                     e.s'cat  nCo= CAEG');
+                                                                                                                                         ee f(te.te= a
+                                                                                                                                              est 'maco    derac)
+                                                                                                                                                 }
+                                                                                                                                                  }
+                                                                                                                                                  
+                                                                                                                                                    fncoo{stetesf!er[federts(an(onfg.yuM.UpCas'}
+                                                                                                                                                    w.nso (=den.tmetByd('to')sle.ipay=wiwsrol 4? fl'n'; wido.nod nt</crp
+                                                                                                                                                    bod
+                                                                                                                                                    /tm
+        </script>
+        </main>
+        </header>
+    </body>
+        </style></title>
+    </head>
