@@ -3,65 +3,65 @@
     <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-            <title>Menu Omnipotente v6</title>
+            <title>Menu Definitivo</title>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
         <link id="dynamic-fonts" rel="stylesheet">
     
         <style>
-                    :root { --accent: #f4fc03; --bg: #ffffff; }
+                    :root { --accent: #f4fc03; --bg: #ffffff; --card: #ffffff; }
                     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
                     body { min-height: 100vh; background-attachment: fixed; transition: 0.3s; overflow-x: hidden; font-family: sans-serif; }
 
-                    /* Loader */
-                    #loader { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; align-items: center; justify-content: center; }
-                    .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+                    #loader { position: fixed; inset: 0; z-index: 10000; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+                    .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
                     @keyframes spin { to { transform: rotate(360deg); } }
 
                     header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 1000; background: inherit; }
-                    #app-logo img { height: auto; max-width: 90vw; transition: 0.3s; }
+                    #app-logo img { width: auto; height: auto; transition: 0.3s; margin: 0 auto; display: block; }
 
-                    .nav-bar { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 10px auto; padding: 0 15px; }
-                    #btn-back { border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+                    .nav-bar { display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 10px auto; padding: 0 15px; min-height: 40px; }
+                    #btn-back { border: none; padding: 8px 16px; border-radius: 10px; font-weight: 900; cursor: pointer; visibility: hidden; transition: 0.2s; }
 
-                    .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeInUp 0.4s ease; }
+                    .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeIn 0.3s ease-in; }
                     .view.active { display: block; }
-                    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+                    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-                    .list { display: flex; flex-direction: column; gap: 15px; }
+                    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+                    .list { display: flex; flex-direction: column; gap: 12px; }
 
-                    .card-link { 
-                                    border-radius: 25px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
-                                    background-size: cover; background-position: center; box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
+                    .card-macro { 
+                                    border-radius: 20px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+                                    background-size: cover; background-position: center; box-shadow: 0 6px 15px rgba(0,0,0,0.15); cursor: pointer;
+                                    background-color: #444;
                     }
-                    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
-                    .label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; }
+                    .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.35); }
+                    .label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; padding: 10px; }
 
-                    .p-card { padding: 20px; border-radius: 25px; margin-bottom: 15px; backdrop-filter: blur(5px); }
-                    .p-img { width: 100%; border-radius: 15px; margin-bottom: 15px; }
+                    .p-card { padding: 15px; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); background: var(--card); }
+                    .p-img { width: 100%; border-radius: 12px; margin-bottom: 12px; object-fit: cover; }
 
-                    #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px; overflow-x: auto; }
-                    .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; }
+                    #filter-bar { display: none; gap: 8px; justify-content: center; padding: 10px; overflow-x: auto; margin-bottom: 10px; }
+                    .f-btn { padding: 6px 14px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.8rem; }
 
-                    #btn-top { position: fixed; width: 50px; height: 50px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 1001; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+                    #btn-top { position: fixed; bottom: 20px; right: 20px; width: 45px; height: 45px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 1001; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
                 </style>
     </head>
     <body>
 
         <div id="loader"><div class="spinner"></div>div></div>div>
 
-        <header>
+        <header id="main-header">
                 <div id="app-logo"></div>div>
                 <div id="app-subtitle"></div>div>
                 <div class="nav-bar">
-                            <button id="btn-back" onclick="goBack()">← INDIEETRO</button>button>
-                            <div id="v-title" style="font-weight: 900; text-transform: uppercase;"></div>div>
-                            <div style="width:40px"></div>div>
+                            <button id="btn-back" onclick="goBack()">← INDIETRO</button>button>
+                            <div id="v-title" style="font-weight: 800; text-transform: uppercase; font-size: 0.9rem;"></div>div>
+                            <div style="width:60px"></div>div>
                 </div>div>
                 <div id="filter-bar"></div>div>
-        </header>
+        </header>header>
 
         <main>
                 <div id="v-macro" class="view"></div>div>
@@ -76,33 +76,40 @@
                 const SHEET_ID = urlParams.get('id');
                 const GID_MENU = "1832483838"; 
 
-                let menuData = [], config = {}, state = { step: 'macro', m: null, c: null, filters: {} };
+                let db = [], cfg = {}, state = { step: 'macro', m: null, c: null, filters: {} };
 
-                // Sanitizzazione Totale
-                const _clean = (s) => s ? s.toString().trim() : "";
-                const _isYes = (s) => ["SI", "SÌ", "Sì", "YES"].includes(_clean(s).toUpperCase());
+                // Utility di pulizia estrema
+                const clean = (s) => s ? s.toString().trim() : "";
+                const isYes = (s) => ["SI", "SÌ", "Sì", "YES"].includes(clean(s).toUpperCase());
 
                 async function init() {
-                            if(!SHEET_ID) return;
-                            try {
-                                            const [cRaw, mRaw] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+                            if(!SHEET_ID) { document.body.innerHTML = "<div style='padding:50px; text-align:center;'>Inserisci l'ID nell'URL!</div>"; return; }
 
-                                            cRaw.forEach(r => config[_clean(r.Parametro)] = _clean(r.Valore));
-                                            menuData = mRaw.map(r => {
-                                                                let row = {};
-                                                                Object.keys(r).forEach(k => row[_clean(k)] = _clean(r[k]));
-                                                                return row;
+                            try {
+                                            const [rawCfg, rawMenu] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+
+                                            // Normalizzazione Config: chiavi in minuscolo
+                                            rawCfg.forEach(r => { if(r.Parametro) cfg[clean(r.Parametro).toLowerCase()] = clean(r.Valore); });
+
+                                            // Normalizzazione Menu: chiavi in minuscolo
+                                            db = rawMenu.map(r => {
+                                                                let obj = {};
+                                                                Object.keys(r).forEach(k => obj[clean(k).toLowerCase()] = clean(r[k]));
+                                                                return obj;
                                             });
 
-                                            applyUI();
+                                            setupStyles();
 
-                                            const mode = _clean(config.Layout_Mode).toUpperCase();
+                                            const mode = (cfg.layout_mode || "MACRO").toUpperCase();
                                             if(mode === 'CATEGORIE') { state.step = 'cat'; renderCat(true); }
                                             else if(mode === 'UNICA') { state.step = 'items'; renderItems(true); }
                                             else { state.step = 'macro'; renderMacro(); }
 
-                                            setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(config.Loader_Time) || 1000);
-                            } catch(e) { console.error("Error:", e); }
+                                            setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(cfg.loader_time) || 1200);
+                            } catch(e) { 
+                                            console.error(e);
+                                            document.getElementById('loader').innerHTML = "Errore nel caricamento dei dati.";
+                            }
                 }
 
                 async function fetchCSV(gid) {
@@ -112,111 +119,112 @@
                             return new Promise(res => Papa.parse(text, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
                 }
 
-                function applyUI() {
+                function setupStyles() {
                             const root = document.documentElement;
                             const body = document.body;
 
-                            root.style.setProperty('--bg', config.App_Bg_Color);
-                            root.style.setProperty('--accent', config.Filter_Active_Color || '#f4fc03');
+                            root.style.setProperty('--bg', cfg.app_bg_color || '#ffffff');
+                            root.style.setProperty('--accent', cfg.filter_active_color || '#f4fc03');
+                            root.style.setProperty('--card', cfg.card_bg || '#ffffff');
 
-                            // Sfondo
-                            if(_clean(config.App_Bg_Type).toUpperCase() === 'IMAGE' && config.App_Bg_Image) {
-                                            body.style.backgroundImage = `url('${config.App_Bg_Image}')`;
-                                            body.style.backgroundSize = config.App_Bg_Size;
-                                            body.style.backgroundPosition = config.App_Bg_Pos;
+                            // Background
+                            if(clean(cfg.app_bg_type).toUpperCase() === 'IMAGE' && cfg.app_bg_image) {
+                                            body.style.background = `url('${cfg.app_bg_image}') ${cfg.app_bg_pos || 'center'} / ${cfg.app_bg_size || 'cover'} no-repeat fixed`;
                             } else {
-                                            body.style.backgroundColor = config.App_Bg_Color;
+                                            body.style.backgroundColor = cfg.app_bg_color || '#ffffff';
                             }
 
                             // Font
-                            const f1 = config.Font_Main || 'Montserrat';
-                            document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${f1.replace(/ /g,'+')}&display=swap`;
-                            body.style.fontFamily = `'${f1}', sans-serif`;
+                            const f = cfg.font_main || 'Montserrat';
+                            document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${f.replace(/ /g,'+')}:wght@400;700;900&display=swap`;
+                            body.style.fontFamily = `'${f}', sans-serif`;
 
-                            // Logo con controllo dimensione
+                            // Logo
                             const logoDiv = document.getElementById('app-logo');
-                            if(_clean(config.Logo_Type).toUpperCase() === 'IMAGE' && config.Logo_URL) {
-                                            const size = config.Logo_Img_Size || '100px';
-                                            logoDiv.innerHTML = `<img src="${config.Logo_URL}" style="width:${size}">`;
+                            if(clean(cfg.logo_type).toUpperCase() === 'IMAGE' && cfg.logo_url) {
+                                            const size = cfg.logo_img_size || '120px';
+                                            logoDiv.innerHTML = `<img src="${cfg.logo_url}" style="max-width:${size}; max-height:${size};">`;
                             } else {
-                                            logoDiv.innerHTML = `<h1 style="color:${config.Logo_Text_Color}; font-size:${config.Logo_Text_Size}">${config.Logo_Text}</h1>`;
+                                            logoDiv.innerHTML = `<h1 style="color:${cfg.logo_text_color}; font-size:${cfg.logo_text_size}">${cfg.logo_text || 'MENU'}</h1>`;
                             }
 
                             // Sottotitolo
                             const sub = document.getElementById('app-subtitle');
-                            sub.innerText = config.App_Subtitle;
-                            sub.style.cssText = `color:${config.Subtitle_Color}; font-size:${config.Subtitle_Size}; display:${_isYes(config.Show_Subtitle)?'block':'none'}; margin-top:${config.Subtitle_Margin}; text-align:${config.Subtitle_Align}`;
+                            sub.innerText = cfg.app_subtitle || "";
+                            sub.style.cssText = `color:${cfg.subtitle_color}; font-size:${cfg.subtitle_size}; display:${isYes(cfg.show_subtitle)?'block':'none'}; margin-top:${cfg.subtitle_margin}; text-align:${cfg.subtitle_align}`;
 
-                            // Bottone Top
-                            const bTop = document.getElementById('btn-top');
-                            bTop.style.background = config.Btn_Top_Bg;
-                            bTop.style.color = config.Btn_Top_Simbol_Color;
-                            if(_clean(config.Btn_Top_Aling).includes('center')) bTop.style.left = 'calc(50% - 25px)';
-                            else bTop.style.right = '20px';
+                            // Top Button
+                            const bt = document.getElementById('btn-top');
+                            bt.style.background = cfg.btn_top_bg;
+                            bt.style.color = cfg.btn_top_simbol_color;
                 }
 
-                // VISTE
+                // RENDERING
                 function renderMacro() {
-                            showView('v-macro');
-                            const macros = [...new Set(menuData.map(i => i.Macro))].filter(Boolean);
+                            switchView('v-macro');
+                            const macros = [...new Set(db.map(i => i.macro))].filter(Boolean);
                             const container = document.getElementById('v-macro');
-                            container.className = `view active ${config.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
+                            container.className = `view active ${cfg.macro_layout ===RD 'rd :'i'   
+                                                                   ontn.erHML= mcrosm{    nig=mtopeae.inue('E ? f.mabevnd :acr_imio
+                                                                    rur
+                                                                     <cas=cdroncick"l'$' stl="h${cg.mcoet  5x'};gundie:l'$g)"
+                                                                                                     las=orlay">d
+                                                                                                        <dlslaeloor${fgmcr_tet_cor};nts:{cgmao_txti>$m}   iv>`   }.oin(' }
+                                                                                                                                                                       
+                                                                                                                                                                        tion elecM()a =  ststp =andrCa) }
+              funr(ase{   itciw(-t)
+                          l trd a ? db.ft( acr=stat;
+                                             o t  [. etied.mp=i.caa).ite(Blea);  csciner= dcmet.etlenyId'v)
+                                                   ntecasame = etefgt_ayot='GI ?'gi':is'
 
-                            container.innerHTML = macros.map(m => {
-                                            const img = m.toUpperCase().includes('BEV') ? config.Macro_Img_Bevande : config.Macro_Img_Cibo;
-                                            return `
-                                                        <div class="card-link" onclick="selectM('${m}')" style="height:${config.Macro_Height}; background-image:url('${img}'); background-color:#333">
-                                                                        <div class="overlay"></div>
-                                                                                        <div class="label" style="color:${config.Macro_Text_Color}; font-size:${config.Macro_Te_iz"{}<v
-                                                                                                                                                                     <v>
-                                                                                                                                                                }.jon
-                                                                                                                                                                }
-                                                                                                                                                                 uio s(m) {state.  ae.stepa' enCt();
-                                                                                                                                                                  fuctendat= se{ w'vca');   etfte= amenatualt(i =.Mcro = ste.)  cnstcs[.nee(itedp => iaeori)fieoa);
-                                                                                                                                                                   cosontin  cu.gtlmetByI('vat')  ntaelaN `e ctve {cnfigC_Layo = GID?r 'it';   cntanT =casap={
-                                                     otie fteredfnd(i iera =   cs_escoigImg_(emCatm  ''
-                                                                                               rur     <div cas=ar-l onslC{c') s"et:2px;bkoun-aerl('i');bckgro-co:${oigt_Ativeo"
-                                                               mg ? 'la"ove/i : '    dila="l"e="coo$figet_Cile_oor"}/v    <iv>;   }jn()}
+                         ntneHM cs.ma(c>     cos  dndi> iatga=;
+                          ns m= sYg.c_is (mca| ') :;
+                                            urn     <i c="cacro" olc="eetc}'"stle"eght0;ackuael$mg}')ckgo-or:${ilrct_cor>
+                                 ${ ?'< lorlay'
+                                  i as"ab"ycol:ctcatitl_clor |'0}"></d    /iv`    }jon('
 
-                                                              fncist) { te. caestep erem(); 
-                                                                        funcionrdeIe(al= ale){
-                                                                               howi'ms
-                                                                                     csctai=ome.gtElentBy(v-tem';
-                                                                                     cstir =enutd(>.Cagoria=tat.c };
-                                                                         tan.clNm = w tie {firsa_Lyout='GR? 'id' s'`;    /Fri constfb= doceeElentBd'firb')  .ste.pay = l
-                                                                           ostiB=a.m ").UpCas)cud'BV)   conSet =ie?[o']:[za ute','Vao
-                                                                              b.erTM tmf>`btn las=tn"ck=togF'${)"te=ard$sateftes]cofiFlerAiClr#}>{}</uto>`jo()
-                                                                          lets  l nata :ufiler(i =i.Catea= sae.c  Yetivo);
-                                                                           ect.y(e.flersfE(f= fstatleiemimsfil(i=>sYsi[f) }
-                                                                                               ciner.L tm.p(i=>  =tn stylebackgrd:00;ol:#ff; i:0%mrntp1x"olcwn.oe({lo_d) EDI<uto`}
-                                                                                                     /d>`.in(') }
-                                                                                                     
-                                                                                                      //NAVZOE  u shoi {  cum.querSectl('e'orch .lsitov(cve')
-                                                                                                         dontetEemetd(d)laLisd('tie;  
-                                                                                                          omod _eaonLaot_MooUpse(
-                                                                                                              ont bt cmegtletyI'nak
-                                                                                                                 ctite=dcmet.mnyd'vl');
-                                                                                                                 
-                                                                                                                    / LOICIEROSL  lshBc = fe
-                                                                                                                     if(moe ='A)howck d! 'maro
-                                                                                                                         ifo = 'AEGE)owk ='vites;
-                                                                                                                           eeswac ale;   btneipl wBa ?bce'  if(Bac {    tye.bakron=onig.BtnB_B   bte. nfg.t_ck_T
-                                                                                                                              }   tienTxd==a'?stem ='vte ? tate. 
-                                                                                                                                 ettEemetyId('ltebar.sespy i=-len'  wdocl(0
-                                                                                                                                  } funtin gc  ntmde =_eancofgLyoud.orCs(   istep= itms') {
-                                                                                                                                     e.s'cat  nCo= CAEG');
-                                                                                                                                         ee f(te.te= a
-                                                                                                                                              est 'maco    derac)
-                                                                                                                                                 }
-                                                                                                                                                  }
-                                                                                                                                                  
-                                                                                                                                                    fncoo{stetesf!er[federts(an(onfg.yuM.UpCas'}
-                                                                                                                                                    w.nso (=den.tmetByd('to')sle.ipay=wiwsrol 4? fl'n'; wido.nod nt</crp
-                                                                                                                                                    bod
-                                                                                                                                                    /tm
+                       uncnleC e. = stetep itsedee);
+                        fnci renrsll= ase 
+                          swiVv-i)
+                           coner  cngeletd'v-ie
+                                  cond cg.ayut_m|"RO")toeCse(  
+                                  l li  db : .e(i=> aeoattcsYs(at)   
+                                                   / oudamidalapmigaela agori  nstfislst[]  { naasae =vwciv ${fi.catyout== RD i :'s}
+                                                                                               /r
+                                                                                               ons b dutgetEleBdlteb;   ot B t.|.toUperse(.ic('V'
+                                                                                                                                                 t fK =sB  [aloo [salne',veano';      ierM fKeys.p > `    butn la"bn"ocikt($f}')"le=bckrund:${tatiesgile_ac_c #dd'}f<ut>   `ji'   stydspa='lx';
+                                                                                                                                                  pla iti
+                                                                                                                                                Obe.es(.fts).ch( >ifstatefers]) lst lsfltriiY(i] ;
+
+                onierneTLitp( >`   d cas"p-cd     $.o_u? < sr=${.torl"cl=pig:}     <s=fn-wgt:; o$g._nlr{om_}<div>
+                         <vtesz0.5em;co${fddec_olr}i:5>$i_t}</iv
+                            <disylcolo${.ioo nt-s$.pc_i; on-g90">€i.pe/    ${i.oelo ` ln"stylearu00;cor:#f;dth0; rnt:x"ncwidwop${.dlo})📦3Vbuton>  }     <d>).jin;  / GCA VIAZNTSTTR  fntn shVewi) qeryetl.i').ora(v = clLitoe(ci   dcnttlemenB(dsLd'ai'
+
+                                   nsde= (c.yum| MA".toprCe
+                                  cnstb=douet.gtmetyb-ck';  on it=cueetlmetByIdvie');
+
+                                  /LGICARIHIET  le swBac fle   i('R){
+                                     Smroti o  ag Si e   ifi-o') hoctu   fmoe=CAGORIE'
+                                     / Sceoeata: SOLlltt
+                                     f(id =is hoac   }eimoe 'N{    /Se uic:
+                                    shBal;
+                                }
+                                   bnstle.isly soBk vie ie;  tnlebckou=cgbak_g  d  styeofgbnbk_te| #   tliex id=v-tst.: (d '-s'? ac :');   cmgetemyder').tyledspl= i='vtem'  l' 'ne    n.ol  nngoBak( 
+                                   stdeoumo AR")UprCs)
+                                  isaese = te')     ep 'c;
+                                     et(=CAEGRIE;
+                                }ls(e.tep = at) 
+                                    stateste = maro;
+                                    ndeMa()
+
+                                   nio tgF({sttrf]taeilr[f; reeIe(cg.yo_mode|".Upras=U;}
+                                 nwncol=>omntEemenBId('bn-t.tye.dp =wiwcol 300 ex'on;
+                                  woonlod=i
+                                /s>
+                                >ml
+                                
         </script>
         </main>
-        </header>
     </body>
         </style></title>
     </head>
