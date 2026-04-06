@@ -3,23 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Celestiale PWA</title>
+    <title>God Mode Menu PWA</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <link id="dynamic-fonts" rel="stylesheet">
 
     <style>
         :root { --accent: #f4fc03; --bg: #e8e8e8; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         
         body { 
-            margin: 0; min-height: 100vh; background-attachment: fixed; 
-            transition: 0.3s ease; overflow-x: hidden; font-family: sans-serif;
+            min-height: 100vh; background-attachment: fixed; 
+            transition: background 0.3s ease; overflow-x: hidden;
+            font-family: sans-serif;
         }
 
         /* Loader - Solo Spinner */
         #loader { 
-            position: fixed; inset: 0; z-index: 9999; background: var(--bg); 
+            position: fixed; inset: 0; z-index: 10000; background: var(--bg); 
             display: flex; align-items: center; justify-content: center; 
         }
         .spinner { 
@@ -29,311 +30,306 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Header */
-        header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 100; background: inherit; }
-        #app-logo img { width: auto; transition: 0.3s; }
-        #app-subtitle { margin-top: 10px; transition: 0.3s; }
+        header { padding: 20px 15px; text-align: center; position: sticky; top: 0; z-index: 999; background: inherit; }
+        
+        /* Controllo Dimensioni Logo */
+        #app-logo img { height: auto; max-width: 90vw; margin: 0 auto; display: block; }
+        #app-subtitle { margin-top: 10px; font-weight: bold; }
 
-        /* Navigazione */
         .nav-bar { 
             display: flex; justify-content: space-between; align-items: center; 
-            max-width: 600px; margin: 15px auto 0; padding: 0 15px; 
+            max-width: 600px; margin: 15px auto 5px; padding: 0 15px; 
         }
+        
         #btn-back { 
-            border: none; padding: 10px 20px; border-radius: 12px; 
-            font-weight: 900; cursor: pointer; opacity: 0; pointer-events: none;
-            transition: 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border: none; padding: 10px 18px; border-radius: 12px; 
+            font-weight: 900; cursor: pointer; visibility: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-transform: uppercase;
         }
-        #btn-back.visible { opacity: 1; pointer-events: auto; }
 
-        /* View Container */
-        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: fadeUp 0.4s ease; }
+        .view { display: none; padding: 15px; max-width: 800px; margin: 0 auto; animation: slideUp 0.4s ease forwards; }
         .view.active { display: block; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .list { display: flex; flex-direction: column; gap: 15px; }
 
-        /* Card Macro e Categorie */
-        .card-link {
-            border-radius: 20px; position: relative; overflow: hidden;
+        /* Macro e Categorie */
+        .card-main {
+            border-radius: 25px; position: relative; overflow: hidden;
             display: flex; align-items: center; justify-content: center;
             background-size: cover; background-position: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15); cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); cursor: pointer;
+            transition: transform 0.2s ease; border: 1px solid rgba(255,255,255,0.1);
         }
-        .card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
-        .card-label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; padding: 10px; }
+        .card-main:active { transform: scale(0.96); }
+        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
+        .label { position: relative; z-index: 2; font-weight: 900; text-transform: uppercase; text-align: center; }
 
-        /* Card Piatti */
-        .p-card { 
-            padding: 20px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px); margin-bottom: 10px;
+        /* Piatti */
+        .item-card { 
+            padding: 20px; border-radius: 25px; 
+            backdrop-filter: blur(10px); margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .p-img { width: 100%; border-radius: 15px; margin-bottom: 15px; object-fit: cover; }
-        .p-price { font-weight: 900; margin-top: 10px; }
+        .item-img { width: 100%; border-radius: 20px; margin-bottom: 15px; object-fit: cover; }
+        .price { font-weight: 900; margin-top: 10px; }
 
-        /* Filtri */
-        #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px; overflow-x: auto; }
-        .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        #filter-bar { display: none; gap: 10px; justify-content: center; padding: 10px 15px; overflow-x: auto; margin-bottom: 10px; }
+        .f-btn { padding: 8px 16px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; white-space: nowrap; }
 
-        /* Torna Su */
         #btn-top {
-            position: fixed; width: 50px; height: 50px; border-radius: 50%;
+            position: fixed; bottom: 25px; width: 50px; height: 50px; border-radius: 50%;
             border: none; cursor: pointer; display: none; align-items: center; justify-content: center;
-            z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); font-size: 20px;
-        }
-        
-        .ar-btn {
-            background: #000; color: #fff; border: none; padding: 10px 20px;
-            border-radius: 50px; font-size: 0.8rem; margin-top: 15px; cursor: pointer;
-            display: inline-flex; align-items: center; gap: 8px; font-weight: bold;
+            z-index: 1001; box-shadow: 0 5px 20px rgba(0,0,0,0.3); font-size: 20px;
         }
     </style>
 </head>
 <body>
 
-    <div id="loader"><div class="spinner"></div></div>
+<div id="loader"><div class="spinner"></div></div>
 
-    <header>
-        <div id="app-logo"></div>
-        <div id="app-subtitle"></div>
-        
-        <div class="nav-bar">
-            <button id="btn-back" onclick="goBack()">← INDIEETRO</button>
-            <div id="page-title" style="font-weight: 900; text-transform: uppercase;"></div>
-            <div style="width: 40px;"></div>
-        </div>
+<header>
+    <div id="app-logo"></div>
+    <div id="app-subtitle"></div>
+    
+    <div class="nav-bar">
+        <button id="btn-back" onclick="goBack()">← INDIETRO</button>
+        <div id="view-title" style="font-weight: 900; text-transform: uppercase; letter-spacing: 1px;"></div>
+        <div style="width: 50px;"></div>
+    </div>
 
-        <div id="filter-bar"></div>
-    </header>
+    <div id="filter-bar"></div>
+</header>
 
-    <main>
-        <div id="view-macro" class="view"></div>
-        <div id="view-cat" class="view"></div>
-        <div id="view-items" class="view"></div>
-    </main>
+<main>
+    <div id="v-macro" class="view"></div>
+    <div id="v-cat" class="view"></div>
+    <div id="v-items" class="view"></div>
+</main>
 
-    <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
+<button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})">↑</button>
 
 <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const SHEET_ID = urlParams.get('id');
+    const params = new URLSearchParams(window.location.search);
+    const SHEET_ID = params.get('id');
     const GID_MENU = "1832483838"; 
 
-    let db = [], cfg = {}, state = { step: 'macro', m: null, c: null, filters: {} };
+    let menu = [], config = {}, state = { step: 'macro', macro: null, cat: null, filters: {} };
 
-    // Funzioni Utility
-    const _c = (s) => s ? s.toString().trim() : "";
-    const _is = (s) => ["SI", "SÌ", "YES"].includes(_c(s).toUpperCase());
+    // Sanificazione Divina dei dati
+    const clean = (s) => s ? s.toString().trim() : "";
+    const isYes = (s) => ["SI", "SÌ", "Sì", "YES"].includes(clean(s).toUpperCase());
 
     async function init() {
-        if(!SHEET_ID) { document.body.innerHTML = "<h2 style='text-align:center;padding:50px;'>Manca l'ID del foglio nell'URL!</h2>"; return; }
+        if(!SHEET_ID) { document.body.innerHTML = "<h1>ID Foglio mancante nell'URL</h1>"; return; }
         
-        const [rawCfg, rawMenu] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
-        
-        rawCfg.forEach(r => cfg[_c(r.Parametro)] = _c(r.Valore));
-        db = rawMenu.map(r => {
-            let row = {};
-            Object.keys(r).forEach(k => row[_c(k)] = _c(r[k]));
-            return row;
-        });
+        try {
+            const [cData, mData] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
+            
+            cData.forEach(r => config[clean(r.Parametro)] = clean(r.Valore));
+            menu = mData.map(r => {
+                let row = {};
+                Object.keys(r).forEach(k => row[clean(k)] = clean(r[k]));
+                return row;
+            });
 
-        applyStyles();
-        startApp();
+            applyGlobalStyles();
+            
+            // Logica di partenza
+            const mode = clean(config.Layout_Mode).toUpperCase();
+            if(mode === 'CATEGORIE') {
+                state.step = 'cat';
+                renderCategories(true);
+            } else if(mode === 'UNICA') {
+                state.step = 'items';
+                renderItems(true);
+            } else {
+                state.step = 'macro';
+                renderMacro();
+            }
 
-        setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(cfg.Loader_Time) || 1500);
+            setTimeout(() => document.getElementById('loader').style.display = 'none', parseInt(config.Loader_Time) || 1500);
+        } catch(e) { console.error("Errore inizializzazione:", e); }
     }
 
     async function fetchCSV(gid) {
         const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
-        const r = await fetch(url);
-        const t = await r.text();
-        return new Promise(res => Papa.parse(t, {header:true, skipEmptyLines:true, complete: results => res(results.data)}));
+        const res = await fetch(url);
+        const text = await res.text();
+        return new Promise(resolve => Papa.parse(text, {header:true, skipEmptyLines:true, complete: r => resolve(r.data)}));
     }
 
-    function applyStyles() {
+    function applyGlobalStyles() {
         const root = document.documentElement;
         const body = document.body;
 
-        // Background
-        root.style.setProperty('--bg', cfg.App_Bg_Color);
-        root.style.setProperty('--accent', cfg.Filter_Active_Color || '#f4fc03');
-        
-        if(cfg.App_Bg_Type?.toUpperCase() === 'IMAGE' && cfg.App_Bg_Image) {
-            body.style.backgroundImage = `url('${cfg.App_Bg_Image}')`;
-            body.style.backgroundSize = cfg.App_Bg_Size;
-            body.style.backgroundPosition = cfg.App_Bg_Pos;
+        root.style.setProperty('--bg', config.App_Bg_Color);
+        root.style.setProperty('--accent', config.Filter_Active_Color || '#f4fc03');
+
+        // Sfondo
+        if(clean(config.App_Bg_Type).toUpperCase() === 'IMAGE' && config.App_Bg_Image) {
+            body.style.backgroundImage = `url('${config.App_Bg_Image}')`;
+            body.style.backgroundSize = config.App_Bg_Size;
+            body.style.backgroundPosition = config.App_Bg_Pos;
         } else {
-            body.style.backgroundColor = cfg.App_Bg_Color;
+            body.style.backgroundColor = config.App_Bg_Color;
         }
 
         // Font
-        const f1 = cfg.Font_Main || 'Montserrat';
-        const f2 = cfg.Subtitle_Font || 'Montserrat';
+        const f1 = config.Font_Main || 'Montserrat';
+        const f2 = config.Subtitle_Font || f1;
         document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${f1.replace(/ /g,'+')}&family=${f2.replace(/ /g,'+')}&display=swap`;
         body.style.fontFamily = `'${f1}', sans-serif`;
 
         // Logo
-        const logoDiv = document.getElementById('app-logo');
-        if(cfg.Logo_Type === 'IMAGE' && cfg.Logo_URL) {
-            const h = cfg.Logo_Img_Size || '80px';
-            logoDiv.innerHTML = `<img src="${cfg.Logo_URL}" style="height:${h}; max-width:90vw;">`;
+        const logoWrap = document.getElementById('app-logo');
+        if(clean(config.Logo_Type).toUpperCase() === 'IMAGE' && config.Logo_URL) {
+            const size = config.Logo_Img_Size || '100px';
+            logoWrap.innerHTML = `<img src="${config.Logo_URL}" style="width:${size};">`;
         } else {
-            logoDiv.innerHTML = `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; margin:0;">${cfg.Logo_Text}</h1>`;
+            logoWrap.innerHTML = `<h1 style="color:${config.Logo_Text_Color}; font-size:${config.Logo_Text_Size};">${config.Logo_Text}</h1>`;
         }
 
         // Sottotitolo
         const sub = document.getElementById('app-subtitle');
-        sub.innerText = cfg.App_Subtitle;
-        sub.style.cssText = `color:${cfg.Subtitle_Color}; font-size:${cfg.Subtitle_Size}; font-family:'${f2}'; text-align:${cfg.Subtitle_Align}; margin-top:${cfg.Subtitle_Margin}; display:${_is(cfg.Show_Subtitle)?'block':'none'}`;
+        sub.innerText = config.App_Subtitle;
+        sub.style.cssText = `color:${config.Subtitle_Color}; font-size:${config.Subtitle_Size}; font-family:'${f2}'; text-align:${config.Subtitle_Align}; margin-top:${config.Subtitle_Margin}; display:${isYes(config.Show_Subtitle)?'block':'none'}`;
 
-        // Pulsante Torna Su
+        // Torna su
         const bTop = document.getElementById('btn-top');
-        bTop.style.background = cfg.Btn_Top_Bg;
-        bTop.style.color = cfg.Btn_Top_Simbol_Color;
-        if(cfg.Btn_Top_Aling?.includes('center')) bTop.style.left = 'calc(50% - 25px)';
+        bTop.style.background = config.Btn_Top_Bg;
+        bTop.style.color = config.Btn_Top_Simbol_Color;
+        if(clean(config.Btn_Top_Aling).includes('center')) bTop.style.left = 'calc(50% - 25px)';
         else bTop.style.right = '20px';
     }
 
-    function startApp() {
-        const mode = cfg.Layout_Mode?.toUpperCase();
-        if(mode === 'CATEGORIE') {
-            state.step = 'cat';
-            renderCat(true);
-        } else if(mode === 'UNICA') {
-            state.step = 'items';
-            renderItems(true);
-        } else {
-            state.step = 'macro';
-            renderMacro();
-        }
-    }
-
-    // --- RENDERING ---
+    // --- RENDERING VIEWS ---
 
     function renderMacro() {
-        switchView('view-macro');
-        const macros = [...new Set(db.map(i => i.Macro))].filter(Boolean);
-        const container = document.getElementById('view-macro');
-        container.className = `view active ${cfg.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
+        updateNavigation('v-macro');
+        const macroSet = [...new Set(menu.map(i => i.Macro))].filter(Boolean);
+        const container = document.getElementById('v-macro');
+        container.className = `view active ${config.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
         
-        container.innerHTML = macros.map(m => {
-            const isBev = m.toUpperCase().includes('BEV');
-            const img = isBev ? cfg.Macro_Img_Bevande : cfg.Macro_Img_Cibo;
+        container.innerHTML = macroSet.map(m => {
+            const img = m.toUpperCase().includes('BEV') ? config.Macro_Img_Bevande : config.Macro_Img_Cibo;
             return `
-                <div class="card-link" onclick="selectM('${m}')" style="height:${cfg.Macro_Height}; background-image:url('${img}')">
-                    <div class="card-overlay"></div>
-                    <div class="card-label" style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}">${m}</div>
+                <div class="card-main" onclick="selectMacro('${m}')" style="height:${config.Macro_Height}; background-image:url('${img}')">
+                    <div class="overlay"></div>
+                    <div class="label" style="color:${config.Macro_Text_Color}; font-size:${config.Macro_Text_Size}">${m}</div>
                 </div>`;
         }).join('');
     }
 
-    function selectM(m) { state.m = m; state.step = 'cat'; renderCat(); }
+    function selectMacro(m) { state.macro = m; state.step = 'cat'; renderCategories(); }
 
-    function renderCat(all = false) {
-        switchView('view-cat');
-        let filtered = all ? db : db.filter(i => i.Macro === state.m);
-        const cats = [...new Set(filtered.map(i => i.Categoria))];
-        const container = document.getElementById('view-cat');
-        container.className = `view active ${cfg.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
+    function renderCategories(all = false) {
+        updateNavigation('v-cat');
+        let filtered = all ? menu : menu.filter(i => i.Macro === state.macro);
+        const catSet = [...new Set(filtered.map(i => i.Categoria))].filter(Boolean);
+        const container = document.getElementById('v-cat');
+        container.className = `view active ${config.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
 
-        container.innerHTML = cats.map(c => {
-            const item = filtered.find(i => i.Categoria === c);
-            const img = _is(cfg.Cat_Img_Show) ? (item.Cat_Img || '') : '';
+        container.innerHTML = catSet.map(c => {
+            const firstItem = filtered.find(i => i.Categoria === c);
+            const img = isYes(config.Cat_Img_Show) ? (firstItem.Cat_Img || '') : '';
             return `
-                <div class="card-link" onclick="selectC('${c}')" style="height:120px; background-image:url('${img}'); background-color:${cfg.Filter_Active_Color}">
-                    ${img ? '<div class="card-overlay"></div>' : ''}
-                    <div class="card-label" style="color:${cfg.Text_CatTitle_Color}">${c}</div>
+                <div class="card-main" onclick="selectCat('${c}')" style="height:120px; background-image:url('${img}'); background-color:${config.Filter_Active_Color}">
+                    ${img ? '<div class="overlay"></div>' : ''}
+                    <div class="label" style="color:${config.Text_CatTitle_Color}">${c}</div>
                 </div>`;
         }).join('');
     }
 
-    function selectC(c) { state.c = c; state.step = 'items'; renderItems(); }
+    function selectCat(c) { state.cat = c; state.step = 'items'; renderItems(); }
 
     function renderItems(all = false) {
-        switchView('view-items');
-        const container = document.getElementById('view-items');
+        updateNavigation('v-items');
+        const container = document.getElementById('v-items');
         
-        // Layout
-        const first = db.find(i => i.Categoria === state.c) || {};
-        const layout = (all || !first.Cat_Layout) ? (cfg.Cat_Layout || 'LIST') : first.Cat_Layout;
+        const first = menu.find(i => i.Categoria === state.cat) || {};
+        const layout = (all || !first.Cat_Layout) ? (config.Cat_Layout || 'LIST') : first.Cat_Layout;
         container.className = `view active ${layout === 'GRID' ? 'grid' : 'list'}`;
 
         // Filtri
         const fb = document.getElementById('filter-bar');
         fb.style.display = 'flex';
-        const isBev = state.m?.toUpperCase().includes('BEV');
-        const fSet = isBev ? ['Analcolico'] : ['Senza Glutine', 'Vegano'];
+        const isBev = state.macro?.toUpperCase().includes('BEV');
+        const filterList = isBev ? ['Analcolico'] : ['Senza Glutine', 'Vegano'];
         
-        fb.innerHTML = fSet.map(f => `
+        fb.innerHTML = filterList.map(f => `
             <button class="f-btn" onclick="toggleF('${f}')" 
-                style="background:${state.filters[f] ? cfg.Filter_Active_Color : '#ddd'}">${f}</button>
+                style="background:${state.filters[f] ? config.Filter_Active_Color : '#ddd'}">${f}</button>
         `).join('');
 
-        let items = all ? db : db.filter(i => i.Categoria === state.c && _is(i.Attivo));
+        let items = all ? menu : menu.filter(i => i.Categoria === state.cat && isYes(i.Attivo));
+        
+        // Applica filtri attivi
         Object.keys(state.filters).forEach(f => {
-            if(state.filters[f]) items = items.filter(i => _is(i[f]));
+            if(state.filters[f]) items = items.filter(i => isYes(i[f]));
         });
 
         container.innerHTML = items.map(i => `
-            <div class="p-card" style="background:${cfg.Card_Bg}">
-                ${i.Foto_URL ? `<img src="${i.Foto_URL}" class="p-img">` : ''}
-                <div style="font-weight:900; color:${cfg.Card_Name_Color}; font-size:1.2rem">${i.Nome_IT}</div>
-                <div style="font-size:0.9rem; color:${cfg.Card_Desc_Color}; margin:5px 0">${i.Desc_IT}</div>
-                <div class="p-price" style="color:${cfg.Price_Color}; font-size:${cfg.Price_Size}; text-align:${cfg.Price_Align}">€${i.Prezzo}</div>
-                ${i.Modello_3d ? `<button class="ar-btn" onclick="window.open('${i.Modello_3d}')">📦 VEDI IN 3D</button>` : ''}
+            <div class="item-card" style="background:${config.Card_Bg}">
+                ${i.Foto_URL ? `<img src="${i.Foto_URL}" class="item-img">` : ''}
+                <div style="font-weight:900; color:${config.Card_Name_Color}; font-size:1.3rem;">${i.Nome_IT}</div>
+                <div style="font-size:0.95rem; color:${config.Card_Desc_Color}; margin:8px 0; line-height:1.4;">${i.Desc_IT}</div>
+                <div class="price" style="color:${config.Price_Color}; font-size:${config.Price_Size}; text-align:${config.Price_Align}">€${i.Prezzo}</div>
+                ${i.Modello_3d ? `<button class="f-btn" style="background:#000; color:#fff; margin-top:15px; width:100%;" onclick="window.open('${i.Modello_3d}')">📦 VEDI IN 3D (AR)</button>` : ''}
             </div>`).join('');
     }
 
-    // --- NAVIGAZIONE E LOGICA INDIETRO ---
+    // --- LOGICA NAVIGAZIONE (CELRESTIALE) ---
 
-    function switchView(id) {
+    function updateNavigation(viewId) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        
-        const mode = cfg.Layout_Mode?.toUpperCase();
+        document.getElementById(viewId).classList.add('active');
+
+        const mode = clean(config.Layout_Mode).toUpperCase();
         const btn = document.getElementById('btn-back');
-        const title = document.getElementById('page-title');
+        const title = document.getElementById('view-title');
         
-        // Logica Indietro Celestiale
-        let showBack = false;
+        let shouldShowBack = false;
+
         if(mode === 'MACRO') {
-            if(id !== 'view-macro') showBack = true;
+            // Mostra back se NON siamo nella home (Macro)
+            if(viewId !== 'v-macro') shouldShowBack = true;
         } else if(mode === 'CATEGORIE') {
-            if(id === 'view-items') showBack = true;
+            // Mostra back SOLO nella lista piatti
+            if(viewId === 'v-items') shouldShowBack = true;
         } else if(mode === 'UNICA') {
-            showBack = false;
+            // Mai back
+            shouldShowBack = false;
         }
 
-        if(showBack) {
-            btn.classList.add('visible');
-            btn.style.background = cfg.Btn_Back_Bg;
-            btn.style.color = cfg.Btn_Back_Text;
-        } else {
-            btn.classList.remove('visible');
+        btn.style.visibility = shouldShowBack ? 'visible' : 'hidden';
+        if(shouldShowBack) {
+            btn.style.background = config.Btn_Back_Bg;
+            btn.style.color = config.Btn_Back_Text;
         }
 
-        title.innerText = (id === 'view-cat') ? state.m : (id === 'view-items' ? state.c : '');
-        document.getElementById('filter-bar').style.display = (id === 'view-items') ? 'flex' : 'none';
+        title.innerText = (viewId === 'v-cat') ? state.macro : (viewId === 'v-items' ? state.cat : '');
+        document.getElementById('filter-bar').style.display = (viewId === 'v-items') ? 'flex' : 'none';
         window.scrollTo(0,0);
     }
 
     function goBack() {
-        const mode = cfg.Layout_Mode?.toUpperCase();
+        const mode = clean(config.Layout_Mode).toUpperCase();
         if(state.step === 'items') {
-            if(mode === 'UNICA') return;
             state.step = 'cat';
-            renderCat(mode === 'CATEGORIE');
+            renderCategories(mode === 'CATEGORIE');
         } else if(state.step === 'cat') {
-            if(mode === 'CATEGORIE') return;
-            state.step = 'macro';
-            renderMacro();
+            if(mode === 'MACRO') {
+                state.step = 'macro';
+                renderMacro();
+            }
         }
     }
 
-    function toggleF(f) { state.filters[f] = !state.filters[f]; renderItems(cfg.Layout_Mode === 'UNICA'); }
+    function toggleF(f) { state.filters[f] = !state.filters[f]; renderItems(clean(config.Layout_Mode).toUpperCase() === 'UNICA'); }
 
-    window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 300 ? 'flex' : 'none';
+    window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 400 ? 'flex' : 'none';
     window.onload = init;
 </script>
 </body>
