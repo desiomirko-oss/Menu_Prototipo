@@ -3,266 +3,235 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Master Universale</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link id="dynamic-fonts" rel="stylesheet">
-
+    <title>Smart Menu Ultimate PWA</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
-        :root { --accent: #f4fc03; --bg: #ffffff; --text: #000000; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
-        body { min-height: 100vh; transition: 0.3s; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); }
-
-        /* Loader Divino */
-        #loader { position: fixed; inset: 0; z-index: 9999; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Header */
-        header { padding: 20px; text-align: center; position: relative; z-index: 10; }
-        #app-logo img { max-width: 80%; height: auto; margin-bottom: 10px; }
-        #v-title { margin-top: 15px; font-weight: 900; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
-
-        /* Navigazione */
-        .nav-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; position: sticky; top: 0; z-index: 100; background: inherit; }
-        #btn-back { border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; display: none; font-weight: bold; }
-
-        /* Griglie e Liste */
-        .view { display: none; padding: 15px; width: 100%; max-width: 800px; margin: 0 auto; }
-        .view.active { display: block; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .list { display: flex; flex-direction: column; gap: 15px; }
-
-        /* Cards Macro e Categorie */
-        .card-link { position: relative; border-radius: 15px; overflow: hidden; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; cursor: pointer; min-height: 120px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); }
-        .label { position: relative; z-index: 2; font-weight: 900; text-align: center; padding: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-
-        /* Card Prodotto */
-        .p-card { background: #fff; border-radius: 15px; padding: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); color: #000; position: relative; display: flex; flex-direction: column; gap: 8px; }
-        .p-img { width: 100%; height: 180px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
-        .p-price { font-size: 1.2rem; font-weight: 900; align-self: flex-end; color: var(--text); }
+        :root { --p: #000; --bg: #fff; --c-bg: #fff; --m-h: 200px; --m-fs: 2rem; --m-c: #fff; --f-main: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin:0; font-family: var(--f-main); background-color: var(--bg); min-height: 100vh; color: #222; overflow-x: hidden; }
         
-        /* Filtri */
-        #filter-bar { display: none; gap: 10px; overflow-x: auto; padding: 10px 20px; white-space: nowrap; scrollbar-width: none; }
-        .f-btn { padding: 8px 15px; border-radius: 20px; border: none; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        #bg-layer { position:fixed; inset:0; z-index:-1; background-size:cover; background-position:center; transition: 0.8s ease; }
+        
+        /* Loader con effetto blur */
+        #loader { position:fixed; inset:0; background:rgba(255,255,255,0.9); backdrop-filter:blur(10px); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; transition: 0.5s; }
+        .spin { width:50px; height:50px; border:4px solid #f3f3f3; border-top:4px solid var(--p); border-radius:50%; animation: s 1s linear infinite; }
+        @keyframes s { 100% { transform:rotate(360deg); } }
 
-        #btn-top { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; border: none; display: none; align-items: center; justify-content: center; z-index: 99; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        /* Header Professionale */
+        header { padding: 40px 20px; text-align:center; position:sticky; top:0; z-index:100; transition: 0.3s; }
+        .h-blur { background: rgba(255,255,255,0.8); backdrop-filter: blur(15px); box-shadow: 0 4px 30px rgba(0,0,0,0.05); padding: 20px; }
+        
+        #logo-wrap h1 { margin:0; font-size: var(--l-fs, 2.2rem); color: var(--l-c, #000); font-weight:900; text-transform:uppercase; letter-spacing:-1px; cursor:pointer; }
+        #logo-wrap img { max-height: 90px; display:block; margin:0 auto; cursor:pointer; }
+        #subt { font-size: 0.95rem; margin-top:8px; font-weight: 600; color: var(--s-c, #666); }
+
+        .container { padding:15px; max-width:800px; margin:auto; min-height: 70vh; }
+
+        /* Layout Grid & List */
+        .grid { display:grid; grid-template-columns: 1fr 1fr; gap:15px; }
+        .list { display:flex; flex-direction:column; gap:15px; }
+
+        /* Card Full Background (Macro o Categorie BG) */
+        .card-full { 
+            height: var(--h); border-radius: 25px; overflow:hidden; position:relative; 
+            display:flex; align-items:center; justify-content: center; cursor:pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15); transition: 0.3s;
+        }
+        .card-full:active { transform: scale(0.97); }
+        .card-full img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; }
+        .card-full .ov { position:absolute; inset:0; background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 100%); z-index:2; }
+        .card-full span { position:relative; z-index:3; color: var(--m-c); font-size: var(--m-fs); font-weight:900; text-transform:uppercase; text-shadow: 0 2px 10px rgba(0,0,0,0.4); text-align:center; padding:10px; }
+
+        /* Card Clip (Icone Circolari) */
+        .card-clip { 
+            background: var(--c-bg); border-radius: 20px; padding: 20px; text-align:center; 
+            cursor:pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.05); transition: 0.3s;
+        }
+        .card-clip img { width: 90px; height: 90px; object-fit:cover; border-radius: 50%; margin: 0 auto 12px; border: 3px solid var(--p); }
+        .card-clip b { display:block; font-size: 1rem; text-transform: uppercase; font-weight: 800; color: #333; }
+
+        /* Dettaglio Piatti */
+        .dish-card { 
+            background: var(--c-bg); border-radius: 22px; padding: 15px; display:flex; align-items:center; 
+            margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;
+        }
+        .dish-img { width: 85px; height: 85px; object-fit:cover; border-radius: 16px; margin-right: 15px; }
+        .dish-info { flex:1; }
+        .dish-name { font-weight: 800; font-size: 1.15rem; margin:0; color: #111; }
+        .dish-desc { font-size: 0.85rem; color: #777; margin: 4px 0; line-height: 1.3; }
+        .dish-price { font-weight: 900; color: var(--p); font-size: 1.2rem; margin-top: 8px; }
+
+        .back-nav { display:inline-flex; align-items:center; padding:12px 25px; background:rgba(0,0,0,0.07); border-radius:50px; font-weight:800; margin-bottom:20px; cursor:pointer; font-size: 13px; text-transform: uppercase; }
+        
+        .ani { animation: up 0.5s cubic-bezier(0.2, 1, 0.3, 1) forwards; }
+        @keyframes up { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p id="loader-msg" style="margin-top:20px; font-weight:bold;">Sintonizzazione Frequenze Menu...</p>
-    </div>
+<div id="loader"><div class="spin"></div><p id="l-msg" style="margin-top:15px; font-weight:bold;">Sincronizzazione...</p></div>
+<div id="bg-layer"></div>
 
-    <div class="nav-bar">
-        <button id="btn-back" onclick="goBack()"><i class="fas fa-chevron-left"></i> INDIETRO</button>
-        <div id="filter-bar"></div>
-    </div>
+<header id="h-main">
+    <div id="logo-wrap"></div>
+    <div id="subt"></div>
+</header>
 
-    <header>
-        <div id="app-logo"></div>
-        <div id="app-subtitle"></div>
-        <div id="v-title"></div>
-    </header>
+<div class="container">
+    <div id="view"></div>
+</div>
 
-    <main>
-        <div id="v-macro" class="view"></div>
-        <div id="v-cat" class="view"></div>
-        <div id="v-items" class="view"></div>
-    </main>
+<script>
+    const SID = new URLSearchParams(window.location.search).get('id');
+    const LANG = navigator.language.split('-')[0].toLowerCase();
+    let db = [], cfg = {}, st = { m: null, c: null };
 
-    <button id="btn-top" onclick="window.scrollTo({top:0, behavior:'smooth'})"><i class="fas fa-chevron-up"></i></button>
+    // Pulizia chiavi: "Layout Mode" -> "layoutmode"
+    const cl = (s) => s ? s.toString().toLowerCase().replace(/[^a-z0-9]/g, '') : '';
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const SHEET_ID = urlParams.get('id'); // Prende l'ID dall'URL ?id=...
-        const GID_MENU = urlParams.get('gid') || "1832483838"; // GID foglio Menu
+    // MOTORE DI TRADUZIONE NEURALE (Google Translate API)
+    async function translate(text) {
+        if (!text || LANG === 'it' || text.startsWith('http')) return text;
+        try {
+            const res = await axios.get(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=it&tl=${LANG}&dt=t&q=${encodeURI(text)}`);
+            return res.data[0][0][0];
+        } catch (e) { return text; }
+    }
 
-        let menuData = [], config = {}, state = { step: 'macro', m: null, c: null, filters: {} };
+    async function init() {
+        if(!SID) return;
+        const ts = Date.now();
+        try {
+            const [csvC, csvM] = await Promise.all([
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Config&v=${ts}`).then(r => r.text()),
+                fetch(`https://docs.google.com/spreadsheets/d/${SID}/gviz/tq?tqx=out:csv&sheet=Menu&v=${ts}`).then(r => r.text())
+            ]);
 
-        const _clean = (s) => s ? s.toString().trim() : "";
-        const _isYes = (s) => ["SI", "SÌ", "YES"].includes(_clean(s).toUpperCase());
-
-        async function init() {
-            if(!SHEET_ID) {
-                document.getElementById('loader').innerHTML = `<div style="padding:30px; text-align:center;">
-                    <h2>SISTEMA NON CONFIGURATO</h2>
-                    <p>Aggiungi l'ID del foglio Google nell'URL per visualizzare il menu.</p>
-                    <code style="background:#eee; padding:5px;">?id=IL_TUO_ID_QUI</code>
-                </div>`;
-                return;
-            }
-
-            try {
-                // Carichiamo Config (Gid 0) e Menu
-                const [cRaw, mRaw] = await Promise.all([fetchCSV(0), fetchCSV(GID_MENU)]);
-                
-                // Mappiamo Configurazione
-                cRaw.forEach(r => config[_clean(r.Parametro)] = _clean(r.Valore));
-                
-                // Mappiamo Dati Menu
-                menuData = mRaw.map(r => {
-                    let row = {};
-                    Object.keys(r).forEach(k => row[_clean(k)] = _clean(r[k]));
-                    return row;
-                }).filter(i => _isYes(i.Attivo));
-
-                applyUI();
-                
-                // Determiniamo il punto di partenza
-                const mode = _clean(config.Layout_Mode).toUpperCase();
-                if(mode.includes('CATEGORIE')) { state.step = 'cat'; renderCat(true); }
-                else if(mode.includes('UNICA')) { state.step = 'items'; renderItems(true); }
-                else { state.step = 'macro'; renderMacro(); }
-
-                document.getElementById('loader').style.display = 'none';
-            } catch(e) {
-                console.error(e);
-                document.getElementById('loader-msg').innerHTML = "Errore di connessione ai dati.<br>Controlla che il foglio sia Pubblico.";
-            }
-        }
-
-        async function fetchCSV(gid) {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
-            const res = await fetch(url);
-            const text = await res.text();
-            return new Promise(res => Papa.parse(text, {header:true, skipEmptyLines:true, complete: o => res(o.data)}));
-        }
-
-        function applyUI() {
-            const root = document.documentElement;
-            root.style.setProperty('--bg', config.App_Bg_Color || '#ffffff');
-            root.style.setProperty('--accent', config.Filter_Active_Color || '#f4fc03');
-            document.body.style.backgroundColor = config.App_Bg_Color || '#ffffff';
-
-            if(config.Font_Main) {
-                document.getElementById('dynamic-fonts').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g,'+')}:wght@400;700;900&display=swap`;
-                document.body.style.fontFamily = `'${config.Font_Main}', sans-serif`;
-            }
-
-            const logo = document.getElementById('app-logo');
-            if(_clean(config.Logo_Type) === 'IMAGE') {
-                logo.innerHTML = `<img src="${config.Logo_URL}" style="width:${config.Logo_Img_Size || '150px'}">`;
-            } else {
-                logo.innerHTML = `<h1 style="color:${config.Logo_Text_Color}; font-size:${config.Logo_Text_Size}">${config.Logo_Text || 'MENU'}</h1>`;
-            }
-        }
-
-        function renderMacro() {
-            state.step = 'macro';
-            showView('v-macro');
-            const macros = [...new Set(menuData.map(i => i.Macro))].filter(Boolean);
-            const container = document.getElementById('v-macro');
-            container.className = `view active ${config.Macro_Layout === 'GRID' ? 'grid' : 'list'}`;
-            
-            container.innerHTML = macros.map(m => {
-                const isBev = m.toUpperCase().includes('BEV');
-                const img = isBev ? config.Macro_Img_Bevande : config.Macro_Img_Cibo;
-                return `
-                <div class="card-link" onclick="selectM('${m}')" style="height:${config.Macro_Height || '180px'}; background-image:url('${img}')">
-                    <div class="overlay"></div>
-                    <div class="label" style="color:${config.Macro_Text_Color}; font-size:${config.Macro_Text_Size}">${m}</div>
-                </div>`;
-            }).join('');
-        }
-
-        function selectM(m) { state.m = m; renderCat(); }
-
-        function renderCat(all = false) {
-            state.step = 'cat';
-            showView('v-cat');
-            let filtered = all ? menuData : menuData.filter(i => i.Macro === state.m);
-            const cats = [...new Set(filtered.map(i => i.Categoria))].filter(Boolean);
-            const container = document.getElementById('v-cat');
-            container.className = `view active ${config.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
-
-            container.innerHTML = cats.map(c => {
-                const item = filtered.find(i => i.Categoria === c);
-                const img = _isYes(config.Cat_Img_Show) ? item.Cat_Img : '';
-                return `
-                <div class="card-link" onclick="selectC('${c}')" style="min-height:80px; background-image:url('${img}'); background-color:#eee">
-                    ${img ? '<div class="overlay"></div>' : ''}
-                    <div class="label" style="color:${config.Text_CatTitle_Color || '#000'}">${c}</div>
-                </div>`;
-            }).join('');
-        }
-
-        function selectC(c) { state.c = c; renderItems(); }
-
-        function renderItems(all = false) {
-            state.step = 'items';
-            showView('v-items');
-            const container = document.getElementById('v-items');
-            
-            let items = all ? menuData : menuData.filter(i => i.Categoria === state.c);
-            
-            // Applica Filtri
-            Object.keys(state.filters).forEach(f => {
-                if(state.filters[f]) items = items.filter(i => _isYes(i[f]));
+            // Parsing Config con logica "Brute Force"
+            csvC.split('\n').forEach(row => {
+                const p = row.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+                if(p.length >= 2) cfg[cl(p[0])] = p[1];
             });
 
-            container.className = `view active ${items[0]?.Cat_Layout === 'GRID' ? 'grid' : 'list'}`;
-            container.innerHTML = items.map(i => `
-                <div class="p-card" style="background:${config.Card_Bg || '#fff'}">
-                    ${i.Foto_URL ? `<img src="${i.Foto_URL}" class="p-img">` : ''}
-                    <div style="font-weight:900; font-size:1.2rem;">${i.Nome_IT}</div>
-                    <div style="font-size:0.85rem; opacity:0.8;">${i.Desc_IT || ''}</div>
-                    <div class="p-price">€${i.Prezzo}</div>
-                    ${i.Modello_3d ? `<button class="f-btn" style="background:#000; color:#fff; margin-top:5px" onclick="window.open('${i.Modello_3d}')">VEDI IN 3D</button>` : ''}
-                </div>
-            `).join('');
-
-            renderFilterBar();
-        }
-
-        function renderFilterBar() {
-            const fb = document.getElementById('filter-bar');
-            if(!_isYes(config.Show_Filters)) return fb.style.display = 'none';
+            // Parsing Menu
+            const rowsM = csvM.split('\n').map(row => row.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+            const headM = rowsM[0].map(h => cl(h));
             
-            fb.style.display = 'flex';
-            const isBev = (state.m || "").toUpperCase().includes('BEV');
-            const tags = isBev ? ['Analcolico'] : ['Senza Glutine', 'Vegano'];
-            
-            fb.innerHTML = tags.map(t => `
-                <button class="f-btn" onclick="togF('${t}')" style="background:${state.filters[t] ? varProp('--accent') : '#ddd'}">
-                    ${t}
-                </button>`).join('');
-        }
+            const rawItems = rowsM.slice(1).map(row => {
+                let obj = {};
+                headM.forEach((h, i) => obj[h] = row[i]);
+                return obj;
+            }).filter(i => cl(i.attivo) === 'si');
 
-        function showView(id) {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            
-            const mode = _clean(config.Layout_Mode).toUpperCase();
-            const btn = document.getElementById('btn-back');
-            
-            // Mostra il tasto indietro se non siamo nella home della modalità scelta
-            let canGoBack = false;
-            if(mode.includes('MACRO')) canGoBack = (id !== 'v-macro');
-            else if(mode.includes('CATEGORIE')) canGoBack = (id === 'v-items');
-
-            btn.style.display = canGoBack ? 'block' : 'none';
-            document.getElementById('v-title').innerText = (id === 'v-cat' ? state.m : (id === 'v-items' ? state.c : ''));
-            window.scrollTo(0,0);
-        }
-
-        function goBack() {
-            if(state.step === 'items') {
-                _clean(config.Layout_Mode).toUpperCase().includes('CATEGORIE') ? renderCat(true) : renderCat();
-            } else if(state.step === 'cat') {
-                renderMacro();
+            // Traduzione automatica se lingua non è italiano
+            if (LANG !== 'it') {
+                document.getElementById('l-msg').innerText = "Traduzione in corso...";
+                for (let i of rawItems) {
+                    i.nomeit = await translate(i.nomeit);
+                    i.descit = await translate(i.descit);
+                    i.categoria = await translate(i.categoria);
+                    i.macro = await translate(i.macro);
+                }
             }
+            db = rawItems;
+
+            applyStyles();
+            render();
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => document.getElementById('loader').remove(), 500);
+        } catch (e) { console.error("Errore:", e); }
+    }
+
+    function applyStyles() {
+        const s = document.documentElement.style;
+        const lw = document.getElementById('logo-wrap');
+        
+        // Sfondo dinamico
+        if(cl(cfg.appbgtype) === 'image' && cfg.appbgimage) {
+            document.getElementById('bg-layer').style.backgroundImage = `url('${cfg.appbgimage}')`;
+            s.setProperty('--bg', 'transparent');
+        } else {
+            s.setProperty('--bg', cfg.appbgcolor || '#f8f9fa');
         }
 
-        function togF(f) { state.filters[f] = !state.filters[f]; renderItems(state.step === 'items' && _clean(config.Layout_Mode).toUpperCase().includes('UNICA')); }
-        const varProp = (name) => getComputedStyle(document.documentElement).getPropertyValue(name);
-        
-        window.onscroll = () => document.getElementById('btn-top').style.display = window.scrollY > 300 ? 'flex' : 'none';
-        window.onload = init;
-    </script>
+        // Logo / Titolo
+        if(cl(cfg.logotype) === 'text') {
+            lw.innerHTML = `<h1 onclick="home()">${cfg.logotext || 'MENU'}</h1>`;
+            s.setProperty('--l-c', cfg.logotextcolor || '#000');
+            s.setProperty('--l-fs', cfg.logotextsize || '2.2rem');
+        } else {
+            lw.innerHTML = `<img src="${cfg.logourl}" onclick="home()">`;
+        }
+
+        // Sottotitolo
+        if(cl(cfg.showsubtitle) === 'si') {
+            const stx = document.getElementById('subt');
+            stx.innerText = cfg.appsubtitle || '';
+            s.setProperty('--s-c', cfg.subtitlecolor || '#666');
+        }
+
+        // Variabili CSS dal foglio Config
+        s.setProperty('--p', cfg.themeprimary || '#000');
+        s.setProperty('--c-bg', cfg.cardbg || '#fff');
+        s.setProperty('--m-h', cfg.macroheight || '200px');
+        s.setProperty('--m-fs', cfg.macrotextsize || '2rem');
+        s.setProperty('--m-c', cfg.macrotextcolor || '#fff');
+        if(cfg.fontmain) s.setProperty('--f-main', cfg.fontmain);
+    }
+
+    function render() {
+        const out = document.getElementById('view');
+        const mode = cl(cfg.layoutmode);
+        out.innerHTML = '';
+
+        if(mode === 'macro' && !st.m) {
+            const ms = [...new Set(db.map(i => i.macro).filter(m => m))];
+            let h = `<div class="${cl(cfg.macrolayout) === 'grid' ? 'grid' : 'list'} ani">`;
+            ms.forEach(m => {
+                const img = db.find(i => i.macro === m && i.catfotourl)?.catfotourl || '';
+                h += `<div class="card-full" style="--h: var(--m-h)" onclick="st.m='${m}';render()"><img src="${img}"><div class="ov"></div><span>${m}</span></div>`;
+            });
+            out.innerHTML = h + '</div>';
+        } 
+        else if((mode === 'macro' && st.m && !st.c) || (mode !== 'macro' && !st.c)) {
+            const filtered = st.m ? db.filter(i => i.macro === st.m) : db;
+            const cats = [...new Set(filtered.map(i => i.categoria))];
+            const isClip = cl(cfg.catlayoutmode) === 'clip';
+
+            let h = st.m ? `<div class="back-nav" onclick="st.m=null;render()">← Menu</div>` : '';
+            h += `<div class="${isClip ? 'grid' : (cl(cfg.catlayout) === 'grid' ? 'grid' : 'list')} ani">`;
+            
+            cats.forEach(c => {
+                const img = filtered.find(i => i.categoria === c && i.catfotourl)?.catfotourl || '';
+                if(isClip) {
+                    h += `<div class="card-clip" onclick="st.c='${c}';render()"><img src="${img}"><b>${c}</b></div>`;
+                } else {
+                    h += `<div class="card-full" style="--h: ${cfg.catheight || '140px'}" onclick="st.c='${c}';render()"><img src="${img}"><div class="ov"></div><span>${c}</span></div>`;
+                }
+            });
+            out.innerHTML = h + '</div>';
+        } 
+        else {
+            const items = db.filter(i => i.categoria === st.c);
+            let h = `<div class="back-nav" onclick="st.c=null;render()">← Indietro</div><div class="ani">`;
+            items.forEach(i => {
+                const p = (i.prezzo || '0').toString().replace(':', '.');
+                h += `<div class="dish-card">
+                    ${i.fotourl && i.fotourl !== 'https://' ? `<img src="${i.fotourl}" class="dish-img">` : ''}
+                    <div class="dish-info">
+                        <div class="dish-name">${i.nomeit}</div>
+                        <div class="dish-desc">${i.descit || ''}</div>
+                        <div class="dish-price">${p}€</div>
+                    </div>
+                </div>`;
+            });
+            out.innerHTML = h + '</div>';
+        }
+    }
+
+    window.home = () => { st.m = st.c = null; render(); };
+    window.onscroll = () => document.getElementById('h-main').classList.toggle('h-blur', window.scrollY > 20);
+    init();
+</script>
 </body>
 </html>
