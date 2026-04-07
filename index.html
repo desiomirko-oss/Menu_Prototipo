@@ -8,9 +8,7 @@
   
   <style>
     :root {
-      /* VARIABILE CONFIGURABILE DA JS */
       --header-padding: 15px; 
-      
       --macro-height: 240px;
       --macro-text-size: 2.2rem;
       --macro-text-color: #ffffff;
@@ -38,12 +36,11 @@
       padding-bottom: 80px; 
     }
 
-    /* CLASSE DI SERVIZIO FONDAMENTALE */
     .hidden {
       display: none !important;
     }
 
-    /* --- HEADER FISSO --- */
+    /* --- HEADER FISSO (SISTEMATO) --- */
     #sticky-header {
       position: sticky;
       top: 0;
@@ -53,7 +50,6 @@
       z-index: 1000;
       border-bottom: 1px solid rgba(0,0,0,0.08);
       padding-top: var(--header-padding);
-      padding-bottom: 10px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.03);
     }
 
@@ -62,26 +58,38 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 20px 10px;
-      min-height: 50px;
+      padding: 10px 15px;
+      min-height: 60px;
     }
 
-    .header-titles { text-align: center; }
-    #restaurant-name { margin: 0; font-size: 1.8rem; color: #000; font-weight: 800; letter-spacing: -0.5px; }
-    #restaurant-subtitle { margin: 2px 0 0; font-size: 0.9rem; color: #666; }
+    /* ZONA DI SICUREZZA PER IL TITOLO */
+    .header-titles { 
+      text-align: center; 
+      width: 100%;
+      padding: 0 90px; /* Impedisce al testo di finire sotto al bottone indietro */
+    }
+    
+    #restaurant-name { margin: 0; font-size: 1.6rem; color: #000; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
+    #restaurant-subtitle { margin: 4px 0 0; font-size: 0.85rem; color: #666; }
 
+    /* BOTTONE INDIETRO (SISTEMATO) */
     #btn-back {
       position: absolute;
-      left: 20px;
+      left: 15px;
+      top: 50%; /* Centratura verticale perfetta */
+      transform: translateY(-50%);
       background-color: #f4fc03;
       color: #000;
       border: none;
-      padding: 8px 15px;
+      padding: 8px 12px;
       border-radius: 8px;
       font-weight: bold;
-      font-size: 1rem;
+      font-size: 0.95rem;
       cursor: pointer;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
     /* --- FILTRI --- */
@@ -89,7 +97,7 @@
       display: flex;
       justify-content: center;
       gap: 8px;
-      padding: 5px 15px 10px;
+      padding: 5px 15px 15px;
       overflow-x: auto;
       white-space: nowrap;
     }
@@ -108,42 +116,17 @@
     .filter-btn.active { background-color: var(--filter-active-color); color: #000000; }
 
     /* --- LOADER --- */
-    #loader {
-      text-align: center;
-      padding: 60px 20px;
-      font-size: 1.2rem;
-      color: #666;
-      font-weight: 600;
-    }
-    .spinner {
-      display: inline-block;
-      width: 40px; height: 40px;
-      border: 4px solid rgba(0,0,0,0.1);
-      border-radius: 50%;
-      border-top-color: #ff9800;
-      animation: spin 1s ease-in-out infinite;
-      margin-bottom: 15px;
-    }
+    #loader { text-align: center; padding: 60px 20px; font-size: 1rem; color: #666; font-weight: 600; }
+    .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #ff9800; animation: spin 1s ease-in-out infinite; margin-bottom: 15px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* --- MACRO (Ora sono Button veri) --- */
+    /* --- MACRO E PIATTI --- */
     .macro-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; max-width: 800px; margin: 0 auto; }
-    .macro-card { 
-      width: 100%;
-      height: var(--macro-height); 
-      color: var(--macro-text-color); 
-      font-size: var(--macro-text-size); 
-      display: flex; align-items: center; justify-content: center; 
-      border-radius: 16px; 
-      font-weight: 800; text-transform: uppercase; letter-spacing: 1px; 
-      box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-      border: none; cursor: pointer; font-family: inherit;
-    }
+    .macro-card { width: 100%; height: var(--macro-height); color: var(--macro-text-color); font-size: var(--macro-text-size); display: flex; align-items: center; justify-content: center; border-radius: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); border: none; cursor: pointer; font-family: inherit; }
     .macro-card:active { transform: scale(0.98); }
     #btn-macro-cibo { background-color: #ff9800; }
     #btn-macro-bevande { background-color: #2196f3; }
 
-    /* --- PIATTI --- */
     .dishes-container { display: flex; flex-direction: column; gap: 15px; padding: 20px; max-width: 800px; margin: 0 auto; }
     .dish-card { background-color: var(--card-bg); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
     .dish-name { color: var(--card-name-color); font-size: 1.25rem; font-weight: 700; margin: 0; }
@@ -171,8 +154,7 @@
   </header>
 
   <main id="app-content">
-    
-    <div id="status-message" class="hidden" style="text-align: center; padding: 20px; color: #ff4444; font-weight: bold;"></div>
+    <div id="status-message" class="hidden" style="text-align: center; padding: 20px; color: #ff4444; font-weight: bold; font-size: 0.95rem;"></div>
 
     <div id="loader">
       <div class="spinner"></div><br>
@@ -185,30 +167,20 @@
     </div>
 
     <div id="dishes-section" class="dishes-container"></div>
-    
   </main>
 
   <script>
-    // ============================================================
-    // CONFIGURAZIONE DEL MAESTRO
-    // ============================================================
     const APP_CONFIG = {
-      // 1. INSERISCI QUI IL TUO ID DI GOOGLE SHEETS
+      // INSERISCI QUI IL TUO ID DI GOOGLE SHEETS
       DEFAULT_SHEET_ID: 'INSERISCI_QUI_IL_TUO_ID_VERO',
-      
-      // 2. CONTROLLO ALTEZZA BANDA INTESTAZIONE (Aumenta o diminuisci)
-      ALTEZZA_BANDA_ALTA: '20px'
+      ALTEZZA_BANDA_ALTA: '15px'
     };
 
     let currentMacro = null;
 
-    // INIZIALIZZAZIONE SICURA
     document.addEventListener("DOMContentLoaded", () => {
-      
-      // Imposta altezza banda
       document.documentElement.style.setProperty('--header-padding', APP_CONFIG.ALTEZZA_BANDA_ALTA);
 
-      // Event Listeners Nativi
       document.getElementById("btn-macro-cibo").addEventListener("click", () => filtraPerMacro("CIBO"));
       document.getElementById("btn-macro-bevande").addEventListener("click", () => filtraPerMacro("BEVANDA"));
       document.getElementById("btn-back").addEventListener("click", goBack);
@@ -220,24 +192,19 @@
         });
       });
 
-      // Partenza motore dati
       caricaMenuDalCSV();
     });
 
-    // ============================================================
-    // MOTORE DI CARICAMENTO DATI (Infallibile)
-    // ============================================================
     async function caricaMenuDalCSV() {
       const urlParams = new URLSearchParams(window.location.search);
       const sheetId = urlParams.get('id') || APP_CONFIG.DEFAULT_SHEET_ID;
 
       if (!sheetId || sheetId === 'INSERISCI_QUI_IL_TUO_ID_VERO') {
-        mostraErrore("ERRORE: Inserisci il tuo ID di Google Sheets nel codice.");
+        mostraErrore("ERRORE: Manca l'ID del database. Inseriscilo nel codice.");
         document.getElementById("loader").classList.add("hidden");
         return;
       }
 
-      // TRUCCO DEL MAESTRO: '&t=' + tempo attuale impedisce la cache del browser!
       const cacheBuster = new Date().getTime();
       const dynamicCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0&t=${cacheBuster}`;
 
@@ -246,29 +213,41 @@
         if (!response.ok) throw new Error(`HTTP: ${response.status}`);
         
         const csvTesto = await response.text();
+        
+        // CONTROLLO DI SICUREZZA: Verifica se Google ha risposto con una pagina Web invece del CSV
+        if (csvTesto.trim().toLowerCase().startsWith('<!doctype html>') || csvTesto.toLowerCase().includes('<html')) {
+            throw new Error("HTML_RECEIVED");
+        }
+
         const menuDati = convertiCSVInJSON(csvTesto);
         
         if (menuDati.length === 0) throw new Error("CSV vuoto");
 
-        generaHTMLPiatti(menuDati);
+        let piattiValidi = generaHTMLPiatti(menuDati);
         
-        // SUCCESSO: Nascondo il loader e mostro i bottoni Macro
+        if (piattiValidi === 0) {
+            mostraErrore("ATTENZIONE: Il file è stato letto, ma non ci sono piatti attivi o le colonne non corrispondono.");
+        }
+
         document.getElementById("loader").classList.add("hidden");
         document.getElementById("macro-section").classList.remove("hidden");
 
       } catch (error) {
-        console.error("Errore:", error);
-        mostraErrore("Impossibile caricare il menu. Controlla il link Google Sheets.");
+        console.error("Errore Dettagliato:", error);
         document.getElementById("loader").classList.add("hidden");
+        
+        if (error.message === "HTML_RECEIVED") {
+            mostraErrore("ACCESSO NEGATO: Il tuo file Google Sheets non è stato 'Pubblicato sul web'. Apri il foglio su PC, vai su File > Condividi > Pubblica sul Web, seleziona 'Valori separati da virgola (.csv)' e clicca Pubblica.");
+        } else {
+            mostraErrore("Impossibile caricare il menu. Controlla il link Google Sheets.");
+        }
       }
     }
 
-    // ============================================================
-    // GENERAZIONE DOM
-    // ============================================================
     function generaHTMLPiatti(datiMenu) {
       const dishesSection = document.getElementById("dishes-section");
       dishesSection.innerHTML = '';
+      let contatorePiatti = 0;
 
       datiMenu.forEach(piatto => {
         if (!piatto.Nome_IT || (piatto.Attivo && piatto.Attivo.trim().toUpperCase() === "NO")) return;
@@ -292,12 +271,12 @@
           </div>`;
           
         dishesSection.insertAdjacentHTML('beforeend', cardHTML);
+        contatorePiatti++;
       });
+      
+      return contatorePiatti;
     }
 
-    // ============================================================
-    // LOGICA DI NAVIGAZIONE
-    // ============================================================
     function filtraPerMacro(macroSelezionata) {
       currentMacro = macroSelezionata.toUpperCase();
 
@@ -348,9 +327,6 @@
       });
     }
 
-    // ============================================================
-    // UTILITY: PARSER E MESSAGGI
-    // ============================================================
     function convertiCSVInJSON(csvText) {
       const righe = csvText.split(/\r\n|\n/);
       if (righe.length < 2) return [];
