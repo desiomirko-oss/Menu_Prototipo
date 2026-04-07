@@ -3,178 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Menu PWA</title>
+    <title>Dynamic Menu PWA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link id="google-font" rel="stylesheet">
     <style>
-        body { transition: background 0.3s ease; }
-        .macro-card { height: var(--macro-height, 200px); background-size: cover; background-position: center; }
-        .loader-spin { border-top-color: var(--loader-color, #000); animation: spin 1s linear infinite; }
+        :root { --main-font: 'sans-serif'; }
+        body { font-family: var(--main-font); transition: all 0.3s ease; }
+        .macro-card { 
+            height: var(--macro-h); 
+            background-size: cover; 
+            background-position: center; 
+            border-radius: 1.5rem;
+            display: flex; align-items: center; justify-content: center;
+            transition: transform 0.2s;
+        }
+        .macro-card:active { transform: scale(0.95); }
+        .loader-spin { 
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--loader-color);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+        }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen">
 
-    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white">
-        <div class="loader-spin rounded-full border-4 h-16 w-16 mb-4"></div>
-        <p id="loader-text">Sincronizzazione Menu...</p>
+    <div id="loader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
+        <div class="loader-spin mb-4"></div>
+        <p id="loader-text" class="text-sm font-medium uppercase tracking-widest">Sincronizzazione...</p>
     </div>
 
-    <header class="p-6 text-center">
-        <div id="logo-container" class="flex justify-center mb-2"></div>
-        <h2 id="app-subtitle" class="uppercase tracking-widest"></h2>
+    <header class="p-8 text-center w-full">
+        <div id="logo-area" class="flex justify-center mb-2"></div>
+        <div id="subtitle-area" class="font-medium"></div>
     </header>
 
-    <nav id="nav-bar" class="px-4 py-2 hidden">
-        <button onclick="renderMacro()" class="text-sm font-bold text-gray-500 uppercase">← Torna Indietro</button>
+    <nav id="nav-bar" class="px-6 mb-4 hidden">
+        <button onclick="renderLevel1()" class="flex items-center text-sm font-bold opacity-70 uppercase">
+            <span class="mr-2">←</span> Menu Principale
+        </button>
     </nav>
 
-    <main id="app-content" class="max-w-2xl mx-auto p-4 space-y-4">
+    <main id="app-content" class="max-w-xl mx-auto px-6 pb-20 space-y-4">
         </main>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const sheetId = urlParams.get('id');
-        
-        let config = {};
-        let menuData = [];
-        let currentMacro = null;
+        const params = new URLSearchParams(window.location.search);
+        const sid = params.get('id');
+        let cfg = {};
+        let data = [];
 
-        async function init() {
-            if (!sheetId) {
-                alert("ID Foglio mancante nell'URL!");
-                return;
-            }
-            await loadData();
-            applyConfig();
-            renderMacro();
+        async function startApp() {
+            if(!sid) return alert("Inserisci ?id=ID_FOGLIO nell'URL");
             
-            // Nascondi loader con il delay del tuo sheet
+            await fetchData();
+            applyStyles();
+            renderLevel1(); // Avvio forzato a 3 livelli
+
             setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-            }, parseInt(config.Loader_Time) || 1000);
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, parseInt(cfg.Loader_Time) || 1500);
         }
 
-        async function loadData() {
-            // Carichiamo entrambi i fogli (Config e Menu)
-            // Nota: assumiamo che Config sia il primo foglio (gid=0) e Menu il secondo, 
-            // ma l'approccio migliore per GitHub è usare il nome del foglio se pubblicato correttamente
-            const configUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Config`;
-            const menuUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=Menu`;
-
+        async function fetchData() {
+            const base = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv`;
             try {
-                const [confRes, menuRes] = await Promise.all([fetch(configUrl), fetch(menuUrl)]);
-                const confCsv = await confRes.text();
-                const menuCsv = await menuRes.text();
+                const [r1, r2] = await Promise.all([
+                    fetch(`${base}&sheet=Config`),
+                    fetch(`${base}&sheet=Menu`)
+                ]);
+                const cText = await r1.text();
+                const mText = await r2.text();
 
-                // Parsing Config
-                confCsv.split('\n').slice(1).forEach(row => {
-                    const [param, valore] = row.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
-                    if (param) config[param.trim()] = valore ? valore.replace(/"/g, '').trim() : '';
+                // Parse Config
+                cText.split('\n').forEach(line => {
+                    const parts = line.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/);
+                    if(parts[0]) cfg[parts[0].trim()] = parts[1]?.replace(/"/g, '').trim();
                 });
 
-                // Parsing Menu
-                const rows = menuCsv.split('\n').map(r => r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/"/g, '')));
-                const headers = rows[0];
-                menuData = rows.slice(1).map(row => {
-                    let obj = {};
-                    headers.forEach((h, i) => obj[h.trim()] = row[i]);
-                    return obj;
+                // Parse Menu
+                const rows = mText.split('\n').map(l => l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(c => c.replace(/"/g, '')));
+                const head = rows[0].map(h => h.trim());
+                data = rows.slice(1).map(row => {
+                    let o = {};
+                    head.forEach((h, i) => o[h] = row[i]);
+                    return o;
                 });
-            } catch (e) { console.error("Errore download:", e); }
+            } catch(e) { console.error("Errore caricamento dati"); }
         }
 
-        function applyConfig() {
+        function applyStyles() {
             const root = document.documentElement;
-            // Font
-            if (config.Font_Main) {
-                document.getElementById('google-font').href = `https://fonts.googleapis.com/css2?family=${config.Font_Main.replace(/ /g, '+')}:wght@400;700&display=swap`;
-                document.body.style.family = config.Font_Main;
+            
+            // Font e Background
+            if(cfg.Font_Main) {
+                document.getElementById('google-font').href = `https://fonts.googleapis.com/css2?family=${cfg.Font_Main.replace(/ /g, '+')}:wght@400;700&display=swap`;
+                document.body.style.setProperty('--main-font', cfg.Font_Main);
             }
             
-            // Sfondo
-            if (config.App_Bg_Type === 'color') document.body.style.backgroundColor = config.App_Bg_Color;
+            if(cfg.App_Bg_Type === 'color') document.body.style.backgroundColor = cfg.App_Bg_Color;
             else {
-                document.body.style.backgroundImage = `url(${config.App_Bg_Image})`;
-                document.body.style.backgroundSize = config.App_Bg_Size;
-                document.body.style.backgroundPosition = config.App_Bg_Pos;
+                document.body.style.backgroundImage = `url(${cfg.App_Bg_Image})`;
+                document.body.style.backgroundSize = cfg.App_Bg_Size;
+                document.body.style.backgroundPosition = cfg.App_Bg_Pos;
             }
 
-            // Logo
-            const logoCont = document.getElementById('logo-container');
-            if (config.Logo_Type === 'IMAGE') {
-                logoCont.innerHTML = `<img src="${config.Logo_URL}" style="width: ${config.Logo_Img_Size}">`;
+            // Logo & Sottotitolo
+            const logoArea = document.getElementById('logo-area');
+            if(cfg.Logo_Type === 'IMAGE') {
+                logoArea.innerHTML = `<img src="${cfg.Logo_URL}" style="width:${cfg.Logo_Img_Size}">`;
             } else {
-                logoCont.innerHTML = `<h1 style="color: ${config.Logo_Text_Color}; font-size: ${config.Logo_Text_Size}">${config.Logo_Text}</h1>`;
+                logoArea.innerHTML = `<h1 style="color:${cfg.Logo_Text_Color}; font-size:${cfg.Logo_Text_Size}; font-weight:bold">${cfg.Logo_Text}</h1>`;
             }
-
-            document.getElementById('app-subtitle').innerText = config.App_Subtitle;
-            document.getElementById('app-subtitle').style.color = config.Subtitle_Color;
             
-            // Variabili CSS per loader e macro
-            root.style.setProperty('--loader-color', config.Loader_Time_Color);
-            root.style.setProperty('--macro-height', config.Macro_Height);
+            const subArea = document.getElementById('subtitle-area');
+            subArea.innerText = cfg.App_Subtitle;
+            subArea.style.color = cfg.Subtitle_Color;
+            subArea.style.fontSize = cfg.Subtitle_Size;
+
+            // Variabili per Macro e Loader
+            root.style.setProperty('--loader-color', cfg.Loader_Time_Color);
+            root.style.setProperty('--macro-h', cfg.Macro_Height);
         }
 
-        // LIVELLO 1: MACRO
-        function renderMacro() {
+        // --- LIVELLO 1: MACRO ---
+        function renderLevel1() {
             document.getElementById('nav-bar').classList.add('hidden');
-            const container = document.getElementById('app-content');
-            container.innerHTML = `<div class="grid grid-cols-1 gap-4">
-                <div onclick="renderCategories('CIBO')" class="macro-card flex items-center justify-center rounded-2xl shadow-lg cursor-pointer" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${config.Macro_Img_Cibo})">
-                    <span style="color: ${config.Macro_Text_Color}; font-size: ${config.Macro_Text_Size}" class="font-bold uppercase">Cibo</span>
+            const cont = document.getElementById('app-content');
+            cont.innerHTML = `
+                <div onclick="renderLevel2('CIBO')" class="macro-card shadow-xl cursor-pointer" style="background-image: linear-gradient(to top, rgba(0,0,0,0.7), transparent), url(${cfg.Macro_Img_Cibo})">
+                    <span style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}" class="font-bold uppercase tracking-wider">Cibo</span>
                 </div>
-                <div onclick="renderCategories('BEVANDE')" class="macro-card flex items-center justify-center rounded-2xl shadow-lg cursor-pointer" style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url(${config.Macro_Img_Bevande})">
-                    <span style="color: ${config.Macro_Text_Color}; font-size: ${config.Macro_Text_Size}" class="font-bold uppercase">Bevande</span>
+                <div onclick="renderLevel2('BEVANDE')" class="macro-card shadow-xl cursor-pointer" style="background-image: linear-gradient(to top, rgba(0,0,0,0.7), transparent), url(${cfg.Macro_Img_Bevande})">
+                    <span style="color:${cfg.Macro_Text_Color}; font-size:${cfg.Macro_Text_Size}" class="font-bold uppercase tracking-wider">Bevande</span>
                 </div>
-            </div>`;
+            `;
         }
 
-        // LIVELLO 2: CATEGORIE
-        function renderCategories(macro) {
-            currentMacro = macro;
+        // --- LIVELLO 2: CATEGORIE ---
+        function renderLevel2(macro) {
             document.getElementById('nav-bar').classList.remove('hidden');
-            const container = document.getElementById('app-content');
+            const cont = document.getElementById('app-content');
+            const cats = [...new Set(data.filter(i => i.Macro === macro).map(i => i.Categoria))];
             
-            const categories = [...new Set(menuData.filter(item => item.Macro === macro).map(item => item.Categoria))];
-            
-            container.innerHTML = `<div class="grid gap-3">`;
-            categories.forEach(cat => {
-                container.innerHTML += `
-                    <button onclick="renderItems('${cat}')" class="w-full p-6 bg-white rounded-xl shadow-sm border text-left flex justify-between items-center group active:scale-95 transition-transform">
-                        <span class="text-xl font-bold" style="color: ${config.Text_CatTitle_Color}">${cat}</span>
-                        <span class="text-gray-400 group-hover:translate-x-2 transition-transform">→</span>
-                    </button>`;
+            cont.innerHTML = `<h2 class="text-center font-bold text-xl mb-4 uppercase tracking-widest opacity-60">${macro}</h2>`;
+            cats.forEach(c => {
+                cont.innerHTML += `
+                    <div onclick="renderLevel3('${c}', '${macro}')" class="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-sm border flex justify-between items-center cursor-pointer active:scale-95 transition-all">
+                        <span class="text-lg font-bold" style="color:${cfg.Text_CatTitle_Color}">${c}</span>
+                        <span class="opacity-30">❯</span>
+                    </div>
+                `;
             });
-            container.innerHTML += `</div>`;
         }
 
-        // LIVELLO 3: PRODOTTI
-        function renderItems(category) {
-            const container = document.getElementById('app-content');
-            const items = menuData.filter(item => item.Categoria === category && item.Attivo === 'SI');
+        // --- LIVELLO 3: PRODOTTI ---
+        function renderLevel3(cat, macro) {
+            const cont = document.getElementById('app-content');
+            const items = data.filter(i => i.Categoria === cat && i.Attivo === 'SI');
             
-            container.innerHTML = `<div class="space-y-4">
-                <button onclick="renderCategories('${currentMacro}')" class="text-blue-500 font-bold mb-2">← Torna alle categorie</button>
+            cont.innerHTML = `
+                <div class="flex items-center mb-6">
+                    <button onclick="renderLevel2('${macro}')" class="bg-black/5 p-2 rounded-full mr-3 text-lg">←</button>
+                    <h2 class="text-xl font-bold uppercase" style="color:${cfg.Text_CatTitle_Color}">${cat}</h2>
+                </div>
             `;
             
-            items.forEach(item => {
-                const isGlutenFree = item['Senza Glutine'] === 'SI' ? '🌾🚫' : '';
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm border">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-lg">${item.Nome_IT} ${isGlutenFree}</h3>
-                            <span class="font-bold text-blue-600">${item.Prezzo}€</span>
+            items.forEach(i => {
+                const badge = i['Senza Glutine'] === 'SI' ? '<span class="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">NO GLUTEN</span>' : '';
+                cont.innerHTML += `
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
+                        ${i.Foto_URL && i.Foto_URL !== 'https://' ? `<img src="${i.Foto_URL}" class="w-full h-40 object-cover rounded-xl mb-4">` : ''}
+                        <div class="flex justify-between items-start mb-1">
+                            <h3 class="font-bold text-lg text-gray-800">${i.Nome_IT} ${badge}</h3>
+                            <span class="font-bold text-lg px-3 py-1 bg-gray-50 rounded-lg">${i.Prezzo}€</span>
                         </div>
-                        <p class="text-gray-500 text-sm mt-1">${item.Desc_IT}</p>
-                        ${item.Allerg_IT ? `<p class="text-xs text-red-400 mt-2 italic">Allergeni: ${item.Allerg_IT}</p>` : ''}
-                    </div>`;
+                        <p class="text-gray-500 text-sm leading-relaxed">${i.Desc_IT}</p>
+                        ${i.Allerg_IT ? `<p class="mt-3 text-[10px] uppercase font-bold text-red-400 tracking-tighter">Allergeni: ${i.Allerg_IT}</p>` : ''}
+                    </div>
+                `;
             });
-            container.innerHTML += `</div>`;
         }
 
-        window.onload = init;
+        window.onload = startApp;
     </script>
 </body>
 </html>
