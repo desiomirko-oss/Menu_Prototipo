@@ -1,54 +1,52 @@
-// ==========================================
-// 1. CONFIGURAZIONE MASTER
-// Incolla qui il link "Pubblica sul web" (.csv) del tuo Google Sheet!
-const GOOGLE_SHEET_URL = 'INCOLLA_QUI_IL_TUO_LINK_CSV_PUBBLICATO'; 
-// ==========================================
+// --- ESTRAZIONE ID CLIENTE DAL LINK ---
+// Legge l'URL, es: sito.com/?id=1A2B3C...
+const urlParams = new URLSearchParams(window.location.search);
+const sheetId = urlParams.get('id');
 
-// --- REGISTRAZIONE SERVICE WORKER (Per PWA) ---
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
-      console.log('Service Worker registrato con successo.', reg);
-    }).catch(err => console.log('Errore Service Worker:', err));
-  });
-}
-
-// --- LOGICA INSTALLAZIONE PWA (Banner) ---
+// --- LOGICA INSTALLAZIONE PWA (Stile iOS) ---
 let deferredPrompt;
-const installBanner = document.getElementById('install-banner');
-const installBtn = document.getElementById('install-btn');
-const closeBannerBtn = document.getElementById('close-banner-btn');
+const iosModal = document.getElementById('ios-popup');
+const installBtn = document.getElementById('ios-install-btn');
+const cancelBtn = document.getElementById('ios-cancel-btn');
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBanner.classList.remove('hidden'); // Mostra il banner
+  iosModal.classList.remove('hidden'); // Mostra il popup figo
 });
 
 installBtn.addEventListener('click', () => {
-  installBanner.classList.add('hidden');
-  deferredPrompt.prompt();
-  deferredPrompt.userChoice.then((choiceResult) => {
-    if (choiceResult.outcome === 'accepted') {
-      console.log('L\'utente ha accettato l\'installazione');
-    }
-    deferredPrompt = null;
-  });
+  iosModal.classList.add('hidden');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      deferredPrompt = null;
+    });
+  }
 });
 
-closeBannerBtn.addEventListener('click', () => {
-  installBanner.classList.add('hidden');
+cancelBtn.addEventListener('click', () => {
+  iosModal.classList.add('hidden');
 });
 
-// --- MOTORE DATI: PARSING CSV DA GOOGLE SHEETS ---
+// --- MOTORE DATI: FETCH DINAMICO DEL CLIENTE ---
 async function caricaMenuDalCSV() {
-  if (GOOGLE_SHEET_URL === 'INCOLLA_QUI_IL_TUO_LINK_CSV_PUBBLICATO') {
-    document.getElementById("dishes-section").innerHTML = "<p style='text-align:center;'>Devi inserire il link di Google Sheets nel file app.js!</p>";
+  const appContent = document.getElementById("app-content");
+  const errorScreen = document.getElementById("error-screen");
+
+  // Se l'utente apre il sito senza l'ID del cliente, mostriamo l'errore
+  if (!sheetId) {
+    appContent.classList.add("hidden");
+    errorScreen.classList.remove("hidden");
     return;
   }
 
+  // Costruiamo dinamicamente il link di esportazione CSV usando l'ID
+  // NOTA: Il foglio deve essere impostato su "Chiunque abbia il link può leggere"
+  const dynamicCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
+
   try {
-    const response = await fetch(GOOGLE_SHEET_URL); 
+    const response = await fetch(dynamicCsvUrl); 
     if (!response.ok) throw new Error(`Errore HTTP: ${response.status}`);
     
     const csvTesto = await response.text();
@@ -56,8 +54,11 @@ async function caricaMenuDalCSV() {
     generaHTMLPiatti(menuDati);
   } catch (error) {
     console.error("Errore fatale:", error);
+    appContent.innerHTML = "<p style='text-align:center; padding:20px;'>Impossibile caricare il menu. Controlla che l'ID sia corretto e il foglio condiviso.</p>";
   }
 }
+
+// ... (QUI SOTTO LASCIA LE FUNZIONI convertiCSVInJSON, parseCSVLine, generaHTMLPiatti E LE ALTRE CHE AVEVAMO SCRITTO PRIMA) ...
 
 function convertiCSVInJSON(csvText) {
   const righe = csvText.split(/\r\n|\n/);
