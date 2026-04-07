@@ -2,38 +2,50 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Menu Digitale</title>
   
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#f4fc03">
   
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <div id="install-banner" class="hidden">
-    <span>Installa la nostra App per un accesso rapido!</span>
-    <button id="install-btn">Installa</button>
-    <button id="close-banner-btn">X</button>
-  </div>
-
-  <button id="btn-back" onclick="goBack()">&#8592; Indietro</button>
-  <button id="btn-top" onclick="scrollToTop()">&#8593;</button>
-
-  <div id="macro-section" class="macro-container">
-    <a href="#cat-section" id="macro-cibo" class="macro-card" onclick="filtraPerMacro('CIBO')">Cibo</a>
-    <a href="#cat-section" id="macro-bevande" class="macro-card" onclick="filtraPerMacro('BEVANDA')">Bevande</a>
-  </div>
-
-  <div id="filters-section" class="filters-container">
-    <button class="filter-btn" data-filter="gf">Senza Glutine</button>
-    <button class="filter-btn" data-filter="veg">Vegetariano</button>
-    <button class="filter-btn" data-filter="na">Analcolico</button>
-  </div>
-
-  <div id="dishes-section" class="dishes-container">
+  <div id="ios-popup" class="ios-modal hidden">
+    <div class="ios-modal-content">
+      <div class="ios-modal-handle"></div>
+      <h3>Installa l'App</h3>
+      <p>Aggiungi il menu alla schermata Home per un accesso rapido e offline.</p>
+      <div class="ios-buttons">
+        <button id="ios-install-btn" class="btn-primary">Installa Ora</button>
+        <button id="ios-cancel-btn" class="btn-secondary">Continua sul web</button>
+      </div>
     </div>
+  </div>
+
+  <div id="error-screen" class="hidden" style="text-align: center; padding: 50px 20px;">
+    <h2>Scansiona il QR Code</h2>
+    <p>Per visualizzare il menu, usa il link corretto fornito dal ristorante.</p>
+  </div>
+
+  <div id="app-content">
+    <button id="btn-back" onclick="goBack()">&#8592; Indietro</button>
+    <button id="btn-top" onclick="scrollToTop()">&#8593;</button>
+
+    <div id="macro-section" class="macro-container">
+      <a href="#cat-section" id="macro-cibo" class="macro-card" onclick="filtraPerMacro('CIBO')">Cibo</a>
+      <a href="#cat-section" id="macro-bevande" class="macro-card" onclick="filtraPerMacro('BEVANDA')">Bevande</a>
+    </div>
+
+    <div id="filters-section" class="filters-container">
+      <button class="filter-btn" data-filter="gf">Senza Glutine</button>
+      <button class="filter-btn" data-filter="veg">Vegetariano</button>
+      <button class="filter-btn" data-filter="na">Analcolico</button>
+    </div>
+
+    <div id="dishes-section" class="dishes-container"></div>
+  </div>
 
   <script src="app.js"></script>
 </body>
