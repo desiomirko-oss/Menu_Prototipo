@@ -2,225 +2,52 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Engine</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-    <link id="font-main" rel="stylesheet" href="">
-    <link id="font-subtitle" rel="stylesheet" href="">
-    <style id="dynamic-styles"></style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Menu</title>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff" id="meta-theme-color">
+    <link rel="apple-touch-icon" href="/assets/icon-192x192.png">
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
 </head>
-<body class="transition-colors duration-500">
-
-    <div id="loader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-white">
-        <div id="loader-spinner" class="animate-spin rounded-full h-16 w-12 border-t-4 border-stone-900"></div>
+<body>
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p>Caricamento menu...</p>
     </div>
 
-    <div id="app" class="min-h-screen flex flex-col relative overflow-x-hidden">
+    <div id="app" class="hidden">
         
-        <header id="header" class="w-full py-8 px-4 text-center z-10">
-            <div id="logo-container" class="flex justify-center mb-4"></div>
-            <h1 id="ui-subtitle" class="uppercase tracking-widest"></h1>
+        <header id="main-header">
+            <div id="logo-container"></div>
+            <div class="header-controls">
+                <select id="language-selector" aria-label="Cambia Lingua"></select>
+                <button id="refresh-cache-btn" aria-label="Aggiorna Menu">
+                    <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                </button>
+            </div>
         </header>
 
-        <div id="filter-bar" class="hidden px-4 mb-6 sticky top-0 z-20 overflow-x-auto flex gap-2 no-scrollbar"></div>
+        <nav id="categories-nav" class="scrollable-x"></nav>
 
-        <main id="content" class="flex-1 px-4 max-w-4xl mx-auto w-full pb-24"></main>
+        <main id="menu-items-container"></main>
 
-        <footer id="ui-footer" class="py-10 text-center opacity-70 text-sm hidden"></footer>
+        <footer id="app-footer" class="hidden"></footer>
 
-        <button id="btn-back" class="fixed bottom-6 left-6 p-4 rounded-full shadow-lg hidden z-30">←</button>
+        <div id="product-modal" class="modal hidden">
+            <div class="modal-content">
+                <button id="close-modal" aria-label="Chiudi">&times;</button>
+                <div id="modal-body"></div>
+                <div id="ar-container" class="hidden"></div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        const params = new URLSearchParams(window.location.search);
-        const sheetId = params.get('id');
-        let CONFIG = {};
-        let RAW_MENU = [];
-        let CURRENT_VIEW = 'MACRO'; // MACRO, CATEGORIE, PIATTI
-
-        if (!sheetId) {
-            document.body.innerHTML = "Errore: ID Foglio mancante nell'URL.";
-        } else {
-            init();
-        }
-
-        async function init() {
-            const [conf, menu] = await Promise.all([
-                fetchTab('Config'),
-                fetchTab('Menu')
-            ]);
-            
-            // Mapping Configurazione (Parametro -> Valore)
-            conf.forEach(row => { if(row.Parametro) CONFIG[row.Parametro] = row.Valore });
-            RAW_MENU = menu.filter(item => item.Attivo === 'SI');
-
-            applyGlobalStyles();
-            renderLevel1(); // Partiamo dalle Macro
-            
-            setTimeout(() => {
-                document.getElementById('loader').style.display = 'none';
-            }, parseInt(CONFIG.loader_Time) || 500);
-        }
-
-        async function fetchTab(name) {
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${name}`;
-            const res = await fetch(url);
-            const text = await res.text();
-            return new Promise(resolve => {
-                Papa.parse(text, { header: true, complete: r => resolve(r.data) });
-            });
-        }
-
-        function applyGlobalStyles() {
-            const s = document.getElementById('dynamic-styles');
-            const isImageBg = CONFIG.App_Bg_Type === 'image';
-            
-            // Fonts
-            if(CONFIG.Font_Main) document.getElementById('font-main').href = `https://fonts.googleapis.com/css2?family=${CONFIG.Font_Main.replace(/ /g, '+')}:wght@400;700&display=swap`;
-            
-            s.innerHTML = `
-                body { 
-                    font-family: '${CONFIG.Font_Main}', sans-serif;
-                    color: ${CONFIG.App_Text_Color || '#000'};
-                    background: ${isImageBg ? `url(${CONFIG.App_Bg_Image})` : CONFIG.App_Bg_Color};
-                    background-size: ${CONFIG.App_Bg_Size || 'cover'};
-                    background-position: ${CONFIG.App_Bg_Pos || 'center'};
-                    background-attachment: fixed;
-                }
-                .card { background: ${CONFIG.Card_Bg || 'rgba(255,255,255,0.1)'}; backdrop-filter: blur(5px); border-radius: 12px; }
-                #ui-subtitle { 
-                    font-size: ${CONFIG.Subtitle_Size || '1rem'}; 
-                    color: ${CONFIG.Subtitle_Color}; 
-                    margin-top: ${CONFIG.Subtitle_Margin};
-                    text-align: ${CONFIG.Subtitle_Align};
-                }
-                #btn-back { background: ${CONFIG.Btn_Back_Bg}; color: ${CONFIG.Btn_Back_Text}; }
-                .price-tag { color: ${CONFIG.Price_Color}; font-size: ${CONFIG.Price_Size}; text-align: ${CONFIG.Price_Align}; font-weight: bold; }
-            `;
-
-            // Logo
-            const logoCont = document.getElementById('logo-container');
-            if(CONFIG.logo_Type === 'image') {
-                logoCont.innerHTML = `<img src="${CONFIG.logo_URL}" style="width: ${CONFIG.logo_Img_Size}">`;
-            } else {
-                logoCont.innerHTML = `<h1 style="color: ${CONFIG.logo_Text_Color}; font-size: ${CONFIG.logo_Text_Size}">${CONFIG.logo_Text}</h1>`;
-            }
-
-            document.getElementById('ui-subtitle').innerText = CONFIG.App_Subtitle;
-            
-            if(CONFIG.Pagina_Type === 'SI') {
-                const footer = document.getElementById('ui-footer');
-                footer.style.color = CONFIG.Pva_Text_Color;
-                footer.innerText = CONFIG.Pagina_Text;
-                footer.classList.remove('hidden');
-            }
-        }
-
-        // --- RENDERING LIVELLI ---
-
-        function renderLevel1() {
-            const container = document.getElementById('content');
-            const macros = [...new Set(RAW_MENU.map(i => i.Macro))];
-            
-            let html = `<div class="${CONFIG.Macro_Layout === 'GRID' ? 'grid grid-cols-2 gap-4' : 'flex flex-col gap-4'}">`;
-            
-            macros.forEach(m => {
-                const img = m.toLowerCase().includes('cibo') ? CONFIG.Macro_Img_Cibo : CONFIG.Macro_Img_Bevande;
-                html += `
-                    <div onclick="renderLevel2('${m}')" class="relative overflow-hidden rounded-xl shadow-xl cursor-pointer group" style="height: ${CONFIG.Macro_Height}">
-                        <img src="${img}" class="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                        <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <h2 style="color: ${CONFIG.Macro_Text_Color}; font-size: ${CONFIG.Macro_Text_Size}" class="font-black uppercase tracking-tighter">${m}</h2>
-                        </div>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            container.innerHTML = html;
-            document.getElementById('btn-back').classList.add('hidden');
-        }
-
-        window.renderLevel2 = function(macro) {
-            const container = document.getElementById('content');
-            const categories = [...new Set(RAW_MENU.filter(i => i.Macro === macro).map(i => i.Categoria))];
-            
-            let html = `<h2 class="text-2xl font-bold mb-6 text-center uppercase tracking-widest">${macro}</h2>`;
-            html += `<div class="${CONFIG.Cat_Layout === 'GRID' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-2'}">`;
-            
-            categories.forEach(cat => {
-                html += `
-                    <div onclick="renderLevel3('${cat}')" class="p-6 card text-center border border-white/10 cursor-pointer active:scale-95 transition">
-                        <h3 style="color: ${CONFIG.Text_CatTitle_Color}" class="font-bold uppercase">${cat}</h3>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            container.innerHTML = html;
-            
-            const btnBack = document.getElementById('btn-back');
-            btnBack.classList.remove('hidden');
-            btnBack.onclick = () => renderLevel1();
-        };
-
-        window.renderLevel3 = function(category) {
-            const container = document.getElementById('content');
-            const items = RAW_MENU.filter(i => i.Categoria === category);
-            
-            // Gestione Filtri
-            if(CONFIG.Show_Filters === 'SI') renderFilters();
-
-            let html = `<h2 class="text-xl font-bold mb-8 border-b pb-2 uppercase">${category}</h2>`;
-            
-            items.forEach(item => {
-                const cardClass = CONFIG.Show_Cards === 'SI' ? 'card p-4 mb-4 flex flex-col gap-2' : 'mb-6 py-2 border-b border-black/5';
-                html += `
-                    <div class="${cardClass} dish-item" data-veg="${item.Vegano}" data-gf="${item['Senza Glutine']}">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h4 style="color: ${CONFIG.Card_Name_Color}" class="text-lg font-bold">${item.Nome_IT}</h4>
-                                <p style="color: ${CONFIG.Card_Desc_Color}" class="text-sm opacity-80 leading-snug mt-1">${item.Desc_IT}</p>
-                                <div class="flex gap-2 mt-2">
-                                    ${item.Vegano === 'SI' ? '<span class="text-[10px] bg-green-600 text-white px-2 rounded-full">VEG</span>' : ''}
-                                    ${item['Senza Glutine'] === 'SI' ? '<span class="text-[10px] bg-orange-500 text-white px-2 rounded-full">GF</span>' : ''}
-                                </div>
-                                ${item.Allerg_IT ? `<p style="color: ${CONFIG.Card_Allerg_Color}" class="text-[10px] mt-2 uppercase font-semibold">Allergeni: ${item.Allerg_IT}</p>` : ''}
-                            </div>
-                            <div class="price-tag ml-4 whitespace-nowrap">${parseFloat(item.Prezzo).toFixed(2)}€</div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            container.innerHTML = html;
-            window.scrollTo(0,0);
-            
-            document.getElementById('btn-back').onclick = () => {
-                const currentMacro = items[0].Macro;
-                renderLevel2(currentMacro);
-                document.getElementById('filter-bar').classList.add('hidden');
-            };
-        };
-
-        function renderFilters() {
-            const fb = document.getElementById('filter-bar');
-            fb.classList.remove('hidden');
-            fb.innerHTML = `
-                <button onclick="filterDishes('all')" class="filter-btn px-4 py-1 rounded-full text-xs font-bold bg-black text-white">TUTTI</button>
-                <button onclick="filterDishes('veg')" class="filter-btn px-4 py-1 rounded-full text-xs font-bold border border-black/20">VEGANO</button>
-                <button onclick="filterDishes('gf')" class="filter-btn px-4 py-1 rounded-full text-xs font-bold border border-black/20">GLUTEN FREE</button>
-            `;
-        }
-
-        window.filterDishes = function(type) {
-            const items = document.querySelectorAll('.dish-item');
-            items.forEach(el => {
-                el.style.display = 'block';
-                if(type === 'veg' && el.dataset.veg !== 'SI') el.style.display = 'none';
-                if(type === 'gf' && el.dataset.gf !== 'SI') el.style.display = 'none';
-            });
-        };
-
-    </script>
+    <script src="/js/config.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/app.js"></script>
 </body>
 </html>
