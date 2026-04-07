@@ -1,7 +1,7 @@
 {
-  "name": "Smart Menu Pro",
-  "short_name": "SmartMenu",
-  "start_url": "./index.html",
+  "name": "Iberico Smart Menu",
+  "short_name": "Menu",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
