@@ -1,48 +1,26 @@
-// --- ESTRAZIONE ID CLIENTE DAL LINK ---
-// Legge l'URL, es: sito.com/?id=1A2B3C...
+// ==========================================
+// CONFIGURAZIONE MASTER
+// Metti qui l'ID del tuo foglio Google di Test. 
+// Verrà usato se apri il sito senza un link specifico.
+const DEFAULT_SHEET_ID = '1Z1kHnCjL...INSERISCI_QUI_IL_TUO_ID_VERO...'; 
+// ==========================================
+
+// Estrazione ID Cliente dal Link (es: sito.com/?id=1A2B3C...)
 const urlParams = new URLSearchParams(window.location.search);
-const sheetId = urlParams.get('id');
+const sheetId = urlParams.get('id') || DEFAULT_SHEET_ID;
 
-// --- LOGICA INSTALLAZIONE PWA (Stile iOS) ---
-let deferredPrompt;
-const iosModal = document.getElementById('ios-popup');
-const installBtn = document.getElementById('ios-install-btn');
-const cancelBtn = document.getElementById('ios-cancel-btn');
+// Elementi DOM principali
+const macroSection = document.getElementById("macro-section");
+const dishesSection = document.getElementById("dishes-section");
+const btnBack = document.getElementById("btn-back");
 
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  iosModal.classList.remove('hidden'); // Mostra il popup figo
-});
-
-installBtn.addEventListener('click', () => {
-  iosModal.classList.add('hidden');
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-      deferredPrompt = null;
-    });
-  }
-});
-
-cancelBtn.addEventListener('click', () => {
-  iosModal.classList.add('hidden');
-});
-
-// --- MOTORE DATI: FETCH DINAMICO DEL CLIENTE ---
+// --- MOTORE DATI: FETCH DINAMICO DEL CSV ---
 async function caricaMenuDalCSV() {
-  const appContent = document.getElementById("app-content");
-  const errorScreen = document.getElementById("error-screen");
-
-  // Se l'utente apre il sito senza l'ID del cliente, mostriamo l'errore
-  if (!sheetId) {
-    appContent.classList.add("hidden");
-    errorScreen.classList.remove("hidden");
+  if (!sheetId || sheetId === '1Z1kHnCjL...INSERISCI_QUI_IL_TUO_ID_VERO...') {
+    dishesSection.innerHTML = "<p style='text-align:center; padding:20px;'>Devi inserire un ID valido nel file app.js o nell'URL.</p>";
     return;
   }
 
-  // Costruiamo dinamicamente il link di esportazione CSV usando l'ID
-  // NOTA: Il foglio deve essere impostato su "Chiunque abbia il link può leggere"
   const dynamicCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0`;
 
   try {
@@ -52,13 +30,14 @@ async function caricaMenuDalCSV() {
     const csvTesto = await response.text();
     const menuDati = convertiCSVInJSON(csvTesto);
     generaHTMLPiatti(menuDati);
+    
+    // Assicuriamoci che all'avvio i piatti siano nascosti e si veda solo la home
+    goBack(); 
   } catch (error) {
     console.error("Errore fatale:", error);
-    appContent.innerHTML = "<p style='text-align:center; padding:20px;'>Impossibile caricare il menu. Controlla che l'ID sia corretto e il foglio condiviso.</p>";
+    dishesSection.innerHTML = "<p style='text-align:center; padding:20px;'>Impossibile caricare il menu. Controlla che il foglio sia condiviso pubblicamente.</p>";
   }
 }
-
-// ... (QUI SOTTO LASCIA LE FUNZIONI convertiCSVInJSON, parseCSVLine, generaHTMLPiatti E LE ALTRE CHE AVEVAMO SCRITTO PRIMA) ...
 
 function convertiCSVInJSON(csvText) {
   const righe = csvText.split(/\r\n|\n/);
@@ -90,14 +69,12 @@ function parseCSVLine(testo) {
 }
 
 function generaHTMLPiatti(datiMenu) {
-  const container = document.getElementById("dishes-section");
-  container.innerHTML = '';
+  dishesSection.innerHTML = '';
 
   datiMenu.forEach(piatto => {
     if (piatto.Attivo && piatto.Attivo.toUpperCase() === "NO") return;
 
     const isGF = (piatto['Senza Glutine'] && piatto['Senza Glutine'].toUpperCase() === "SI") ? "true" : "false";
-    const isVegan = (piatto.Vegano && piatto.Vegano.toUpperCase() === "SI") ? "true" : "false";
     const isVeg = (piatto.Vegetariano && piatto.Vegetariano.toUpperCase() === "SI") ? "true" : "false";
     const isNA = (piatto.Analcolico && piatto.Analcolico.toUpperCase() === "SI") ? "true" : "false";
 
@@ -105,33 +82,58 @@ function generaHTMLPiatti(datiMenu) {
     const prezzoFormattato = piatto.Prezzo ? `€ ${piatto.Prezzo}` : "";
 
     const cardHTML = `
-      <div class="dish-card hidden-by-macro" 
+      <div class="dish-card hidden" 
            data-macro="${piatto.Macro}" 
-           data-gf="${isGF}" data-vegan="${isVegan}" data-veg="${isVeg}" data-na="${isNA}">
+           data-gf="${isGF}" data-veg="${isVeg}" data-na="${isNA}">
         <h3 class="dish-name">${piatto.Nome_IT}</h3>
         ${piatto.Desc_IT ? `<p class="dish-desc">${piatto.Desc_IT}</p>` : ''}
         ${allergeniTesto ? `<p class="dish-allerg">${allergeniTesto}</p>` : ''}
         <div class="dish-price">${prezzoFormattato}</div>
       </div>`;
-    container.insertAdjacentHTML('beforeend', cardHTML);
+    dishesSection.insertAdjacentHTML('beforeend', cardHTML);
   });
 }
 
-// --- LOGICA FILTRI E VISTE ---
+// --- LOGICA VISTE E FILTRI ---
+
+// Funzione che scatta quando clicchi su "CIBO" o "BEVANDE"
 function filtraPerMacro(macroSelezionata) {
-  document.getElementById("btn-back").style.display = "block"; // Mostra tasto indietro
+  // 1. Nascondo i pulsantoni e mostro il tasto indietro
+  macroSection.classList.add("hidden");
+  btnBack.classList.remove("hidden");
   
+  // 2. Mostro solo i piatti della macro scelta
   const allDishes = document.querySelectorAll(".dish-card");
   allDishes.forEach(dish => {
     if (dish.getAttribute("data-macro") === macroSelezionata) {
       dish.classList.remove("hidden-by-macro");
+      dish.classList.remove("hidden"); // Rimuovo l'hidden di base
     } else {
       dish.classList.add("hidden-by-macro");
+      dish.classList.add("hidden");
     }
   });
-  applicaFiltri(); // Riapplica i filtri (es. Veg) sulla nuova vista
+  
+  // 3. Applico eventuali filtri già attivi
+  applicaFiltri(); 
+  
+  // 4. Torno in cima alla pagina per vedere i primi piatti
+  window.scrollTo({ top: 0 });
 }
 
+// Funzione del Tasto Indietro
+function goBack() {
+  // Mostra i pulsantoni Macro
+  macroSection.classList.remove("hidden");
+  // Nasconde il tasto indietro
+  btnBack.classList.add("hidden");
+  // Nasconde tutti i piatti
+  document.querySelectorAll(".dish-card").forEach(dish => {
+    dish.classList.add("hidden");
+  });
+}
+
+// Filtri (Senza Glutine, Veg, Analcolico)
 document.querySelectorAll(".filter-btn").forEach(btn => {
   btn.addEventListener("click", function() {
     this.classList.toggle("active");
@@ -141,7 +143,9 @@ document.querySelectorAll(".filter-btn").forEach(btn => {
 
 function applicaFiltri() {
   const activeFilters = Array.from(document.querySelectorAll(".filter-btn.active")).map(btn => btn.getAttribute("data-filter"));
-  const allDishes = document.querySelectorAll(".dish-card:not(.hidden-by-macro)"); // Filtra solo quelli visibili nella Macro attuale
+  
+  // Seleziona solo i piatti che appartengono alla macro attualmente aperta
+  const allDishes = document.querySelectorAll(".dish-card:not(.hidden-by-macro)"); 
 
   allDishes.forEach(dish => {
     let showDish = true;
@@ -150,29 +154,31 @@ function applicaFiltri() {
         if (dish.getAttribute(`data-${filter}`) !== "true") showDish = false;
       });
     }
-    if (showDish) dish.classList.remove("hidden-by-filter");
-    else dish.classList.add("hidden-by-filter");
+    
+    // Aggiungo/Tolgo una classe specifica per i filtri, senza toccare quella delle macro
+    if (showDish) {
+      dish.style.display = "flex"; 
+    } else {
+      dish.style.display = "none";
+    }
   });
 }
 
-// --- LOGICA PULSANTI NAVIGAZIONE ---
+// --- TASTO TORNA SU ---
 window.onscroll = function() {
   const btnTop = document.getElementById("btn-top");
-  if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) btnTop.style.display = "block";
-  else btnTop.style.display = "none";
+  if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+    btnTop.classList.remove("hidden");
+  } else {
+    btnTop.classList.add("hidden");
+  }
 };
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function goBack() {
-  // Nasconde tutto e torna alla vista Macro principale
-  document.querySelectorAll(".dish-card").forEach(dish => dish.classList.add("hidden-by-macro"));
-  document.getElementById("btn-back").style.display = "none";
-}
-
-// --- INIZIALIZZAZIONE ---
+// --- AVVIO APP ---
 document.addEventListener("DOMContentLoaded", () => {
   caricaMenuDalCSV();
 });
