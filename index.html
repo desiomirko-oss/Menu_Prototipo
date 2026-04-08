@@ -3,19 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Master V7</title>
+    <title>Digital Menu Master V8</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --app-bg: #f3f4f6;
+            --app-bg: #f9fafb;
             --header-h: 120px;
+            --header-bg: #ffffff;
             --back-bg: rgba(255, 255, 255, 0.9);
             --back-color: #4f46e5;
-            
-            /* Variabili Macro */
-            --macro-h: 140px;
-            --macro-font: sans-serif;
-            --macro-color: #ffffff;
+            --macro-h: 180px;
         }
 
         body {
@@ -25,13 +22,13 @@
             background-position: center;
             background-attachment: fixed;
             min-height: 100vh;
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
         }
 
-        .glass-header {
-            background: var(--header-bg, #ffffff);
+        /* Header Professionale */
+        .header-master {
+            background: var(--header-bg);
             height: var(--header-h);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
             position: fixed;
             top: 0;
             width: 100%;
@@ -39,109 +36,84 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            /* Aggiunta l'ombra leggera sotto l'header */
-            box-shadow: 0 4px 10px -2px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            backdrop-filter: blur(8px);
         }
 
+        /* Contenitore Principale */
+        #main-content {
+            padding-top: calc(var(--header-h) + 20px);
+        }
+
+        /* Tasto Indietro */
         #back-button {
             position: fixed;
             left: 15px;
-            width: 42px;
-            height: 42px;
+            width: 44px;
+            height: 44px;
             background: var(--back-bg);
             color: var(--back-color);
-            display: none; 
+            display: none;
             align-items: center;
             justify-content: center;
-            border-radius: 999px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            border-radius: 50%;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             z-index: 110;
-            transition: all 0.2s ease;
             cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05);
         }
-
         #back-button.active { display: flex; }
 
-        .dynamic-subtitle {
-            margin-top: var(--sub-mt, 10px);
-            font-family: var(--sub-font);
-            color: var(--sub-color);
-            font-size: var(--sub-size);
-            text-align: var(--sub-align);
-        }
-
-        /* Stili per le Macro Card */
+        /* Macro Clip */
         .macro-card {
             height: var(--macro-h);
-            border-radius: 1rem;
+            border-radius: 1.25rem;
             background-size: cover;
             background-position: center;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-            transition: transform 0.1s ease;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
         }
-        .macro-card:active { transform: scale(0.97); }
+        .macro-card:active { transform: scale(0.96); }
         
-        /* Overlay scuro per leggere il testo se è dentro l'immagine */
         .macro-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.5));
-            z-index: 1;
+            background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4));
         }
 
-        .macro-text {
-            font-family: var(--macro-font);
-            color: var(--macro-color);
-            position: relative;
-            z-index: 2;
-            font-weight: bold;
-            font-size: 1.25rem;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        /* Testo fuori dall'immagine (con fallback colore scuro) */
-        .macro-text-outside {
-            font-family: var(--macro-font);
-            /* Se il testo è fuori, forziamo un colore scuro per leggibilità */
-            color: #1f2937; 
-            font-weight: bold;
-            font-size: 1.1rem;
-            text-align: center;
-            margin-top: 0.5rem;
-        }
-
+        /* Pagine e Transizioni */
         .page-transition { display: none; }
-        .active-page { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #4f46e5; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        .active-page { display: block; animation: pageIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--back-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-    <header id="main-header" class="glass-header px-6 relative">
-        <div id="header-content" class="w-full">
-            <div id="logo-container"></div>
-            <div id="subtitle-container" class="dynamic-subtitle"></div>
-        </div>
+    <header class="header-master px-6">
+        <div id="logo-container" class="w-full flex"></div>
+        <div id="subtitle-container" class="text-center mt-1"></div>
     </header>
 
     <button id="back-button" onclick="goBack()">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
     </button>
 
-    <main id="main-content" class="px-4 pb-12 max-w-md mx-auto relative">
+    <main id="main-content" class="px-5 pb-10 max-w-md mx-auto">
         <div id="loading-screen" class="flex flex-col items-center pt-20 active-page">
             <div class="loader mb-4"></div>
-            <p id="loading-text" class="text-gray-500 font-medium">Caricamento...</p>
+            <p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p>
         </div>
 
         <section id="page-macro" class="page-transition"></section>
+
         <section id="page-categories" class="page-transition space-y-4"></section>
-        <section id="page-items" class="page-transition space-y-6"></section>
+
+        <section id="page-items" class="page-transition space-y-5"></section>
     </main>
 
     <script>
@@ -152,7 +124,7 @@
         let navigationStack = ['page-macro'];
 
         async function init() {
-            if (!SHEET_ID) return document.getElementById('loading-screen').innerHTML = "<p class='text-red-500'>ID mancante.</p>";
+            if (!SHEET_ID) return;
             await fetchConfig();
             applyConfig();
             await fetchMenu();
@@ -160,152 +132,111 @@
 
         async function fetchConfig() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
-            try {
-                const response = await fetch(url);
-                const csv = await response.text();
-                csv.split('\n').slice(1).forEach(row => {
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if(cols.length >= 2) {
-                        appConfig[cols[0].replace(/"/g, '').trim()] = cols[1].replace(/"/g, '').replace(/;/g, ',').trim();
-                    }
-                });
-            } catch(e) { console.error("Errore Config"); }
+            const response = await fetch(url);
+            const csv = await response.text();
+            csv.split('\n').slice(1).forEach(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(cols.length >= 2) appConfig[cols[0].replace(/"/g, '').trim()] = cols[1].replace(/"/g, '').replace(/;/g, ',').trim();
+            });
         }
 
         function applyConfig() {
             const root = document.documentElement;
-            
-            // Header & App Bg
-            root.style.setProperty('--header-h', appConfig.Header_Height || '100px');
+            root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
             root.style.setProperty('--header-bg', appConfig.Header_BgColor || '#ffffff');
-            if(appConfig.Bg_Type === 'image') root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
-            else root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f3f4f6');
-
-            // Bottone Indietro
-            root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || 'rgba(255,255,255,0.9)');
+            root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
+            root.style.setProperty('--macro-h', appConfig.Macro_Height || '180px');
+            root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
+
+            // Posizionamento Tasto Indietro
             const backBtn = document.getElementById('back-button');
             const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase();
-            let extraPadding = 20;
-
-            if (pos === 'center') {
-                backBtn.style.top = `calc(${appConfig.Header_Height || '100px'} / 2)`;
-                backBtn.style.transform = 'translateY(-50%)';
-            } else if (pos === 'bottom') {
-                backBtn.style.top = `calc(${appConfig.Header_Height || '100px'} - 50px)`; 
-                backBtn.style.transform = 'none';
-            } else if (pos === 'outside') {
-                backBtn.style.top = `calc(${appConfig.Header_Height || '100px'} + 15px)`;
-                backBtn.style.transform = 'none';
-                extraPadding = 75; 
-            }
-            document.getElementById('main-content').style.paddingTop = `calc(${appConfig.Header_Height || '100px'} + ${extraPadding}px)`;
+            if (pos === 'center') backBtn.style.top = `calc(${appConfig.Header_Height} / 2 - 22px)`;
+            else if (pos === 'bottom') backBtn.style.top = `calc(${appConfig.Header_Height} - 55px)`;
+            else if (pos === 'outside') backBtn.style.top = `calc(${appConfig.Header_Height} + 15px)`;
 
             // Logo & Sottotitolo
             const logoCont = document.getElementById('logo-container');
             logoCont.className = `w-full flex justify-${appConfig.Logo_Align || 'center'}`;
             if(appConfig.Logo_Type === 'image') logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="height:${appConfig.Logo_Image_Size}; object-fit:contain;">`;
-            else logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color}; font-size:${appConfig.Logo_Text_Size}; font-family:${appConfig.Logo_Text_Font}; font-weight:${appConfig.Logo_Text_Bold === 'TRUE' ? 'bold' : 'normal'}; line-height:1;">${appConfig.Logo_Text}</h1>`;
-
-            document.getElementById('subtitle-container').innerText = appConfig.Subtitle_Text || '';
-            root.style.setProperty('--sub-mt', appConfig.Subtitle_Margin_Top || '10px');
-            root.style.setProperty('--sub-font', appConfig.Subtitle_Font);
-            root.style.setProperty('--sub-color', appConfig.Subtitle_Color);
-            root.style.setProperty('--sub-size', appConfig.Subtitle_Size);
-            root.style.setProperty('--sub-align', appConfig.Subtitle_Align);
-
-            // Variabili Macro Card
-            root.style.setProperty('--macro-h', appConfig.Macro_Height || '140px');
-            root.style.setProperty('--macro-font', appConfig.Macro_Text_Font || 'sans-serif');
-            root.style.setProperty('--macro-color', appConfig.Macro_Text_Color || '#ffffff');
+            else logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color}; font-size:${appConfig.Logo_Text_Size}; font-weight:bold;">${appConfig.Logo_Text}</h1>`;
+            
+            const sub = document.getElementById('subtitle-container');
+            sub.innerText = appConfig.Subtitle_Text || '';
+            sub.style.cssText = `color:${appConfig.Subtitle_Color}; font-size:${appConfig.Subtitle_Size}; margin-top:${appConfig.Subtitle_Margin_Top}; text-align:${appConfig.Subtitle_Align}`;
         }
 
         async function fetchMenu() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
-            try {
-                const response = await fetch(url);
-                const csvData = await response.text();
-                const rows = csvData.split('\n').slice(1);
-                fullData = rows.map(r => {
-                    const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/"/g, '').trim());
-                    return { macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[4] };
-                }).filter(i => i.macro);
-                
-                document.getElementById('loading-screen').classList.remove('active-page');
-                renderMacro();
-            } catch(e) { document.getElementById('loading-text').innerText = "Errore caricamento menu."; }
+            const response = await fetch(url);
+            const csv = await response.text();
+            fullData = csv.split('\n').slice(1).map(r => {
+                const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/"/g, '').trim());
+                return { macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[4] };
+            }).filter(i => i.macro);
+            
+            document.getElementById('loading-screen').classList.remove('active-page');
+            renderLevel1();
         }
 
-        // --- RENDER MACRO CON CLIP FOTOGRAFICHE E FALLBACK ---
-        function renderMacro() {
+        // LIVELLO 1: Le Macro Clip
+        function renderLevel1() {
             const container = document.getElementById('page-macro');
             const macros = [...new Set(fullData.map(i => i.macro))];
-            
-            // 1. Imposta la griglia o la lista
             const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase() === 'grid';
-            container.className = `page-transition active-page ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-4'}`;
-            container.innerHTML = ''; 
-
-            // 2. Calcola la posizione del testo
-            const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase();
-            let flexClasses = "items-center justify-center text-center"; // center
-            if(tPos === 'top') flexClasses = "items-start justify-center text-center pt-4";
-            if(tPos === 'bottom') flexClasses = "items-end justify-center text-center pb-4";
-            if(tPos === 'left') flexClasses = "items-center justify-start text-left pl-5";
-            if(tPos === 'right') flexClasses = "items-center justify-end text-right pr-5";
+            
+            container.className = `page-transition active-page ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
+            container.innerHTML = '';
 
             macros.forEach(m => {
-                // Cerca l'immagine specifica nel config (es. Macro_Img_Cibo)
-                const imgKey = `Macro_Img_${m}`;
-                
-                // --- LOGICA FALLBACK COLORE SOLIDO ELEGANTE E LEGGERO ---
-                // Se l'immagine manca, usa un gradiente lineare elegante e leggero
-                const bgImage = appConfig[imgKey] ? `url('${appConfig[imgKey]}')` : 'linear-gradient(135deg, #e0e7ff, #fdf2f8)'; 
+                const img = appConfig[`Macro_Img_${m}`];
+                const bg = img ? `url('${img}')` : 'linear-gradient(135deg, #e5e7eb, #f3f4f6)';
+                const tPos = (appConfig.Macro_Text_Pos || 'outside').toLowerCase();
 
-                let cardHTML = '';
-
-                if (tPos === 'outside') {
-                    // Stile con testo FUORI dalla clip immagine
-                    cardHTML = `
-                        <div class="flex flex-col cursor-pointer group" onclick="renderCategories('${m}')">
-                            <div class="macro-card w-full" style="background-image: ${bgImage};"></div>
-                            <span class="macro-text-outside group-active:scale-95 transition-transform">${m}</span>
-                        </div>
-                    `;
+                let html = '';
+                if(tPos === 'outside') {
+                    html = `<div onclick="renderLevel2('${m}')" class="flex flex-col cursor-pointer"><div class="macro-card" style="background-image:${bg}"></div><span class="text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
                 } else {
-                    // Stile con testo DENTRO la clip immagine
-                    // Aggiungiamo un overlay scuro solo se c'è un'immagine, per leggibilità del testo bianco
-                    const needsOverlay = appConfig[imgKey] ? '<div class="macro-overlay"></div>' : '';
-                    cardHTML = `
-                        <div onclick="renderCategories('${m}')" class="macro-card w-full flex ${flexClasses} cursor-pointer" style="background-image: ${bgImage};">
-                            ${needsOverlay}
-                            <span class="macro-text">${m}</span>
-                        </div>
-                    `;
+                    html = `<div onclick="renderLevel2('${m}')" class="macro-card flex items-center justify-center cursor-pointer" style="background-image:${bg}"><div class="macro-overlay"></div><span class="relative z-10 text-white font-bold text-xl uppercase tracking-widest">${m}</span></div>`;
                 }
-
-                container.innerHTML += cardHTML;
+                container.innerHTML += html;
             });
+            showPage('page-macro');
         }
 
-        // --- (Resto delle funzioni renderCategories, renderItems, showPage, goBack identiche alla V6.1) ---
-        function renderCategories(mName) {
+        // LIVELLO 2: Lista Categorie
+        function renderLevel2(mName) {
             const container = document.getElementById('page-categories');
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
-            container.innerHTML = `<h2 class="text-xl font-bold mb-4 px-2 text-gray-800 bg-white/50 backdrop-blur rounded p-2 inline-block">${mName}</h2>`;
+            
+            container.innerHTML = `<h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 pl-1">${mName}</h2>`;
             cats.forEach(c => {
-                container.innerHTML += `<div onclick="renderItems('${c}')" class="bg-white/90 p-5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer mt-3"><span class="font-semibold text-gray-800">${c}</span><span class="text-indigo-500 font-medium">Apri</span></div>`;
+                container.innerHTML += `
+                    <div onclick="renderLevel3('${mName}', '${c}')" class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer active:bg-gray-50">
+                        <span class="font-bold text-gray-800">${c}</span>
+                        <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>`;
             });
             navigationStack.push('page-categories');
             showPage('page-categories');
         }
 
-        function renderItems(cName) {
+        // LIVELLO 3: Piatti
+        function renderLevel3(mName, cName) {
             const container = document.getElementById('page-items');
-            const items = fullData.filter(i => i.cat === cName);
-            container.innerHTML = `<h2 class="text-xl font-bold mb-4 px-2 text-gray-800 bg-white/50 backdrop-blur rounded p-2 inline-block">${cName}</h2>`;
+            const items = fullData.filter(i => i.cat === cName && i.macro === mName);
+            
+            container.innerHTML = `<h2 class="text-xs font-black text-gray-400 uppercase tracking-[0.2em] mb-2 pl-1">${cName}</h2>`;
             items.forEach(i => {
-                container.innerHTML += `<div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 space-y-2 mt-3"><div class="flex justify-between items-start gap-4"><h3 class="font-bold text-gray-900">${i.name}</h3><span class="font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">${i.price}</span></div><p class="text-sm text-gray-500">${i.desc}</p></div>`;
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-50 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-extrabold text-gray-900 text-lg leading-tight">${i.name}</h3>
+                            <span class="font-black text-indigo-600 ml-4">${i.price}</span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-relaxed font-medium">${i.desc}</p>
+                    </div>`;
             });
             navigationStack.push('page-items');
             showPage('page-items');
@@ -321,7 +252,8 @@
         function goBack() { 
             if(navigationStack.length > 1) {
                 navigationStack.pop(); 
-                showPage(navigationStack[navigationStack.length-1]); 
+                const prev = navigationStack[navigationStack.length-1];
+                showPage(prev);
             }
         }
 
