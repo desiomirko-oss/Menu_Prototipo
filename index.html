@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Core</title>
+    <title>Digital Menu Core V2</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .glass-header {
@@ -13,7 +13,12 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.3);
         }
         .page-transition { display: none; }
-        .active-page { display: block; }
+        .active-page { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Loader Spinner */
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-900">
@@ -23,7 +28,7 @@
             <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">M</div>
         </div>
         <h1 id="business-name" class="text-lg font-bold tracking-tight uppercase">Menu Digitale</h1>
-        <p id="lang-indicator" class="text-[10px] text-gray-500 uppercase tracking-widest"></p>
+        <p id="lang-indicator" class="text-[10px] text-gray-500 uppercase tracking-widest">Caricamento...</p>
         
         <button id="back-button" onclick="goBack()" class="absolute left-4 top-1/2 -translate-y-1/2 hidden bg-white/50 p-2 rounded-full shadow-sm">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
@@ -32,124 +37,40 @@
         </button>
     </header>
 
-    <main class="pt-32 pb-10 px-4 max-w-md mx-auto">
+    <main class="pt-32 pb-10 px-4 max-w-md mx-auto relative">
         
-        <section id="page-macro" class="page-transition active-page space-y-4"></section>
+        <div id="loading-screen" class="active-page flex flex-col items-center justify-center pt-20">
+            <div class="loader mb-4"></div>
+            <p id="loading-text" class="text-gray-500 font-medium">Preparazione menu...</p>
+        </div>
 
+        <section id="page-macro" class="page-transition space-y-4"></section>
         <section id="page-categories" class="page-transition space-y-4"></section>
-
         <section id="page-items" class="page-transition space-y-4"></section>
 
     </main>
 
     <script>
-        // --- CONFIGURAZIONE LOGICA ---
         const urlParams = new URLSearchParams(window.location.search);
         const SHEET_ID = urlParams.get('id'); 
+        
+        // Rileva lingua (es. 'it', 'en', 'de')
         const userLang = (navigator.language || navigator.userLanguage).split('-')[0];
+        const baseLang = 'it'; // Lingua in cui è scritto il Google Sheet
         
         let fullData = [];
         let navigationStack = ['page-macro'];
+        let translationCache = {}; // Cache per non ritradurre la stessa parola
 
-        async function init() {
-            if (!SHEET_ID) {
-                document.body.innerHTML = "<div class='p-10 text-center'>Configurazione mancante (ID).</div>";
-                return;
-            }
-            document.getElementById('lang-indicator').innerText = `Lingua rilevata: ${userLang}`;
-            await fetchData();
-        }
+        // --- MOTORE DI TRADUZIONE AUTOMATICA ---
+        async function translate(text) {
+            if (userLang === baseLang || !text) return text;
+            if (translationCache[text]) return translationCache[text];
 
-        async function fetchData() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+            // Usa l'endpoint gratuito GTX di Google
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${baseLang}&tl=${userLang}&dt=t&q=${encodeURIComponent(text)}`;
+            
             try {
-                const response = await fetch(url);
-                const csvData = await response.text();
-                parseCsv(csvData);
-            } catch (e) {
-                console.error("Errore caricamento dati");
-            }
-        }
-
-        function parseCsv(data) {
-            // Parser CSV semplificato (per ora gestiamo array di oggetti)
-            const rows = data.split('\n').slice(1);
-            fullData = rows.map(row => {
-                const cols = row.split(',').map(c => c.replace(/"/g, ''));
-                return { lang: cols[0], macro: cols[1], cat: cols[2], name: cols[3], desc: cols[4], price: cols[5] };
-            }).filter(item => item.lang === userLang); // Filtro automatico lingua
-
-            renderMacro();
-        }
-
-        // --- NAVIGAZIONE E RENDERING ---
-
-        function showPage(pageId) {
-            document.querySelectorAll('.page-transition').forEach(p => p.classList.remove('active-page'));
-            document.getElementById(pageId).classList.add('active-page');
-            
-            const backBtn = document.getElementById('back-button');
-            pageId === 'page-macro' ? backBtn.classList.add('hidden') : backBtn.classList.remove('hidden');
-            
-            window.scrollTo(0,0);
-        }
-
-        function goBack() {
-            navigationStack.pop();
-            const prevPage = navigationStack[navigationStack.length - 1];
-            showPage(prevPage);
-        }
-
-        function renderMacro() {
-            const container = document.getElementById('page-macro');
-            const macros = [...new Set(fullData.map(item => item.macro))];
-            
-            container.innerHTML = `<h2 class="text-xl font-bold mb-4">Seleziona Reparto</h2>`;
-            macros.forEach(m => {
-                container.innerHTML += `
-                    <div onclick="renderCategories('${m}')" class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center transition-transform active:scale-95">
-                        <span class="text-lg font-bold">${m}</span>
-                        <span>→</span>
-                    </div>`;
-            });
-        }
-
-        function renderCategories(macroName) {
-            const container = document.getElementById('page-categories');
-            const categories = [...new Set(fullData.filter(i => i.macro === macroName).map(i => i.cat))];
-            
-            container.innerHTML = `<h2 class="text-xl font-bold mb-4">${macroName}</h2>`;
-            categories.forEach(c => {
-                container.innerHTML += `
-                    <div onclick="renderItems('${c}')" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center">
-                        <span class="font-semibold text-gray-700">${c}</span>
-                        <span class="text-indigo-500">Apri</span>
-                    </div>`;
-            });
-            navigationStack.push('page-categories');
-            showPage('page-categories');
-        }
-
-        function renderItems(catName) {
-            const container = document.getElementById('page-items');
-            const items = fullData.filter(i => i.cat === catName);
-            
-            container.innerHTML = `<h2 class="text-xl font-bold mb-4">${catName}</h2>`;
-            items.forEach(i => {
-                container.innerHTML += `
-                    <div class="bg-white p-4 rounded-xl shadow-sm space-y-1">
-                        <div class="flex justify-between items-start">
-                            <h3 class="font-bold text-gray-800 text-lg">${i.name}</h3>
-                            <span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded text-sm">${i.price}€</span>
-                        </div>
-                        <p class="text-sm text-gray-500 leading-relaxed">${i.desc}</p>
-                    </div>`;
-            });
-            navigationStack.push('page-items');
-            showPage('page-items');
-        }
-
-        init();
-    </script>
-</body>
-</html>
+                const res = await fetch(url);
+                const data = await res.json();
+                const translated = data[0].map(item =>
