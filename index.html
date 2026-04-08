@@ -3,32 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menu Digitale</title>
+    <title>Menu Digitale Premium</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
             --app-bg: #f9fafb; --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
-            
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
             --menu-card-border: 1px solid #f3f4f6; --menu-card-shadow: var(--card-shadow);
-            
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
-
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
             --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
             --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
             --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
-            
             --macro-txt-sh: none; --level-txt-sh: none; --level-mb: 25px; 
-
-            /* LARGHEZZA E ALTEZZA FOTO CONTROLLATE DA TE */
-            --i-photo-w: 110px;
-            --i-photo-h: 110px;
-            --i-photo-sh: none;
-
-            /* FILTRI DINAMICI */
+            --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
             --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
             --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
             --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
@@ -40,7 +30,6 @@
             min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
-        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
@@ -48,77 +37,39 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
         }
-        #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
-        /* NUOVO SUB-HEADER (BG FISSO) PER CATEGORIE E FILTRI */
         #sub-header {
-            background: var(--header-bg); 
-            position: fixed; 
-            width: 100%; /* Larghezza totale schermo */
-            z-index: 998;
-            top: var(--header-h); /* Incollato esattamente sotto l'header principale */
-            left: 0; 
-            display: none; 
-            flex-direction: column; 
-            align-items: center;
-            border-radius: 0; /* Senza angoli arrotondati */
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
+            background: var(--header-bg); position: fixed; width: 100%; z-index: 998;
+            top: var(--header-h); left: 0; display: none; flex-direction: column; align-items: center;
+            border-radius: 0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(0,0,0,0.05); 
-            transition: all 0.3s ease;
+            border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
         #back-button {
             position: fixed; left: 15px; width: 44px; height: 44px;
             background: var(--back-bg); color: var(--back-color);
             display: none; align-items: center; justify-content: center; border-radius: 50%;
-            box-shadow: var(--card-shadow); z-index: 1000; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.1s ease;
+            box-shadow: var(--card-shadow); z-index: 1000; cursor: pointer; border: 1px solid rgba(0,0,0,0.05);
         }
-        #back-button:active { transform: scale(0.9); }
-        #back-button.active { display: flex; }
 
         .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); transition: all 0.2s ease; }
-        .macro-card:active { transform: scale(0.96); }
-        .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
-        .macro-text-inside, .macro-text-outside { text-shadow: var(--macro-txt-sh); }
+        .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.6), rgba(0,0,0,0.1)); }
 
-        .menu-card {
-            background-color: var(--menu-card-bg); padding: var(--menu-card-p);
-            border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow);
-            border: var(--menu-card-border); transition: transform 0.1s ease;
-        }
-        .menu-card:active { transform: scale(0.98); }
-        .cat-card { min-height: var(--cat-card-min-h); }
-        .item-card { min-height: var(--item-card-min-h); }
+        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); }
+        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); line-height: 1.4; margin-bottom: var(--i-desc-mb); }
+        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); }
 
-        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
-        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); font-weight: var(--i-desc-w); margin-bottom: var(--i-desc-mb); text-shadow: var(--i-desc-sh); line-height: 1.4; }
-        .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
-        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
-
-        .item-photo { 
-            width: var(--i-photo-w); 
-            height: var(--i-photo-h); 
-            flex-shrink: 0; 
-            border-radius: 0.75rem; 
-            object-fit: cover; 
-            box-shadow: var(--i-photo-sh); 
-        }
-        
-        /* CONTENITORE FILTRI: SU UNA RIGA SCORREVOLE */
-        .filter-container { 
-            display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
-            padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; 
-        }
-        .filter-container::-webkit-scrollbar { display: none; }
         .filter-btn {
             font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
             background-color: var(--flt-bg-i); color: var(--flt-c-i);
-            padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
-            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-shrink: 0;
+            padding: 8px 16px; border-radius: 9999px; transition: all 0.2s ease;
+            text-transform: uppercase; letter-spacing: 0.1em; flex-shrink: 0;
         }
-        .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; }
+
+        .ar-badge { background: #000; color: #fff; font-size: 9px; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; margin-top: 5px; }
 
         .page-content { animation: pageIn 0.3s ease-out forwards; }
         @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -129,31 +80,19 @@
 <body>
 
     <header id="main-header">
-        <div id="header-content-wrapper">
-            <div id="logo-container" class="w-full flex items-center"></div>
-            <div id="subtitle-container"></div>
-            <div id="level-title-inside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;"></div>
-        </div>
+        <div id="header-content-wrapper"><div id="logo-container"></div><div id="subtitle-container"></div></div>
     </header>
 
     <div id="sub-header">
         <h2 id="sub-header-title" class="text-[12px] font-black text-gray-500 uppercase tracking-[0.2em] pt-4 px-4 text-center"></h2>
-        <div id="sub-header-filters" class="filter-container justify-start sm:justify-center"></div>
+        <div id="sub-header-filters" class="flex flex-row gap-2 overflow-x-auto p-4 w-full no-scrollbar"></div>
     </div>
 
-    <button id="back-button" onclick="goBack()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-    </button>
+    <button id="back-button" onclick="goBack()"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
 
     <main id="main-content" class="px-5 pb-10 max-w-md mx-auto relative">
-        <div id="loading-screen" class="flex flex-col items-center pt-20">
-            <div class="loader mb-4"></div>
-            <p class="text-gray-400 text-sm uppercase tracking-widest mt-2" id="loading-text">Sincronizzazione...</p>
-        </div>
-
-        <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;" class="mb-4"></div>
-
-        <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content"></div></section>
+        <div id="loading-screen" class="flex flex-col items-center pt-20"><div class="loader mb-4"></div><p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p></div>
+        <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content space-y-4"></div></section>
         <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
         <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
     </main>
@@ -161,397 +100,146 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const SHEET_ID = urlParams.get('id'); 
-        let appConfig = {};
-        let fullData = [];
-        let navigationStack = ['page-macro'];
-        
-        let activeFilters = []; 
-        let currentMacroName = '';
-        let currentCategoryName = '';
+        let appConfig = {}, fullData = [], navigationStack = ['page-macro'], activeFilters = [];
+        let currentMacro = '', currentCat = '';
 
-        function isTruthy(val) {
-            if(!val) return false;
-            const v = val.toUpperCase().trim();
-            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
+        function isTruthy(v) { return ['TRUE', 'SI', 'SÌ', 'YES', '1'].includes(String(v).toUpperCase().trim()); }
+
+        async function init() {
+            if (!SHEET_ID) return;
+            await fetchConfig(); applyConfig(); await fetchMenu();
         }
 
-        function getShadow(type, isText = false) {
-            const val = (type || 'none').toLowerCase().trim();
-            if (isText) {
-                if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
-                if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
-                if(val === 'strong') return '0 3px 6px rgba(0,0,0,0.7)';
-                return 'none';
+        async function fetchConfig() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
+            try {
+                const res = await fetch(url);
+                const csv = await res.text();
+                csv.split('\n').forEach(row => {
+                    const [k, v] = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if(k) appConfig[k.replace(/"/g,'').trim()] = v ? v.replace(/"/g,'').trim() : '';
+                });
+            } catch(e) { console.error("Config Fail"); }
+        }
+
+        function applyConfig() {
+            const r = document.documentElement;
+            const bgT = (appConfig.Bg_Type || 'color').toLowerCase();
+            r.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
+            if(bgT === 'image') r.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
+
+            const lCont = document.getElementById('logo-container');
+            const lType = (appConfig.Logo_Type || 'text').toLowerCase();
+            if(lType === 'image') {
+                lCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="max-height:${appConfig.Logo_Image_Size || '50px'}; margin: auto;">`;
             } else {
-                if(val === 'light') return '0 2px 4px rgba(0,0,0,0.1)';
-                if(val === 'medium') return '0 4px 6px rgba(0,0,0,0.15)';
-                if(val === 'strong') return '0 15px 25px -5px rgba(0,0,0,0.2)';
-                return 'none';
+                lCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color}; font-size:${appConfig.Logo_Text_Size}; text-align:center; font-weight:bold;">${appConfig.Logo_Text || 'MENU'}</h1>`;
             }
+            
+            const sub = document.getElementById('subtitle-container');
+            sub.innerHTML = `<p style="text-align:center; font-size:12px; color:#6b7280;">${appConfig.Subtitle_Text || ''}</p>`;
         }
+
+        async function fetchMenu() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
+            try {
+                const res = await fetch(url);
+                const csv = await res.text();
+                fullData = csv.split('\n').slice(1).map(row => {
+                    const c = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/"/g,'').trim());
+                    return { macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photo: c[11], ar: c[12] };
+                }).filter(i => isTruthy(i.active));
+                document.getElementById('loading-screen').style.display = 'none';
+                renderMacro();
+            } catch(e) { console.error("Menu Fail"); }
+        }
+
+        function renderMacro() {
+            const cont = document.getElementById('macro-layout-container');
+            cont.innerHTML = '';
+            [...new Set(fullData.map(i => i.macro))].forEach(m => {
+                const img = appConfig[`Macro_Img_${m}`];
+                cont.innerHTML += `<div onclick="renderCat('${m}')" class="macro-card flex items-center justify-center cursor-pointer" style="background-image:url('${img}')">
+                    <div class="macro-overlay"></div><span class="relative text-white font-bold text-xl uppercase tracking-widest">${m}</span></div>`;
+            });
+            showPage('page-macro');
+        }
+
+        function renderCat(m) {
+            currentMacro = m;
+            const cont = document.getElementById('page-categories');
+            cont.innerHTML = '';
+            const cats = [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
+            cats.forEach(c => {
+                const img = appConfig[`Category_Img_${c}`];
+                cont.innerHTML += `<div onclick="renderItems('${m}','${c}')" class="menu-card cat-card flex items-center justify-between cursor-pointer" style="background-image:url('${img}')">
+                    <div class="cat-overlay"></div><span class="relative font-bold ${img ? 'text-white' : 'text-gray-800'} text-lg">${c}</span>
+                    <svg class="w-5 h-5 relative ${img ? 'text-white' : 'text-gray-400'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+            });
+            navigationStack.push('page-categories');
+            showPage('page-categories');
+        }
+
+        function toggleFilter(f) {
+            activeFilters = activeFilters.includes(f) ? [] : [f];
+            renderItems(currentMacro, currentCat, true);
+        }
+
+        function renderItems(m, c, isF = false) {
+            currentMacro = m; currentCat = c;
+            const cont = document.getElementById('page-items');
+            if(!isF) {
+                document.getElementById('sub-header-title').innerText = c;
+                const fCont = document.getElementById('sub-header-filters');
+                fCont.innerHTML = '';
+                const isBev = m.toLowerCase().includes('bev');
+                const filters = isBev ? [['noalc','Analcolico']] : [['gf','Senza Glutine'],['vegan','Vegano'],['veg','Vegetariano']];
+                filters.forEach(f => {
+                    fCont.innerHTML += `<button onclick="toggleFilter('${f[0]}')" class="filter-btn ${activeFilters.includes(f[0])?'active':''}">${f[1]}</button>`;
+                });
+            }
+
+            cont.innerHTML = '';
+            let items = fullData.filter(i => i.macro === m && i.cat === c);
+            if(activeFilters.length) items = items.filter(i => isTruthy(i[activeFilters[0]]));
+
+            items.forEach(i => {
+                const arBtn = i.ar ? `<a href="${i.ar}" class="ar-badge">🔍 VEDI IN AR</a>` : '';
+                cont.innerHTML += `<div class="menu-card flex gap-4">
+                    <div class="flex-grow">
+                        <h3 class="item-name">${i.name}</h3><p class="item-desc">${i.desc}</p>
+                        <span class="text-[10px] text-red-400">${i.allerg?'Allergeni: '+i.allerg:''}</span>
+                        <div>${arBtn}</div><div class="mt-2 item-price">${i.price}€</div>
+                    </div>
+                    ${i.photo ? `<img src="${i.photo}" class="item-photo">` : ''}
+                </div>`;
+            });
+            if(!isF) { navigationStack.push('page-items'); showPage('page-items'); }
+        }
+
+        function showPage(p) {
+            ['page-macro','page-categories','page-items'].forEach(s => document.getElementById(s).style.display = 'none');
+            document.getElementById(p).style.display = 'block';
+            document.getElementById('sub-header').style.display = p === 'page-items' ? 'flex' : 'none';
+            document.getElementById('back-button').style.display = p === 'page-macro' ? 'none' : 'flex';
+            autoAdjustPadding();
+        }
+
+        function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
 
         function safeParseCSVRow(str) {
-            let arr = []; let quote = false; let cell = '';
+            let arr = [], quote = false, cell = '';
             for (let i = 0; i < str.length; i++) {
                 let c = str[i];
                 if (c === '"' && str[i+1] === '"') { cell += '"'; i++; } 
-                else if (c === '"') { quote = !quote; }
+                else if (c === '"') quote = !quote;
                 else if (c === ',' && !quote) { arr.push(cell.trim()); cell = ''; }
-                else { cell += c; }
+                else cell += c;
             }
             arr.push(cell.trim());
             return arr.map(x => x.replace(/^"|"$/g, '').trim());
         }
 
-        async function init() {
-            if (!SHEET_ID) {
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
-                return;
-            }
-            await fetchConfig(); 
-            applyConfig(); 
-            await fetchMenu();
-        }
-
-        async function fetchConfig() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
-            try {
-                const response = await fetch(url);
-                if(!response.ok) throw new Error("Network Error");
-                const csv = await response.text();
-                csv.split('\n').slice(1).forEach(row => {
-                    if(row.trim() === '') return;
-                    const cols = safeParseCSVRow(row);
-                    if(cols.length >= 2 && cols[0] !== '') appConfig[cols[0]] = cols[1];
-                });
-            } catch(e) { console.error("Errore Configurazione:", e); }
-        }
-
-        function applyConfig() {
-            const root = document.documentElement;
-            root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
-            root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
-            root.style.setProperty('--app-bg', appConfig.Bg_Color || '#f9fafb');
-            if(appConfig.Bg_Type === 'image') root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL}')`);
-            root.style.setProperty('--macro-h', appConfig.Macro_Height || '180px');
-            root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
-            root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
-            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
-            const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
-            if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
-            else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
-            else if(shadowInt === 'none') shadowVal = 'none';
-            root.style.setProperty('--card-shadow', shadowVal);
-            if((appConfig.Card_Show_Bg || '').toUpperCase().trim() === 'FALSE') {
-                root.style.setProperty('--menu-card-bg', 'transparent'); root.style.setProperty('--menu-card-shadow', 'none');
-                root.style.setProperty('--menu-card-border', 'none'); root.style.setProperty('--menu-card-p', '10px 0px'); 
-            } else {
-                root.style.setProperty('--menu-card-bg', appConfig.Card_BgColor || '#ffffff'); root.style.setProperty('--menu-card-shadow', shadowVal); 
-                root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', appConfig.Card_Padding || '20px');
-            }
-            root.style.setProperty('--menu-card-r', appConfig.Card_Radius || '24px');
-            root.style.setProperty('--cat-card-min-h', appConfig.Category_Card_MinHeight || '80px');
-            root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
-            root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '110px');
-            root.style.setProperty('--i-photo-h', appConfig.Item_Photo_Height || '110px');
-            root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
-            root.style.setProperty('--i-name-f', appConfig.Item_Name_Font || 'sans-serif');
-            root.style.setProperty('--i-name-c', appConfig.Item_Name_Color || '#111827');
-            root.style.setProperty('--i-name-s', appConfig.Item_Name_Size || '18px');
-            root.style.setProperty('--i-name-w', (appConfig.Item_Name_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
-            root.style.setProperty('--i-name-mb', appConfig.Item_Name_MarginBottom || '4px');
-            root.style.setProperty('--i-name-sh', getShadow(appConfig.Item_Name_Shadow, true));
-            root.style.setProperty('--i-desc-f', appConfig.Item_Desc_Font || 'sans-serif');
-            root.style.setProperty('--i-desc-c', appConfig.Item_Desc_Color || '#6b7280');
-            root.style.setProperty('--i-desc-s', appConfig.Item_Desc_Size || '14px');
-            root.style.setProperty('--i-desc-w', (appConfig.Item_Desc_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
-            root.style.setProperty('--i-desc-mb', appConfig.Item_Desc_MarginBottom || '8px');
-            root.style.setProperty('--i-desc-sh', getShadow(appConfig.Item_Desc_Shadow, true));
-            root.style.setProperty('--i-allg-f', appConfig.Item_Allerg_Font || 'sans-serif');
-            root.style.setProperty('--i-allg-c', appConfig.Item_Allerg_Color || '#f87171');
-            root.style.setProperty('--i-allg-s', appConfig.Item_Allerg_Size || '11px');
-            root.style.setProperty('--i-allg-w', (appConfig.Item_Allerg_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
-            root.style.setProperty('--i-allg-mb', appConfig.Item_Allerg_MarginBottom || '8px');
-            root.style.setProperty('--i-allg-sh', getShadow(appConfig.Item_Allerg_Shadow, true));
-            root.style.setProperty('--i-pric-f', appConfig.Item_Price_Font || 'sans-serif');
-            root.style.setProperty('--i-pric-c', appConfig.Item_Price_Color || '#4f46e5');
-            root.style.setProperty('--i-pric-s', appConfig.Item_Price_Size || '16px');
-            root.style.setProperty('--i-pric-w', (appConfig.Item_Price_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
-            root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
-            root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
-            root.style.setProperty('--flt-f', appConfig.Filter_Font || 'sans-serif');
-            root.style.setProperty('--flt-s', appConfig.Filter_Size || '11px');
-            root.style.setProperty('--flt-w', (appConfig.Filter_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
-            root.style.setProperty('--flt-bg-i', appConfig.Filter_BgColor_Inactive || '#f3f4f6');
-            root.style.setProperty('--flt-c-i', appConfig.Filter_TextColor_Inactive || '#9ca3af');
-            root.style.setProperty('--flt-bg-a', appConfig.Filter_BgColor_Active || '#4f46e5');
-            root.style.setProperty('--flt-c-a', appConfig.Filter_TextColor_Active || '#ffffff');
-            const logoCont = document.getElementById('logo-container');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
-            logoCont.innerHTML = ''; 
-            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-            if ((appConfig.Logo_Type || '').toLowerCase().trim() === 'image' && appConfig.Logo_Image_URL) {
-                logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="max-height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;" onerror="this.style.display='none'">`;
-            } else {
-                let txt = appConfig.Logo_Text || 'Menu Digitale';
-                logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${(appConfig.Logo_Text_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${txt}</h1>`;
-            }
-            const sub = document.getElementById('subtitle-container');
-            if((appConfig.Subtitle_Show || '').toUpperCase().trim() === 'FALSE') sub.style.display = 'none';
-            else {
-                sub.style.display = 'block'; sub.innerText = appConfig.Subtitle_Text || '';
-                sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
-            }
-            const lvlSh = getShadow(appConfig.Level_Title_Shadow, true);
-            const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${(appConfig.Level_Title_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
-            document.getElementById('level-title-inside').style.cssText = levelStyle;
-            const levelMarginB = appConfig.Level_Title_Margin_Bottom || '25px';
-            document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
-            const backBtn = document.getElementById('back-button');
-            const hHeight = parseInt(appConfig.Header_Height || '120');
-            const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
-            if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
-            else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
-            else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
-        }
-
-        function autoAdjustPadding() {
-            setTimeout(() => {
-                const header = document.getElementById('main-header');
-                const subHeader = document.getElementById('sub-header');
-                const mainContent = document.getElementById('main-content');
-                let totalH = header.offsetHeight;
-                if(subHeader && subHeader.style.display !== 'none') totalH += subHeader.offsetHeight;
-                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
-            }, 50); 
-        }
-
-        async function fetchMenu() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
-            try {
-                const response = await fetch(url);
-                if(!response.ok) throw new Error("Network Error");
-                const csv = await response.text();
-                fullData = [];
-                const rows = csv.split('\n');
-                for(let i=1; i<rows.length; i++) {
-                    if(rows[i].trim() === '') continue;
-                    const c = safeParseCSVRow(rows[i]);
-                    if(c.length < 3 || !c[0]) continue;
-                    fullData.push({
-                        macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
-                        allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
-                        veg: c[8] || '', noalc: c[9] || '', active: c[10] || 'TRUE', photoUrl: c[11] || ''
-                    });
-                }
-                fullData = fullData.filter(i => isTruthy(i.active)); 
-                document.getElementById('loading-screen').style.display = 'none';
-                renderLevel1();
-            } catch (e) { 
-                console.error(e);
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Menu non trovato o in manutenzione.</div>"; 
-            }
-        }
-
-        function renderLevel1() {
-            const layoutContainer = document.getElementById('macro-layout-container');
-            const macros = [...new Set(fullData.map(i => i.macro))];
-            const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase().trim() === 'grid';
-            layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
-            layoutContainer.innerHTML = '';
-            const bgType = (appConfig.Macro_Bg_Type || 'image').toLowerCase().trim();
-            macros.forEach(m => {
-                let bgStyle = '';
-                if (bgType === 'color') bgStyle = `background: ${appConfig.Macro_Bg_Color || '#cbd5e1'};`;
-                else {
-                    const imgKey = `Macro_Img_${m}`;
-                    const imgUrl = appConfig[imgKey] ? appConfig[imgKey].trim() : '';
-                    if (imgUrl && imgUrl !== 'undefined') bgStyle = `background-image: url('${imgUrl}');`;
-                    else bgStyle = `background: ${appConfig.Macro_Bg_Color || 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'};`;
-                }
-                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
-                let html = '';
-                if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
-                } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 text-white font-extrabold text-xl uppercase tracking-widest">${m}</span></div>`;
-                }
-                layoutContainer.innerHTML += html;
-            });
-            showPage('page-macro');
-        }
-
-        function renderLevel2(mName) {
-            const container = document.getElementById('page-categories');
-            const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
-            container.innerHTML = ''; 
-            cats.forEach(c => {
-                container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3">
-                        <span class="font-bold text-gray-800 text-lg">${c}</span>
-                        <svg class="w-5 h-5 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </div>`;
-            });
-            navigationStack.push('page-categories');
-            showPage('page-categories', mName);
-        }
-
-        // --- LOGICA MAESTRO: FILTRI ESCLUSIVI E CAMBIO COLORE ---
-        function toggleFilter(filterType) {
-            // Se clicco quello attivo, lo spengo. Altrimenti accendo SOLO quello cliccato.
-            if (activeFilters.includes(filterType)) {
-                activeFilters = [];
-            } else {
-                activeFilters = [filterType];
-            }
-            
-            // Aggiornamento Visivo Istantaneo: rimuovi active da tutti e aggiungi solo al nuovo
-            const btns = document.getElementById('sub-header-filters').querySelectorAll('.filter-btn');
-            btns.forEach(btn => {
-                btn.classList.remove('active');
-                // Identifichiamo il tipo di bottone dal testo per accenderlo
-                const btnText = btn.innerText.toLowerCase();
-                const isMatch = (activeFilters[0] === 'gf' && btnText.includes('glutine')) || 
-                                (activeFilters[0] === 'vegan' && btnText.includes('vegano')) || 
-                                (activeFilters[0] === 'veg' && btnText.includes('vegetariano')) || 
-                                (activeFilters[0] === 'noalc' && btnText.includes('analcolico'));
-                if(isMatch) btn.classList.add('active');
-            });
-
-            renderLevel3(currentMacroName, currentCategoryName, true);
-        }
-
-        function renderLevel3(mName, cName, isFiltering = false) {
-            currentMacroName = mName; currentCategoryName = cName;
-            const container = document.getElementById('page-items');
-            
-            if (!isFiltering) {
-                container.innerHTML = '';
-                document.getElementById('sub-header-title').innerText = cName;
-                const filterContainer = document.getElementById('sub-header-filters');
-                filterContainer.innerHTML = '';
-
-                if ((appConfig.Filter_Show || '').toUpperCase().trim() !== 'FALSE') {
-                    const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
-                    let filterHtml = '';
-                    if (!isDrinks) {
-                        filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
-                        filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
-                        filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
-                    } else {
-                        filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
-                    }
-                    filterContainer.innerHTML = filterHtml;
-                }
-                container.innerHTML += '<div id="items-list" class="space-y-4"></div>';
-            }
-
-            const itemsList = document.getElementById('items-list');
-            itemsList.innerHTML = '';
-            
-            let items = fullData.filter(i => i.cat === cName && i.macro === mName);
-            if (activeFilters.length > 0) {
-                items = items.filter(i => {
-                    return activeFilters.every(f => {
-                        if(f === 'gf') return isTruthy(i.gf);
-                        if(f === 'vegan') return isTruthy(i.vegan);
-                        if(f === 'veg') return isTruthy(i.veg);
-                        if(f === 'noalc') return isTruthy(i.noalc);
-                        return true;
-                    });
-                });
-            }
-
-            if(items.length === 0) {
-                itemsList.innerHTML = `<div class="text-center text-gray-400 py-10 font-bold">Nessun piatto trovato.</div>`;
-            }
-
-            items.forEach(i => {
-                let badges = '';
-                if(isTruthy(i.gf)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-                if(isTruthy(i.vegan)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-                if(isTruthy(i.veg)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
-                let allergensHTML = i.allerg ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
-                let descHTML = i.desc ? `<p class="item-desc">${i.desc}</p>` : '';
-                let priceHTML = `<span class="item-price">${i.price}</span>`;
-                const cleanPhotoUrl = i.photoUrl ? i.photoUrl.trim() : '';
-                const hasPhoto = cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined';
-                if (hasPhoto) {
-                    itemsList.innerHTML += `
-                        <div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4">
-                            <div class="flex flex-col flex-grow">
-                                <div><h3 class="item-name">${i.name}</h3>${descHTML}${allergensHTML}<div class="flex flex-wrap">${badges}</div></div>
-                                <div class="mt-auto pt-3">${priceHTML}</div>
-                            </div>
-                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
-                        </div>`;
-                } else {
-                    itemsList.innerHTML += `
-                        <div class="menu-card item-card flex flex-col justify-center mb-4">
-                            <div class="flex justify-between items-start gap-4"><h3 class="item-name flex-grow">${i.name}</h3><div class="shrink-0 text-right pl-2">${priceHTML}</div></div>
-                            ${descHTML}${allergensHTML}<div class="flex flex-wrap">${badges}</div>
-                        </div>`;
-                }
-            });
-
-            if (!isFiltering) {
-                navigationStack.push('page-items');
-                showPage('page-items', mName);
-            }
-        }
-
-        function showPage(p, levelTitle = '') {
-            if(p !== 'page-items') activeFilters = [];
-            document.getElementById('page-macro').style.display = 'none';
-            document.getElementById('page-categories').style.display = 'none';
-            document.getElementById('page-items').style.display = 'none';
-            document.getElementById(p).style.display = 'block';
-            const contentDiv = document.querySelector(`#${p} .page-content`) || document.getElementById(p);
-            contentDiv.style.animation = 'none'; contentDiv.offsetHeight; 
-            contentDiv.style.animation = 'pageIn 0.3s ease-out forwards';
-            const backBtn = document.getElementById('back-button');
-            const subHeader = document.getElementById('sub-header');
-            const titleInside = document.getElementById('level-title-inside');
-            const titleOutside = document.getElementById('level-title-outside');
-            const wrapper = document.getElementById('header-content-wrapper');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
-            titleInside.style.display = 'none'; titleOutside.style.display = 'none';
-            if(p === 'page-macro') {
-                backBtn.classList.remove('active');
-                subHeader.style.display = 'none';
-                wrapper.style.paddingLeft = '0px'; 
-            } else {
-                backBtn.classList.add('active');
-                const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
-                wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
-                if(p === 'page-items') subHeader.style.display = 'flex';
-                else {
-                    subHeader.style.display = 'none';
-                    if((appConfig.Level_Title_Show || '').toUpperCase().trim() !== 'FALSE') {
-                        if((appConfig.Level_Title_Position || 'inside').toLowerCase().trim() === 'outside') {
-                            titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
-                        } else {
-                            titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
-                        }
-                    }
-                }
-            }
-            autoAdjustPadding();
-            window.scrollTo({top: 0, behavior: 'instant'});
-        }
-
-        function goBack() { 
-            if(navigationStack.length > 1) {
-                navigationStack.pop(); 
-                const prev = navigationStack[navigationStack.length-1];
-                let titleToRestore = '';
-                if(prev === 'page-categories') {
-                    const firstMatch = fullData.find(i => i.cat === document.getElementById('sub-header-title').innerText);
-                    if(firstMatch) titleToRestore = firstMatch.macro;
-                }
-                showPage(prev, titleToRestore);
-            }
-        }
         init();
     </script>
 </body>
