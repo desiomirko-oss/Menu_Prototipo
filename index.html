@@ -55,14 +55,14 @@
         #sub-header {
             background: var(--header-bg); 
             position: fixed; 
-            width: 100%; 
+            width: 100%; /* Larghezza totale schermo */
             z-index: 998;
-            top: var(--header-h); 
+            top: var(--header-h); /* Incollato esattamente sotto l'header principale */
             left: 0; 
             display: none; 
             flex-direction: column; 
             align-items: center;
-            border-radius: 0; 
+            border-radius: 0; /* Nessun angolo arrotondato */
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border-top: 1px solid rgba(0,0,0,0.05); 
@@ -109,7 +109,7 @@
             box-shadow: var(--i-photo-sh); 
         }
         
-        /* CONTENITORE FILTRI: SU UNA RIGA SCORREVOLE */
+        /* CONTENITORE FILTRI: SINGOLA RIGA SCORREVOLE */
         .filter-container { 
             display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
             padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; 
@@ -123,7 +123,7 @@
             text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             flex-shrink: 0;
         }
-        /* CLASSE ACTIVE CHE CAMBIA COLORE */
+        /* COLORE ATTIVO */
         .filter-btn.active { 
             background-color: var(--flt-bg-a); 
             color: var(--flt-c-a); 
@@ -179,15 +179,15 @@
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // FUNZIONE TRUTHY CHE RICONOSCE SI, TRUE, YES
+        // FUNZIONE TRUTHY BLINDATA: Previene errori se la cella è vuota, numerica o malformata
         function isTruthy(val) {
-            if(!val) return false;
-            const v = val.toUpperCase().trim();
-            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
+            if (val === undefined || val === null) return false;
+            const v = String(val).toUpperCase().trim();
+            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO', 'Y'].includes(v);
         }
 
         function getShadow(type, isText = false) {
-            const val = (type || 'none').toLowerCase().trim();
+            const val = String(type || 'none').toLowerCase().trim();
             if (isText) {
                 if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
                 if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
@@ -201,7 +201,7 @@
             }
         }
 
-        // PARSER SICURO
+        // PARSER SICURO AL 100%: Gestisce celle vuote e virgole interne
         function safeParseCSVRow(str) {
             let arr = []; let quote = false; let cell = '';
             for (let i = 0; i < str.length; i++) {
@@ -231,7 +231,8 @@
                 const response = await fetch(url);
                 if(!response.ok) throw new Error("Network Error");
                 const csv = await response.text();
-                csv.split('\n').slice(1).forEach(row => {
+                // Rimuove \r sporchi che causano crash
+                csv.split(/\r?\n/).slice(1).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') appConfig[cols[0]] = cols[1];
@@ -252,13 +253,13 @@
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
             let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
-            const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
+            const shadowInt = String(appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
             if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
             else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
             else if(shadowInt === 'none') shadowVal = 'none';
             root.style.setProperty('--card-shadow', shadowVal);
 
-            if((appConfig.Card_Show_Bg || '').toUpperCase().trim() === 'FALSE') {
+            if(String(appConfig.Card_Show_Bg || '').toUpperCase().trim() === 'FALSE') {
                 root.style.setProperty('--menu-card-bg', 'transparent'); root.style.setProperty('--menu-card-shadow', 'none');
                 root.style.setProperty('--menu-card-border', 'none'); root.style.setProperty('--menu-card-p', '10px 0px'); 
             } else {
@@ -269,49 +270,158 @@
             root.style.setProperty('--cat-card-min-h', appConfig.Category_Card_MinHeight || '80px');
             root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
 
+            // FOTO LARGHEZZA E ALTEZZA
             root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '110px');
             root.style.setProperty('--i-photo-h', appConfig.Item_Photo_Height || '110px');
             root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
 
+            // TIPOGRAFIA
             root.style.setProperty('--i-name-f', appConfig.Item_Name_Font || 'sans-serif');
             root.style.setProperty('--i-name-c', appConfig.Item_Name_Color || '#111827');
             root.style.setProperty('--i-name-s', appConfig.Item_Name_Size || '18px');
-            root.style.setProperty('--i-name-w', (appConfig.Item_Name_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
+            root.style.setProperty('--i-name-w', String(appConfig.Item_Name_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
             root.style.setProperty('--i-name-mb', appConfig.Item_Name_MarginBottom || '4px');
             root.style.setProperty('--i-name-sh', getShadow(appConfig.Item_Name_Shadow, true));
 
             root.style.setProperty('--i-desc-f', appConfig.Item_Desc_Font || 'sans-serif');
             root.style.setProperty('--i-desc-c', appConfig.Item_Desc_Color || '#6b7280');
             root.style.setProperty('--i-desc-s', appConfig.Item_Desc_Size || '14px');
-            root.style.setProperty('--i-desc-w', (appConfig.Item_Desc_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
+            root.style.setProperty('--i-desc-w', String(appConfig.Item_Desc_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
             root.style.setProperty('--i-desc-mb', appConfig.Item_Desc_MarginBottom || '8px');
             root.style.setProperty('--i-desc-sh', getShadow(appConfig.Item_Desc_Shadow, true));
 
             root.style.setProperty('--i-allg-f', appConfig.Item_Allerg_Font || 'sans-serif');
             root.style.setProperty('--i-allg-c', appConfig.Item_Allerg_Color || '#f87171');
             root.style.setProperty('--i-allg-s', appConfig.Item_Allerg_Size || '11px');
-            root.style.setProperty('--i-allg-w', (appConfig.Item_Allerg_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
+            root.style.setProperty('--i-allg-w', String(appConfig.Item_Allerg_Bold || '').toUpperCase() === 'TRUE' ? 'bold' : 'normal');
             root.style.setProperty('--i-allg-mb', appConfig.Item_Allerg_MarginBottom || '8px');
             root.style.setProperty('--i-allg-sh', getShadow(appConfig.Item_Allerg_Shadow, true));
 
             root.style.setProperty('--i-pric-f', appConfig.Item_Price_Font || 'sans-serif');
             root.style.setProperty('--i-pric-c', appConfig.Item_Price_Color || '#4f46e5');
             root.style.setProperty('--i-pric-s', appConfig.Item_Price_Size || '16px');
-            root.style.setProperty('--i-pric-w', (appConfig.Item_Price_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
+            root.style.setProperty('--i-pric-w', String(appConfig.Item_Price_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
             root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
 
             root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
             
             root.style.setProperty('--flt-f', appConfig.Filter_Font || 'sans-serif');
             root.style.setProperty('--flt-s', appConfig.Filter_Size || '11px');
-            root.style.setProperty('--flt-w', (appConfig.Filter_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
+            root.style.setProperty('--flt-w', String(appConfig.Filter_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
             root.style.setProperty('--flt-bg-i', appConfig.Filter_BgColor_Inactive || '#f3f4f6');
             root.style.setProperty('--flt-c-i', appConfig.Filter_TextColor_Inactive || '#9ca3af');
             root.style.setProperty('--flt-bg-a', appConfig.Filter_BgColor_Active || '#4f46e5');
             root.style.setProperty('--flt-c-a', appConfig.Filter_TextColor_Active || '#ffffff');
 
+            // LOGO
             const logoCont = document.getElementById('logo-container');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
+            const align = String(appConfig.Logo_Align || 'center').toLowerCase().trim();
             logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-            if ((appConfig.Logo_Type || '').toLowerCase().trim() === 'image' && appConfig.Logo_Image_URL) {
+            if (String(appConfig.Logo_Type || '').toLowerCase().trim() === 'image' && appConfig.Logo_Image_URL) {
+                logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="max-height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;" onerror="this.style.display='none'">`;
+            } else {
+                let txt = appConfig.Logo_Text || 'Menu Digitale';
+                logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${String(appConfig.Logo_Text_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${txt}</h1>`;
+            }
+
+            // SOTTOTITOLO
+            const sub = document.getElementById('subtitle-container');
+            if(String(appConfig.Subtitle_Show || '').toUpperCase().trim() === 'FALSE') sub.style.display = 'none';
+            else {
+                sub.style.display = 'block'; sub.innerText = appConfig.Subtitle_Text || '';
+                sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
+            }
+
+            const lvlSh = getShadow(appConfig.Level_Title_Shadow, true);
+            const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${String(appConfig.Level_Title_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
+            document.getElementById('level-title-inside').style.cssText = levelStyle;
+            
+            const levelMarginB = appConfig.Level_Title_Margin_Bottom || '25px';
+            document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
+            
+            const backBtn = document.getElementById('back-button');
+            const hHeight = parseInt(appConfig.Header_Height || '120');
+            const pos = String(appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
+            if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
+            else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
+            else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
+        }
+
+        // PADDING DINAMICO: CALCOLA HEADER + SUB-HEADER
+        function autoAdjustPadding() {
+            setTimeout(() => {
+                const header = document.getElementById('main-header');
+                const subHeader = document.getElementById('sub-header');
+                const mainContent = document.getElementById('main-content');
+                
+                let totalH = header ? header.offsetHeight : 0;
+                if(subHeader && subHeader.style.display !== 'none') {
+                    totalH += subHeader.offsetHeight;
+                }
+                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+            }, 50); 
+        }
+
+        async function fetchMenu() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error("Network Error");
+                const csv = await response.text();
+                
+                fullData = [];
+                // Split sicuro che gestisce eventuali ritorni a capo invisibili
+                const rows = csv.split(/\r?\n/);
+                
+                for(let i=1; i<rows.length; i++) {
+                    if(rows[i].trim() === '') continue;
+                    const c = safeParseCSVRow(rows[i]);
+                    // Sicurezza anti-crash
+                    if(c.length < 3 || !c[0]) continue;
+                    
+                    fullData.push({
+                        macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
+                        allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
+                        veg: c[8] || '', noalc: c[9] || '', active: c[10] !== undefined ? c[10] : 'TRUE', photoUrl: c[11] || ''
+                    });
+                }
+                
+                // Filtro Attivi usando la funzione sicura
+                fullData = fullData.filter(i => isTruthy(i.active)); 
+                
+                document.getElementById('loading-screen').style.display = 'none';
+                renderLevel1();
+            } catch (e) { 
+                console.error(e);
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Impossibile caricare il menu. Controlla l'ID.</div>"; 
+            }
+        }
+
+        function renderLevel1() {
+            const layoutContainer = document.getElementById('macro-layout-container');
+            const macros = [...new Set(fullData.map(i => i.macro))];
+            
+            const isGrid = String(appConfig.Macro_Layout || 'grid').toLowerCase().trim() === 'grid';
+            layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
+            layoutContainer.innerHTML = '';
+
+            const bgType = String(appConfig.Macro_Bg_Type || 'image').toLowerCase().trim();
+
+            macros.forEach(m => {
+                let bgStyle = '';
+                if (bgType === 'color') {
+                    bgStyle = `background: ${appConfig.Macro_Bg_Color || '#cbd5e1'};`;
+                } else {
+                    const imgKey = `Macro_Img_${m}`;
+                    const imgUrl = appConfig[imgKey] ? appConfig[imgKey].trim() : '';
+                    if (imgUrl && imgUrl !== 'undefined') bgStyle = `background-image: url('${imgUrl}');`;
+                    else bgStyle = `background: ${appConfig.Macro_Bg_Color || 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'};`;
+                }
+
+                const tPos = String(appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
+                let html = '';
+                if(tPos === 'outside') {
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
+                } else {
+                    html = `<div onclick="renderLevel2('${m.replace(/'/
