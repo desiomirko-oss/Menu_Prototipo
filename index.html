@@ -3,74 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Menu Core V2</title>
+    <title>Digital Menu Master V4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Variabili Root popolate dal Config */
+        :root {
+            --app-bg: #f3f4f6;
+            --app-bg-image: none;
+            --app-bg-size: cover;
+            --app-bg-pos: center;
+            
+            --header-bg: rgba(255, 255, 255, 0.8);
+            --header-height: 100px;
+            
+            --sub-font: sans-serif;
+            --sub-color: #6b7280;
+            --sub-size: 14px;
+            --sub-weight: normal;
+            --sub-align: center;
+
+            --logo-font: sans-serif;
+            --logo-color: #000;
+            --logo-size: 24px;
+            --logo-weight: bold;
+            --logo-align: center;
+            --logo-img-size: 50px;
+        }
+
+        body {
+            background-color: var(--app-bg);
+            background-image: var(--app-bg-image);
+            background-size: var(--app-bg-size);
+            background-position: var(--app-bg-pos);
+            background-attachment: fixed; /* Lo sfondo resta fermo allo scroll */
+            min-height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
         .glass-header {
-            background: rgba(255, 255, 255, 0.7);
+            background: var(--header-bg);
+            height: var(--header-height);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            transition: all 0.3s ease;
         }
+
+        .dynamic-subtitle {
+            font-family: var(--sub-font);
+            color: var(--sub-color);
+            font-size: var(--sub-size);
+            font-weight: var(--sub-weight);
+            text-align: var(--sub-align);
+        }
+
+        .dynamic-logo-text {
+            font-family: var(--logo-font);
+            color: var(--logo-color);
+            font-size: var(--logo-size);
+            font-weight: var(--logo-weight);
+            text-align: var(--logo-align);
+        }
+
+        .dynamic-logo-img {
+            height: var(--logo-img-size);
+            object-fit: contain;
+        }
+
         .page-transition { display: none; }
-        .active-page { display: block; animation: fadeIn 0.3s ease-in-out; }
+        .active-page { display: block; animation: fadeIn 0.4s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Loader Spinner */
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #4f46e5; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased text-gray-900">
+<body>
 
-    <header class="fixed top-0 w-full z-50 glass-header px-4 py-3 flex flex-col items-center">
-        <div id="logo-container" class="mb-1">
-            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">M</div>
-        </div>
-        <h1 id="business-name" class="text-lg font-bold tracking-tight uppercase">Menu Digitale</h1>
-        <p id="lang-indicator" class="text-[10px] text-gray-500 uppercase tracking-widest">Caricamento...</p>
-        
-        <button id="back-button" onclick="goBack()" class="absolute left-4 top-1/2 -translate-y-1/2 hidden bg-white/50 p-2 rounded-full shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-            </svg>
+    <header id="main-header" class="glass-header px-6">
+        <button id="back-button" onclick="goBack()" class="absolute left-4 hidden bg-white/50 p-2 rounded-full shadow-sm z-20">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
         </button>
+        <div id="header-content" class="flex flex-col w-full">
+            <div id="logo-container" class="w-full flex"></div>
+            <div id="subtitle-container" class="dynamic-subtitle mt-1"></div>
+        </div>
     </header>
 
-    <main class="pt-32 pb-10 px-4 max-w-md mx-auto relative">
-        
-        <div id="loading-screen" class="active-page flex flex-col items-center justify-center pt-20">
+    <main id="main-content" class="px-4 pb-12 max-w-md mx-auto">
+        <div id="loading-screen" class="flex flex-col items-center pt-40">
             <div class="loader mb-4"></div>
-            <p id="loading-text" class="text-gray-500 font-medium">Preparazione menu...</p>
+            <p id="loading-text" class="text-gray-500 font-medium bg-white/80 px-4 py-2 rounded-full">Caricamento...</p>
         </div>
 
         <section id="page-macro" class="page-transition space-y-4"></section>
         <section id="page-categories" class="page-transition space-y-4"></section>
-        <section id="page-items" class="page-transition space-y-4"></section>
-
+        <section id="page-items" class="page-transition space-y-6"></section>
     </main>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const SHEET_ID = urlParams.get('id'); 
-        
-        // Rileva lingua (es. 'it', 'en', 'de')
         const userLang = (navigator.language || navigator.userLanguage).split('-')[0];
-        const baseLang = 'it'; // Lingua in cui è scritto il Google Sheet
         
         let fullData = [];
+        let appConfig = {};
         let navigationStack = ['page-macro'];
-        let translationCache = {}; // Cache per non ritradurre la stessa parola
 
-        // --- MOTORE DI TRADUZIONE AUTOMATICA ---
-        async function translate(text) {
-            if (userLang === baseLang || !text) return text;
-            if (translationCache[text]) return translationCache[text];
+        async function init() {
+            if (!SHEET_ID) {
+                document.getElementById('loading-screen').innerHTML = "<p class='bg-red-100 p-4 rounded text-red-700'>ID Cliente mancante nell'URL.</p>";
+                return;
+            }
+            await fetchConfig();
+            applyConfig();
+            await fetchMenu();
+        }
 
-            // Usa l'endpoint gratuito GTX di Google
-            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${baseLang}&tl=${userLang}&dt=t&q=${encodeURIComponent(text)}`;
-            
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-                const translated = data[0].map(item =>
+        async function fetchConfig() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
+            const response = await fetch(url);
+            const csv = await response.text();
+            csv.split('\n').slice(1).forEach(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex per gestire virgole nelle virgolette
+                if(cols.length >= 2) {
+                    const key = cols[0].replace(/"/g, '').trim();
+                    const val = cols[1].replace(/"/g, '').replace(/;/g, ',').trim();
+                    appConfig[key] = val;
+                }
+            });
+        }
+
+        function applyConfig() {
+            const root = document.documentElement;
+            // Sfondo
+            if(appConfig.Bg_Type === 'image') {
+                root.style.setProperty('--app-bg-image', `url('${appConfig.Bg_Image_URL}')`);
+                root.style.setProperty('--app-bg-size', appConfig.Bg_Image_Size || 'cover');
+                root.style.setProperty('--app-bg-pos', appConfig.Bg_Image_Pos || 'center');
+            } else {
+                root.style.setProperty('--app
