@@ -1,366 +1,155 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Menu Digitale</title>
-  <meta name="theme-color" content="#ffffff">
-  
-  <style>
-    :root {
-      --header-padding: 15px; 
-      --macro-height: 240px;
-      --macro-text-size: 2.2rem;
-      --macro-text-color: #ffffff;
-      
-      --filter-active-color: #f4fc03;
-      --filter-bg-color: #1a1a1a;
-      
-      --card-bg: #ffffff;
-      --card-name-color: #050000;
-      --card-desc-color: #616161;
-      --card-allerg-color: #ff4444;
-      --price-color: #000000;
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f7;
-      padding-bottom: 80px; 
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* --- HEADER FISSO (SISTEMATO) --- */
-    #sticky-header {
-      position: sticky;
-      top: 0;
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 1000;
-      border-bottom: 1px solid rgba(0,0,0,0.08);
-      padding-top: var(--header-padding);
-      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-    }
-
-    .header-top {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 10px 15px;
-      min-height: 60px;
-    }
-
-    /* ZONA DI SICUREZZA PER IL TITOLO */
-    .header-titles { 
-      text-align: center; 
-      width: 100%;
-      padding: 0 90px; /* Impedisce al testo di finire sotto al bottone indietro */
-    }
-    
-    #restaurant-name { margin: 0; font-size: 1.6rem; color: #000; font-weight: 800; letter-spacing: -0.5px; line-height: 1.1; }
-    #restaurant-subtitle { margin: 4px 0 0; font-size: 0.85rem; color: #666; }
-
-    /* BOTTONE INDIETRO (SISTEMATO) */
-    #btn-back {
-      position: absolute;
-      left: 15px;
-      top: 50%; /* Centratura verticale perfetta */
-      transform: translateY(-50%);
-      background-color: #f4fc03;
-      color: #000;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 0.95rem;
-      cursor: pointer;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    /* --- FILTRI --- */
-    .filters-container {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      padding: 5px 15px 15px;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-
-    .filter-btn {
-      background-color: var(--filter-bg-color);
-      color: #ffffff;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: all 0.2s ease;
-    }
-    .filter-btn.active { background-color: var(--filter-active-color); color: #000000; }
-
-    /* --- LOADER --- */
-    #loader { text-align: center; padding: 60px 20px; font-size: 1rem; color: #666; font-weight: 600; }
-    .spinner { display: inline-block; width: 40px; height: 40px; border: 4px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #ff9800; animation: spin 1s ease-in-out infinite; margin-bottom: 15px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* --- MACRO E PIATTI --- */
-    .macro-container { display: flex; flex-direction: column; gap: 20px; padding: 20px; max-width: 800px; margin: 0 auto; }
-    .macro-card { width: 100%; height: var(--macro-height); color: var(--macro-text-color); font-size: var(--macro-text-size); display: flex; align-items: center; justify-content: center; border-radius: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); border: none; cursor: pointer; font-family: inherit; }
-    .macro-card:active { transform: scale(0.98); }
-    #btn-macro-cibo { background-color: #ff9800; }
-    #btn-macro-bevande { background-color: #2196f3; }
-
-    .dishes-container { display: flex; flex-direction: column; gap: 15px; padding: 20px; max-width: 800px; margin: 0 auto; }
-    .dish-card { background-color: var(--card-bg); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-    .dish-name { color: var(--card-name-color); font-size: 1.25rem; font-weight: 700; margin: 0; }
-    .dish-desc { color: var(--card-desc-color); font-size: 0.95rem; margin: 0; line-height: 1.4; }
-    .dish-allerg { color: var(--card-allerg-color); font-size: 0.8rem; font-weight: 700; margin: 4px 0 0; }
-    .dish-price { color: var(--price-color); font-size: 1.4rem; font-weight: 800; text-align: right; margin-top: 10px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Menu Core</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-header {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .page-transition { display: none; }
+        .active-page { display: block; }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 font-sans antialiased text-gray-900">
 
-  <header id="sticky-header">
-    <div class="header-top">
-      <button id="btn-back" class="hidden">&#8592; Indietro</button>
-      <div class="header-titles">
-        <h1 id="restaurant-name">Nome Ristorante</h1>
-        <p id="restaurant-subtitle">Il nostro menu digitale</p>
-      </div>
-    </div>
-
-    <div id="filters-section" class="filters-container hidden">
-      <button class="filter-btn" data-filter="gf">Senza Glutine</button>
-      <button class="filter-btn" data-filter="veg">Vegetariano</button>
-      <button class="filter-btn" data-filter="na">Analcolico</button>
-    </div>
-  </header>
-
-  <main id="app-content">
-    <div id="status-message" class="hidden" style="text-align: center; padding: 20px; color: #ff4444; font-weight: bold; font-size: 0.95rem;"></div>
-
-    <div id="loader">
-      <div class="spinner"></div><br>
-      Sincronizzazione menu in corso...
-    </div>
-
-    <div id="macro-section" class="macro-container hidden">
-      <button id="btn-macro-cibo" class="macro-card">Cibo</button>
-      <button id="btn-macro-bevande" class="macro-card">Bevande</button>
-    </div>
-
-    <div id="dishes-section" class="dishes-container"></div>
-  </main>
-
-  <script>
-    const APP_CONFIG = {
-      // INSERISCI QUI IL TUO ID DI GOOGLE SHEETS
-      DEFAULT_SHEET_ID: 'INSERISCI_QUI_IL_TUO_ID_VERO',
-      ALTEZZA_BANDA_ALTA: '15px'
-    };
-
-    let currentMacro = null;
-
-    document.addEventListener("DOMContentLoaded", () => {
-      document.documentElement.style.setProperty('--header-padding', APP_CONFIG.ALTEZZA_BANDA_ALTA);
-
-      document.getElementById("btn-macro-cibo").addEventListener("click", () => filtraPerMacro("CIBO"));
-      document.getElementById("btn-macro-bevande").addEventListener("click", () => filtraPerMacro("BEVANDA"));
-      document.getElementById("btn-back").addEventListener("click", goBack);
-
-      document.querySelectorAll(".filter-btn").forEach(btn => {
-        btn.addEventListener("click", function() {
-          this.classList.toggle("active");
-          applicaFiltriAttuali();
-        });
-      });
-
-      caricaMenuDalCSV();
-    });
-
-    async function caricaMenuDalCSV() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const sheetId = urlParams.get('id') || APP_CONFIG.DEFAULT_SHEET_ID;
-
-      if (!sheetId || sheetId === 'INSERISCI_QUI_IL_TUO_ID_VERO') {
-        mostraErrore("ERRORE: Manca l'ID del database. Inseriscilo nel codice.");
-        document.getElementById("loader").classList.add("hidden");
-        return;
-      }
-
-      const cacheBuster = new Date().getTime();
-      const dynamicCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=0&t=${cacheBuster}`;
-
-      try {
-        const response = await fetch(dynamicCsvUrl); 
-        if (!response.ok) throw new Error(`HTTP: ${response.status}`);
+    <header class="fixed top-0 w-full z-50 glass-header px-4 py-3 flex flex-col items-center">
+        <div id="logo-container" class="mb-1">
+            <div class="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold">M</div>
+        </div>
+        <h1 id="business-name" class="text-lg font-bold tracking-tight uppercase">Menu Digitale</h1>
+        <p id="lang-indicator" class="text-[10px] text-gray-500 uppercase tracking-widest"></p>
         
-        const csvTesto = await response.text();
+        <button id="back-button" onclick="goBack()" class="absolute left-4 top-1/2 -translate-y-1/2 hidden bg-white/50 p-2 rounded-full shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+        </button>
+    </header>
+
+    <main class="pt-32 pb-10 px-4 max-w-md mx-auto">
         
-        // CONTROLLO DI SICUREZZA: Verifica se Google ha risposto con una pagina Web invece del CSV
-        if (csvTesto.trim().toLowerCase().startsWith('<!doctype html>') || csvTesto.toLowerCase().includes('<html')) {
-            throw new Error("HTML_RECEIVED");
+        <section id="page-macro" class="page-transition active-page space-y-4"></section>
+
+        <section id="page-categories" class="page-transition space-y-4"></section>
+
+        <section id="page-items" class="page-transition space-y-4"></section>
+
+    </main>
+
+    <script>
+        // --- CONFIGURAZIONE LOGICA ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const SHEET_ID = urlParams.get('id'); 
+        const userLang = (navigator.language || navigator.userLanguage).split('-')[0];
+        
+        let fullData = [];
+        let navigationStack = ['page-macro'];
+
+        async function init() {
+            if (!SHEET_ID) {
+                document.body.innerHTML = "<div class='p-10 text-center'>Configurazione mancante (ID).</div>";
+                return;
+            }
+            document.getElementById('lang-indicator').innerText = `Lingua rilevata: ${userLang}`;
+            await fetchData();
         }
 
-        const menuDati = convertiCSVInJSON(csvTesto);
-        
-        if (menuDati.length === 0) throw new Error("CSV vuoto");
-
-        let piattiValidi = generaHTMLPiatti(menuDati);
-        
-        if (piattiValidi === 0) {
-            mostraErrore("ATTENZIONE: Il file è stato letto, ma non ci sono piatti attivi o le colonne non corrispondono.");
+        async function fetchData() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+            try {
+                const response = await fetch(url);
+                const csvData = await response.text();
+                parseCsv(csvData);
+            } catch (e) {
+                console.error("Errore caricamento dati");
+            }
         }
 
-        document.getElementById("loader").classList.add("hidden");
-        document.getElementById("macro-section").classList.remove("hidden");
+        function parseCsv(data) {
+            // Parser CSV semplificato (per ora gestiamo array di oggetti)
+            const rows = data.split('\n').slice(1);
+            fullData = rows.map(row => {
+                const cols = row.split(',').map(c => c.replace(/"/g, ''));
+                return { lang: cols[0], macro: cols[1], cat: cols[2], name: cols[3], desc: cols[4], price: cols[5] };
+            }).filter(item => item.lang === userLang); // Filtro automatico lingua
 
-      } catch (error) {
-        console.error("Errore Dettagliato:", error);
-        document.getElementById("loader").classList.add("hidden");
-        
-        if (error.message === "HTML_RECEIVED") {
-            mostraErrore("ACCESSO NEGATO: Il tuo file Google Sheets non è stato 'Pubblicato sul web'. Apri il foglio su PC, vai su File > Condividi > Pubblica sul Web, seleziona 'Valori separati da virgola (.csv)' e clicca Pubblica.");
-        } else {
-            mostraErrore("Impossibile caricare il menu. Controlla il link Google Sheets.");
+            renderMacro();
         }
-      }
-    }
 
-    function generaHTMLPiatti(datiMenu) {
-      const dishesSection = document.getElementById("dishes-section");
-      dishesSection.innerHTML = '';
-      let contatorePiatti = 0;
+        // --- NAVIGAZIONE E RENDERING ---
 
-      datiMenu.forEach(piatto => {
-        if (!piatto.Nome_IT || (piatto.Attivo && piatto.Attivo.trim().toUpperCase() === "NO")) return;
-
-        const macroVal = piatto.Macro ? piatto.Macro.trim().toUpperCase() : "";
-        const isGF = (piatto['Senza Glutine'] && piatto['Senza Glutine'].trim().toUpperCase() === "SI") ? "true" : "false";
-        const isVeg = (piatto.Vegetariano && piatto.Vegetariano.trim().toUpperCase() === "SI") ? "true" : "false";
-        const isNA = (piatto.Analcolico && piatto.Analcolico.trim().toUpperCase() === "SI") ? "true" : "false";
-        
-        const allergeniTesto = piatto.Allerg_IT ? `Allergeni: ${piatto.Allerg_IT}` : "";
-        const prezzoFormattato = piatto.Prezzo ? `€ ${piatto.Prezzo}` : "";
-
-        const cardHTML = `
-          <div class="dish-card hidden" 
-               data-macro="${macroVal}" 
-               data-gf="${isGF}" data-veg="${isVeg}" data-na="${isNA}">
-            <h3 class="dish-name">${piatto.Nome_IT}</h3>
-            ${piatto.Desc_IT ? `<p class="dish-desc">${piatto.Desc_IT}</p>` : ''}
-            ${allergeniTesto ? `<p class="dish-allerg">${allergeniTesto}</p>` : ''}
-            <div class="dish-price">${prezzoFormattato}</div>
-          </div>`;
-          
-        dishesSection.insertAdjacentHTML('beforeend', cardHTML);
-        contatorePiatti++;
-      });
-      
-      return contatorePiatti;
-    }
-
-    function filtraPerMacro(macroSelezionata) {
-      currentMacro = macroSelezionata.toUpperCase();
-
-      document.getElementById("macro-section").classList.add("hidden");
-      document.getElementById("filters-section").classList.remove("hidden");
-      document.getElementById("btn-back").classList.remove("hidden");
-
-      const allDishes = document.querySelectorAll(".dish-card");
-      allDishes.forEach(dish => {
-        if (dish.getAttribute("data-macro") === currentMacro) {
-          dish.classList.remove("hidden");
-        } else {
-          dish.classList.add("hidden");
+        function showPage(pageId) {
+            document.querySelectorAll('.page-transition').forEach(p => p.classList.remove('active-page'));
+            document.getElementById(pageId).classList.add('active-page');
+            
+            const backBtn = document.getElementById('back-button');
+            pageId === 'page-macro' ? backBtn.classList.add('hidden') : backBtn.classList.remove('hidden');
+            
+            window.scrollTo(0,0);
         }
-      });
 
-      applicaFiltriAttuali();
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-
-    function goBack() {
-      currentMacro = null;
-
-      document.getElementById("macro-section").classList.remove("hidden");
-      document.getElementById("filters-section").classList.add("hidden");
-      document.getElementById("btn-back").classList.add("hidden");
-
-      document.querySelectorAll(".dish-card").forEach(dish => dish.classList.add("hidden"));
-      document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
-    }
-
-    function applicaFiltriAttuali() {
-      const activeFilters = Array.from(document.querySelectorAll(".filter-btn.active")).map(btn => btn.getAttribute("data-filter"));
-      const allDishes = document.querySelectorAll(".dish-card"); 
-
-      allDishes.forEach(dish => {
-        if (dish.getAttribute("data-macro") !== currentMacro) return;
-
-        let showDish = true;
-        if (activeFilters.length > 0) {
-          activeFilters.forEach(filter => {
-            if (dish.getAttribute(`data-${filter}`) !== "true") showDish = false;
-          });
+        function goBack() {
+            navigationStack.pop();
+            const prevPage = navigationStack[navigationStack.length - 1];
+            showPage(prevPage);
         }
-        
-        if (showDish) dish.classList.remove("hidden");
-        else dish.classList.add("hidden");
-      });
-    }
 
-    function convertiCSVInJSON(csvText) {
-      const righe = csvText.split(/\r\n|\n/);
-      if (righe.length < 2) return [];
-      const headers = parseCSVLine(righe[0]);
-      const risultato = [];
+        function renderMacro() {
+            const container = document.getElementById('page-macro');
+            const macros = [...new Set(fullData.map(item => item.macro))];
+            
+            container.innerHTML = `<h2 class="text-xl font-bold mb-4">Seleziona Reparto</h2>`;
+            macros.forEach(m => {
+                container.innerHTML += `
+                    <div onclick="renderCategories('${m}')" class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg flex justify-between items-center transition-transform active:scale-95">
+                        <span class="text-lg font-bold">${m}</span>
+                        <span>→</span>
+                    </div>`;
+            });
+        }
 
-      for (let i = 1; i < righe.length; i++) {
-        if (!righe[i].trim()) continue;
-        const valori = parseCSVLine(righe[i]);
-        const oggettoPiatto = {};
-        headers.forEach((header, index) => {
-          oggettoPiatto[header.trim()] = valori[index] ? valori[index].trim() : "";
-        });
-        risultato.push(oggettoPiatto);
-      }
-      return risultato;
-    }
+        function renderCategories(macroName) {
+            const container = document.getElementById('page-categories');
+            const categories = [...new Set(fullData.filter(i => i.macro === macroName).map(i => i.cat))];
+            
+            container.innerHTML = `<h2 class="text-xl font-bold mb-4">${macroName}</h2>`;
+            categories.forEach(c => {
+                container.innerHTML += `
+                    <div onclick="renderItems('${c}')" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center">
+                        <span class="font-semibold text-gray-700">${c}</span>
+                        <span class="text-indigo-500">Apri</span>
+                    </div>`;
+            });
+            navigationStack.push('page-categories');
+            showPage('page-categories');
+        }
 
-    function parseCSVLine(testo) {
-      let risultati = [''], i = 0, p = '', s = true;
-      for (let l = testo.length; i < l; i++) {
-        let c = testo[i];
-        if (c === '"') { s = !s; if (p === '"') { risultati[risultati.length - 1] += '"'; p = '-'; } else p = c; } 
-        else if (c === ',' && s) { c = ''; risultati.push(''); p = c; } 
-        else { risultati[risultati.length - 1] += c; p = c; }
-      }
-      return risultati;
-    }
+        function renderItems(catName) {
+            const container = document.getElementById('page-items');
+            const items = fullData.filter(i => i.cat === catName);
+            
+            container.innerHTML = `<h2 class="text-xl font-bold mb-4">${catName}</h2>`;
+            items.forEach(i => {
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-xl shadow-sm space-y-1">
+                        <div class="flex justify-between items-start">
+                            <h3 class="font-bold text-gray-800 text-lg">${i.name}</h3>
+                            <span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded text-sm">${i.price}€</span>
+                        </div>
+                        <p class="text-sm text-gray-500 leading-relaxed">${i.desc}</p>
+                    </div>`;
+            });
+            navigationStack.push('page-items');
+            showPage('page-items');
+        }
 
-    function mostraErrore(messaggio) {
-      const msgDiv = document.getElementById("status-message");
-      msgDiv.textContent = messaggio;
-      msgDiv.classList.remove("hidden");
-    }
-  </script>
+        init();
+    </script>
 </body>
 </html>
