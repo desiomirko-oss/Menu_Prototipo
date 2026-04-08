@@ -14,7 +14,6 @@
             --back-color: #4f46e5;
             --macro-h: 180px;
             
-            /* Variabili Card Menu */
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff;
             --menu-card-p: 20px;
@@ -23,19 +22,23 @@
             --menu-card-shadow: var(--card-shadow);
             --item-card-min-h: 120px;
 
-            /* Tipografia Piatti e Ombre */
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
             --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
             --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
             --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
             
-            /* Titoli Macro e Livelli Ombre */
             --macro-txt-sh: none;
             --level-txt-sh: none;
+            --level-mb: 25px; /* Distanza Sotto-Sottotitolo */
 
-            /* Foto Piatti */
             --i-photo-w: 100px;
             --i-photo-sh: none;
+
+            /* FILTRI DINAMICI */
+            --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
+            --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
+            --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
+            --flt-mt: 10px; --flt-mb: 20px;
         }
 
         body {
@@ -76,12 +79,9 @@
         .macro-text-outside { text-shadow: var(--macro-txt-sh); }
 
         .menu-card {
-            background-color: var(--menu-card-bg);
-            padding: var(--menu-card-p);
-            border-radius: var(--menu-card-r);
-            box-shadow: var(--menu-card-shadow);
-            border: var(--menu-card-border);
-            min-height: var(--item-card-min-h); /* Forza altezza minima */
+            background-color: var(--menu-card-bg); padding: var(--menu-card-p);
+            border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow);
+            border: var(--menu-card-border); min-height: var(--item-card-min-h); 
             transition: transform 0.1s ease;
         }
         .menu-card:active { transform: scale(0.98); }
@@ -91,15 +91,20 @@
         .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
         .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
 
-        /* FOTO PIATTO STRETCH ADATTIVO */
-        .item-photo { 
-            width: var(--i-photo-w); 
-            align-self: stretch; /* Si spalma in altezza seguendo la card */
-            border-radius: 0.75rem; 
-            object-fit: cover; 
-            box-shadow: var(--i-photo-sh); 
-        }
+        .item-photo { width: var(--i-photo-w); align-self: stretch; border-radius: 0.75rem; object-fit: cover; box-shadow: var(--i-photo-sh); }
         
+        /* CLASSI FILTRI */
+        .filter-container { margin-top: var(--flt-mt); margin-bottom: var(--flt-mb); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .filter-btn {
+            font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
+            background-color: var(--flt-bg-i); color: var(--flt-c-i);
+            padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
+            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .filter-btn:active { transform: scale(0.95); }
+        .filter-btn.active { background-color: var(--flt-bg-a); color: var(--flt-c-a); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+
         .page-content { animation: pageIn 0.3s ease-out forwards; }
         @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--back-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
@@ -126,11 +131,11 @@
             <p class="text-gray-400 text-sm uppercase tracking-widest">Sincronizzazione...</p>
         </div>
 
-        <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;" class="mb-4"></div>
+        <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;"></div>
 
         <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content"></div></section>
         <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
-        <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
+        <section id="page-items" style="display: none;" class="page-content"></section>
     </main>
 
     <script>
@@ -139,8 +144,12 @@
         let appConfig = {};
         let fullData = [];
         let navigationStack = ['page-macro'];
+        
+        // Stato per i filtri e rendering
+        let activeFilters = []; 
+        let currentMacroName = '';
+        let currentCategoryName = '';
 
-        // MOTORE OMBRE
         function getShadow(type, isText = false) {
             const val = (type || 'none').toLowerCase().trim();
             if (isText) {
@@ -190,7 +199,6 @@
             root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
             root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
 
-            // Applicazione Ombre Globali Box
             let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
             const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
             if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
@@ -212,11 +220,9 @@
             root.style.setProperty('--menu-card-r', appConfig.Card_Radius || '24px');
             root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
 
-            // Applicazione Ombre Foto Piatti
             root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '100px');
             root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
 
-            // Tipografia Piatti e Ombre Testi
             root.style.setProperty('--i-name-f', appConfig.Item_Name_Font || 'sans-serif');
             root.style.setProperty('--i-name-c', appConfig.Item_Name_Color || '#111827');
             root.style.setProperty('--i-name-s', appConfig.Item_Name_Size || '18px');
@@ -245,6 +251,17 @@
             root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
 
             root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
+            
+            // Variabili Filtri
+            root.style.setProperty('--flt-f', appConfig.Filter_Font || 'sans-serif');
+            root.style.setProperty('--flt-s', appConfig.Filter_Size || '11px');
+            root.style.setProperty('--flt-w', (appConfig.Filter_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold');
+            root.style.setProperty('--flt-bg-i', appConfig.Filter_BgColor_Inactive || '#f3f4f6');
+            root.style.setProperty('--flt-c-i', appConfig.Filter_TextColor_Inactive || '#9ca3af');
+            root.style.setProperty('--flt-bg-a', appConfig.Filter_BgColor_Active || '#4f46e5');
+            root.style.setProperty('--flt-c-a', appConfig.Filter_TextColor_Active || '#ffffff');
+            root.style.setProperty('--flt-mt', appConfig.Filter_Margin_Top || '10px');
+            root.style.setProperty('--flt-mb', appConfig.Filter_Margin_Bottom || '20px');
 
             const logoCont = document.getElementById('logo-container');
             const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
@@ -267,7 +284,10 @@
             const lvlSh = getShadow(appConfig.Level_Title_Shadow, true);
             const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${(appConfig.Level_Title_Bold || '').toUpperCase() === 'FALSE' ? 'normal' : 'bold'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
             document.getElementById('level-title-inside').style.cssText = levelStyle;
-            document.getElementById('level-title-outside').style.cssText = levelStyle + ' margin-top: 0px; margin-bottom: 20px;'; 
+            
+            // Applica il margine inferiore per il livello outside
+            const levelMarginB = appConfig.Level_Title_Margin_Bottom || '25px';
+            document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
             
             const backBtn = document.getElementById('back-button');
             const hHeight = parseInt(appConfig.Header_Height || '120');
@@ -351,12 +371,65 @@
             showPage('page-categories', mName);
         }
 
-        function renderLevel3(mName, cName) {
+        // Funzione per attivare/disattivare i filtri senza ricaricare le pagine
+        function toggleFilter(filterType) {
+            if (activeFilters.includes(filterType)) {
+                activeFilters = activeFilters.filter(f => f !== filterType);
+            } else {
+                activeFilters.push(filterType);
+            }
+            renderLevel3(currentMacroName, currentCategoryName, true); // True indica che non stiamo aggiungendo stack
+        }
+
+        function renderLevel3(mName, cName, isFiltering = false) {
+            currentMacroName = mName;
+            currentCategoryName = cName;
+
             const container = document.getElementById('page-items');
-            const items = fullData.filter(i => i.cat === cName && i.macro === mName);
+            container.innerHTML = ''; // Pulisce
             
-            container.innerHTML = `<div class="mb-4 text-center mt-2"><span class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-200/50 px-3 py-1 rounded-full">${cName}</span></div>`;
+            let items = fullData.filter(i => i.cat === cName && i.macro === mName);
             
+            // Applica filtri attivi (Intersezione, devono essere tutti veri)
+            if (activeFilters.length > 0) {
+                items = items.filter(i => {
+                    return activeFilters.every(f => {
+                        if(f === 'gf') return (i.gf || '').toUpperCase() === 'TRUE';
+                        if(f === 'vegan') return (i.vegan || '').toUpperCase() === 'TRUE';
+                        if(f === 'veg') return (i.veg || '').toUpperCase() === 'TRUE';
+                        if(f === 'noalc') return (i.noalc || '').toUpperCase() === 'TRUE';
+                        return true;
+                    });
+                });
+            }
+
+            // Generazione Intestazione (Copia stile Category)
+            const levelMb = appConfig.Level_Title_Margin_Bottom || '25px';
+            container.innerHTML += `<div class="text-center mt-2" style="margin-bottom: ${levelMb};"><span class="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-200/50 px-3 py-1 rounded-full">${cName}</span></div>`;
+
+            // Generazione Bottoni Filtro
+            if ((appConfig.Filter_Show || '').toUpperCase().trim() !== 'FALSE') {
+                const isDrinks = mName.toLowerCase().includes('bevand') || mName.toLowerCase().includes('bebid') || mName.toLowerCase().includes('drink') || mName.toLowerCase().includes('bevande');
+                
+                let filterHtml = '<div class="filter-container">';
+                if (!isDrinks) {
+                    filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn ${activeFilters.includes('gf') ? 'active' : ''}">Senza Glutine</button>`;
+                    filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn ${activeFilters.includes('vegan') ? 'active' : ''}">Vegano</button>`;
+                    filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn ${activeFilters.includes('veg') ? 'active' : ''}">Vegetariano</button>`;
+                } else {
+                    filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn ${activeFilters.includes('noalc') ? 'active' : ''}">Analcolico</button>`;
+                }
+                filterHtml += '</div>';
+                container.innerHTML += filterHtml;
+            }
+
+            // Aggiungi un div contenitore per i piatti per distanziare dai filtri
+            let itemsHTML = '<div class="space-y-4">';
+
+            if(items.length === 0) {
+                itemsHTML += `<div class="text-center text-gray-400 py-10">Nessun piatto corrisponde ai filtri selezionati.</div>`;
+            }
+
             items.forEach(i => {
                 let badges = '';
                 if(i.gf && i.gf.toUpperCase() === 'TRUE') badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
@@ -370,8 +443,9 @@
                 const cleanPhotoUrl = i.photoUrl ? i.photoUrl.replace(/,/g, '').trim() : '';
                 const hasPhoto = cleanPhotoUrl !== '' && cleanPhotoUrl !== 'undefined';
 
+                // FIX INVISIBILE: onerror nasconde l'immagine se il link è rotto, evitando quadrati bianchi
                 if (hasPhoto) {
-                    container.innerHTML += `
+                    itemsHTML += `
                         <div class="menu-card flex justify-between items-stretch gap-4 mb-4">
                             <div class="flex flex-col flex-grow">
                                 <div>
@@ -382,10 +456,10 @@
                                 </div>
                                 <div class="mt-auto pt-3">${priceHTML}</div>
                             </div>
-                            <img src="${cleanPhotoUrl}" alt="${i.name}" class="item-photo shrink-0">
+                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
                         </div>`;
                 } else {
-                    container.innerHTML += `
+                    itemsHTML += `
                         <div class="menu-card flex flex-col justify-center mb-4">
                             <div class="flex justify-between items-start gap-4">
                                 <h3 class="item-name flex-grow">${i.name}</h3>
@@ -397,11 +471,20 @@
                         </div>`;
                 }
             });
-            navigationStack.push('page-items');
-            showPage('page-items', mName);
+            
+            itemsHTML += '</div>';
+            container.innerHTML += itemsHTML;
+
+            if (!isFiltering) {
+                navigationStack.push('page-items');
+                showPage('page-items', mName);
+            }
         }
 
         function showPage(p, levelTitle = '') {
+            // Se usciamo dalla pagina piatti, azzeriamo i filtri
+            if(p !== 'page-items') activeFilters = [];
+
             document.getElementById('page-macro').style.display = 'none';
             document.getElementById('page-categories').style.display = 'none';
             document.getElementById('page-items').style.display = 'none';
