@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Digitale</title>
+    <title>Menu Digitale Premium</title>
     
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="google" content="translate">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         :root {
-            /* VARIABILI BASE SOVRASCRITTE DAL CONFIG */
+            /* VARIABILI DINAMICHE - VERRANNO SOVRASCRITTE DAL TUO CSV */
             --app-bg: #f9fafb; 
             --app-bg-img: none;
             --app-bg-size: cover;
@@ -159,7 +163,7 @@
     </main>
 
     <script>
-        // NUKER CACHE POTENZIATO
+        // --- 🛡️ PROTOCOLLO ANTI-CACHE ---
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(function(registrations) {
                 for(let registration of registrations) { registration.unregister(); }
@@ -176,7 +180,7 @@
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // CONVERTITORE URL CLOUD (Drive & Dropbox)
+        // --- 🛠️ CLOUD LINK CONVERTER ---
         function formatImgUrl(url) {
             if (!url) return '';
             let formatted = String(url).trim();
@@ -192,6 +196,7 @@
             return formatted;
         }
 
+        // --- 🧠 CASE-INSENSITIVE VALUE ENGINE ---
         function getVal(key, def) {
             const k = String(key).toLowerCase().trim();
             let v = appConfig[k];
@@ -233,9 +238,10 @@
             return arr.map(x => x.replace(/^"|"$/g, '').trim());
         }
 
+        // --- 🚀 AVVIO SISTEMA ---
         async function init() {
             if (!SHEET_ID) {
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante nell'URL</div>";
                 return;
             }
             await fetchConfig(); 
@@ -246,50 +252,44 @@
 
         async function fetchConfig() {
             const rString = Math.random().toString(36).substring(7);
-            // Ricerca Multipla: Tenta di trovare il foglio Config in ogni sua variante di lingua
-            const variants = ['Config', 'config', 'CONFIG', 'Settaggi', 'Ajustes', 'Configuracion', 'Settings'];
+            const variants = ['Config', 'config', 'CONFIG', 'Settaggi', 'Ajustes', 'Settings'];
             let csv = '';
             
             for(let v of variants) {
                 try {
                     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${rString}`;
-                    const res = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
+                    const res = await fetch(url);
                     const text = await res.text();
-                    
-                    // Controllo Morbido: Se contiene virgole e NON contiene 'categoria', è il nostro config!
-                    if(!text.toLowerCase().includes('categoria') && text.includes(',')) {
-                        csv = text;
-                        break;
+                    // Se contiene Logo o Bg, è il file giusto
+                    if((text.toLowerCase().includes('logo_') || text.toLowerCase().includes('bg_')) && text.includes(',')) {
+                        csv = text; break;
                     }
                 } catch(e) {}
             }
 
             appConfig = {}; 
-            
             if(csv) {
                 csv.split(/\r?\n/).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
                         let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim().toLowerCase(); 
-                        if(key === 'property' || key === 'proprietà' || key === 'propiedad') return; 
-                        
+                        if(key === 'property' || key === 'proprietà') return; 
                         let val = cols[1] ? cols[1].replace(/^"|"$/g, '').trim() : ''; 
+                        // Fix punti e virgola di Excel
                         if(val.toLowerCase().includes('rgba') || val.toLowerCase().includes('rgb')) {
                             val = val.replace(/;/g, ',');
                         }
                         appConfig[key] = val;
                     }
                 });
-            } else {
-                console.warn("Scheda Configurazione non trovata. Uso valori di Default.");
             }
         }
 
         function applyConfig() {
             const root = document.documentElement;
             
-            // INTELLIGENZA SFONDO: Se c'è un link in Bg_Image_URL forza l'immagine
+            // --- 🖼️ LOGICA SFONDO AUTO-DETECT ---
             const bgUrl = formatImgUrl(getVal('Bg_Image_URL', ''));
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             
@@ -301,94 +301,37 @@
             } else {
                 root.style.setProperty('--app-bg-img', 'none');
             }
-            
             root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
+            // HEADER E ALTRE VARS
             root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
             root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
             root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
             root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
             root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
 
-            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
-            const shadowInt = getVal('Card_Shadow_Intensity', 'medium').toLowerCase();
-            if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
-            else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
-            else if(shadowInt === 'none') shadowVal = 'none';
-            root.style.setProperty('--card-shadow', shadowVal);
-
-            if(!isTruthy('Card_Show_Bg', true, true)) {
-                root.style.setProperty('--menu-card-bg', 'transparent'); root.style.setProperty('--menu-card-shadow', 'none');
-                root.style.setProperty('--menu-card-border', 'none'); root.style.setProperty('--menu-card-p', '10px 0px'); 
-            } else {
-                root.style.setProperty('--menu-card-bg', getVal('Card_BgColor', '#ffffff')); root.style.setProperty('--menu-card-shadow', shadowVal); 
-                root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', getVal('Card_Padding', '20px'));
-            }
-            
-            root.style.setProperty('--menu-card-r', getVal('Card_Radius', '24px'));
-            root.style.setProperty('--cat-card-min-h', getVal('Category_Card_MinHeight', '80px'));
-            root.style.setProperty('--item-card-min-h', getVal('Item_Card_MinHeight', '120px'));
-
-            root.style.setProperty('--i-photo-w', getVal('Item_Photo_Width', '110px'));
-            root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
-            root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
-
+            // TIPOGRAFIA
             root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
             root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
             root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
-            root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
-
             root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
             root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
             root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
             root.style.setProperty('--i-name-w', isTruthy('Item_Name_Bold', true, true) ? 'bold' : 'normal');
-            root.style.setProperty('--i-name-mb', getVal('Item_Name_MarginBottom', '4px'));
-            root.style.setProperty('--i-name-sh', getShadow('Item_Name_Shadow', true));
 
-            root.style.setProperty('--i-desc-f', getVal('Item_Desc_Font', 'sans-serif'));
-            root.style.setProperty('--i-desc-c', getVal('Item_Desc_Color', '#6b7280'));
-            root.style.setProperty('--i-desc-s', getVal('Item_Desc_Size', '14px'));
-            root.style.setProperty('--i-desc-w', isTruthy('Item_Desc_Bold', true, false) ? 'bold' : 'normal');
-            root.style.setProperty('--i-desc-mb', getVal('Item_Desc_MarginBottom', '8px'));
-            root.style.setProperty('--i-desc-sh', getShadow('Item_Desc_Shadow', true));
-
-            root.style.setProperty('--i-allg-f', getVal('Item_Allerg_Font', 'sans-serif'));
-            root.style.setProperty('--i-allg-c', getVal('Item_Allerg_Color', '#f87171'));
-            root.style.setProperty('--i-allg-s', getVal('Item_Allerg_Size', '11px'));
-            root.style.setProperty('--i-allg-w', isTruthy('Item_Allerg_Bold', true, false) ? 'bold' : 'normal');
-            root.style.setProperty('--i-allg-mb', getVal('Item_Allerg_MarginBottom', '8px'));
-            root.style.setProperty('--i-allg-sh', getShadow('Item_Allerg_Shadow', true));
-
-            root.style.setProperty('--i-pric-f', getVal('Item_Price_Font', 'sans-serif'));
-            root.style.setProperty('--i-pric-c', getVal('Item_Price_Color', '#4f46e5'));
-            root.style.setProperty('--i-pric-s', getVal('Item_Price_Size', '16px'));
-            root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
-            root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
-            
-            root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
-            root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
-            root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
-            root.style.setProperty('--flt-bg-i', getVal('Filter_BgColor_Inactive', '#f3f4f6'));
-            root.style.setProperty('--flt-c-i', getVal('Filter_TextColor_Inactive', '#9ca3af'));
-            root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
-            root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
-
-            // INTELLIGENZA LOGO: Se c'è l'URL, usa l'immagine indipendentemente dal Logo_Type
+            // --- 🏷️ LOGICA LOGO AUTO-DETECT ---
             const logoCont = document.getElementById('logo-container');
             const logoType = getVal('Logo_Type', 'text').toLowerCase();
             const align = getVal('Logo_Align', 'center').toLowerCase();
+            const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
+            
             logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-            
-            const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
 
-            if (logoUrl !== '' || logoType.includes('imag') || logoType.includes('img') || logoType.includes('foto')) {
-                if(logoUrl) {
-                    logoCont.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain; max-width:100%;">`;
-                } else {
-                    logoCont.innerHTML = `<span style="color:red; font-size:10px;">URL Logo Mancante</span>`;
-                }
+            if (logoUrl !== '' || logoType.includes('img') || logoType.includes('imag')) {
+                if(logoUrl) logoCont.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain; max-width:100%;">`;
+                else logoCont.innerHTML = `<span style="color:red; font-size:10px;">URL Logo Errato</span>`;
             } else {
                 let txt = getVal('Logo_Text', 'MENU');
                 let col = getVal('Logo_Text_Color', '#000');
@@ -407,15 +350,9 @@
                 sub.innerText = getVal('Subtitle_Text', '');
                 sub.style.cssText = `color:${getVal('Subtitle_Color', '#6b7280')}; font-size:${getVal('Subtitle_Size', '14px')}; font-weight:${isTruthy('Subtitle_Bold', true, false) ? 'bold' : 'normal'}; margin-top:${getVal('Subtitle_Margin_Top', '10px')}; text-align:${getVal('Subtitle_Align', 'center')}; font-family:${getVal('Subtitle_Font', 'sans-serif')};`;
             }
-
-            const lvlSh = getShadow('Level_Title_Shadow', true);
-            const levelStyle = `color:${getVal('Level_Title_Color', '#4f46e5')}; font-size:${getVal('Level_Title_Size', '14px')}; font-weight:${isTruthy('Level_Title_Bold', true, true) ? 'bold' : 'normal'}; text-align:${getVal('Level_Title_Align', 'center')}; font-family:${getVal('Level_Title_Font', 'sans-serif')}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
-            document.getElementById('level-title-inside').style.cssText = levelStyle;
-            
-            const levelMarginB = getVal('Level_Title_Margin_Bottom', '25px');
-            document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
         }
 
+        // GEOMETRIA FLUIDA
         function autoAdjustPadding() {
             setTimeout(() => {
                 const header = document.getElementById('main-header');
@@ -435,52 +372,38 @@
 
                 let totalH = hHeight;
                 if(subHeader && subHeader.style.display !== 'none') totalH += subHeader.offsetHeight;
-                
                 if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
             }, 50); 
         }
 
         async function fetchMenu() {
             const rString = Math.random().toString(36).substring(7);
-            const variants = ['Menu', 'menu', 'MENU', 'Piatto', 'Comida', 'Carta'];
+            const variants = ['Menu', 'menu', 'MENU', 'Piatto', 'Carta', 'Comida'];
             let csv = '';
 
             for(let v of variants) {
                 try {
                     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${rString}`;
-                    const res = await fetch(url, { headers: { 'Cache-Control': 'no-cache' } });
+                    const res = await fetch(url);
                     const text = await res.text();
-                    if(text.toLowerCase().includes('macro')) {
-                        csv = text;
-                        break;
-                    }
+                    if(text.toLowerCase().includes('macro')) { csv = text; break; }
                 } catch(e) {}
             }
 
-            if(!csv) {
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Errore: Scheda Menu non trovata.</div>"; 
-                return;
-            }
-                
+            if(!csv) return;
             fullData = [];
             csv.split(/\r?\n/).forEach(row => {
                 if(row.trim() === '') return;
                 const c = safeParseCSVRow(row);
                 if(c.length < 3 || !c[0] || c[0].toLowerCase().trim() === 'macro') return;
-                
                 fullData.push({
-                    macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
-                    allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
-                    veg: c[8] || '', noalc: c[9] || '', active: c[10] !== undefined ? c[10] : 'TRUE', photoUrl: c[11] || '',
-                    ar: c[12] || '' 
+                    macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photoUrl: c[11], ar: c[12] 
                 });
             });
-            
             fullData = fullData.filter(i => isTruthy(i.active, false, true)); 
             document.getElementById('loading-screen').style.display = 'none';
-            
-            if(fullData.length > 0) renderLevel1();
-            else document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-gray-500 font-bold'>Nessun piatto attivo trovato nel Menu.</div>"; 
+            renderLevel1();
         }
 
         function renderLevel1() {
@@ -489,19 +412,14 @@
             const isGrid = getVal('Macro_Layout', 'grid').toLowerCase() === 'grid';
             layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
             layoutContainer.innerHTML = '';
-
-            const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
-
             macros.forEach(m => {
                 let bgStyle = '';
-                if (bgType === 'color') {
-                    bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
-                } else {
+                const bgType = getVal('Macro_Bg_Type', 'color').toLowerCase();
+                if (bgType === 'color') bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
+                else {
                     const imgUrl = formatImgUrl(getVal(`Macro_Img_${m}`, ''));
-                    if (imgUrl) bgStyle = `background-image: url('${imgUrl}');`;
-                    else bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
+                    bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
                 }
-
                 const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
                 let html = '';
                 if(tPos === 'outside') {
@@ -519,38 +437,24 @@
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
             container.innerHTML = ''; 
             const showCatPhoto = isTruthy('Category_Photo_Show', true, true);
-
             cats.forEach(c => {
-                let bgStyle = '';
-                let overlayHTML = '';
-                let textClass = 'font-bold text-gray-800 text-lg relative z-10';
-                let iconClass = 'text-gray-400 shrink-0 ml-2 relative z-10';
-
+                let bgStyle = ''; let overlayHTML = ''; let textClass = 'font-bold text-gray-800 text-lg relative z-10';
                 if(showCatPhoto) {
                     const imgUrl = formatImgUrl(getVal(`Category_Img_${c}`, ''));
                     if(imgUrl) {
                         bgStyle = `background-image: url('${imgUrl}'); border: none;`;
                         overlayHTML = `<div class="cat-overlay"></div>`;
                         textClass = 'font-extrabold text-white text-lg relative z-10 text-shadow';
-                        iconClass = 'text-white shrink-0 ml-2 relative z-10';
                     }
                 }
-
-                container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">
-                        ${overlayHTML}
-                        <span class="${textClass}">${c}</span>
-                        <svg class="w-5 h-5 ${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                    </div>`;
+                container.innerHTML += `<div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">${overlayHTML}<span class="${textClass}">${c}</span><svg class="w-5 h-5 relative z-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
             });
             navigationStack.push('page-categories');
             showPage('page-categories', mName);
         }
 
         function toggleFilter(filterType) {
-            if (activeFilters.includes(filterType)) activeFilters = [];
-            else activeFilters = [filterType];
-            
+            activeFilters = activeFilters.includes(filterType) ? [] : [filterType];
             const btns = document.querySelectorAll('.filter-btn');
             btns.forEach(btn => {
                 btn.classList.remove('active');
@@ -582,72 +486,40 @@
                     filterContainer.innerHTML = filterHtml;
                 }
             }
-
             const container = document.getElementById('page-items');
             container.innerHTML = ''; 
             let items = fullData.filter(i => i.cat === cName && i.macro === mName);
-            if (activeFilters.length > 0) {
-                items = items.filter(i => activeFilters.every(f => isTruthy(i[f], false, false)));
-            }
+            if (activeFilters.length > 0) items = items.filter(i => activeFilters.every(f => isTruthy(i[f], false, false)));
 
             items.forEach(i => {
                 let badges = '';
                 if(isTruthy(i.gf, false, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
                 if(isTruthy(i.vegan, false, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
                 if(isTruthy(i.veg, false, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
-                
                 let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
-                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">${i.allerg}</span>` : '';
-                
-                let arHTML = '';
-                const cleanArUrl = formatImgUrl(i.ar);
-                if (cleanArUrl) {
-                    arHTML = `<a href="${cleanArUrl}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
-                }
-
+                let arHTML = formatImgUrl(i.ar) ? `<a href="${formatImgUrl(i.ar)}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> VEDI AR</a>` : '';
                 const photoUrl = formatImgUrl(i.photoUrl);
                 if (photoUrl) {
-                    container.innerHTML += `
-                        <div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4">
-                            <div class="flex flex-col flex-grow">
-                                <div><h3 class="item-name">${i.name}</h3>${descHTML}${allergensHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}</div>
-                                <div class="mt-auto pt-3"><span class="item-price">${i.price}</span></div>
-                            </div>
-                            <img src="${photoUrl}" alt="" class="item-photo shrink-0" onerror="this.style.display='none'">
-                        </div>`;
+                    container.innerHTML += `<div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4"><div class="flex flex-col flex-grow"><div><h3 class="item-name">${i.name}</h3>${descHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}</div><div class="mt-auto pt-3"><span class="item-price">${i.price}</span></div></div><img src="${photoUrl}" alt="" class="item-photo shrink-0" onerror="this.style.display='none'"></div>`;
                 } else {
-                    container.innerHTML += `
-                        <div class="menu-card item-card flex flex-col justify-center mb-4">
-                            <div class="flex justify-between items-start gap-4"><h3 class="item-name flex-grow">${i.name}</h3><span class="item-price pl-2">${i.price}</span></div>
-                            ${descHTML}${allergensHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}
-                        </div>`;
+                    container.innerHTML += `<div class="menu-card item-card flex flex-col justify-center mb-4"><div class="flex justify-between items-start gap-4"><h3 class="item-name flex-grow">${i.name}</h3><span class="item-price pl-2">${i.price}</span></div>${descHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}</div>`;
                 }
             });
-
-            if (!isFiltering) { navigationStack.push('page-items'); showPage('page-items', mName); }
+            if (!isFiltering) { navigationStack.push('page-items'); showPage('page-items'); }
         }
 
-        function showPage(p, levelTitle = '') {
+        function showPage(p) {
             if(p !== 'page-items') activeFilters = [];
             ['page-macro', 'page-categories', 'page-items'].forEach(s => document.getElementById(s).style.display = 'none');
             document.getElementById(p).style.display = 'block';
-            
             const backBtn = document.getElementById('back-button');
             const subHeader = document.getElementById('sub-header');
-            if(p === 'page-macro') { backBtn.classList.remove('active'); subHeader.style.display = 'none'; } 
+            if(p === 'page-macro') { backBtn.classList.remove('active'); subHeader.style.display = 'none'; } 
             else { backBtn.classList.add('active'); subHeader.style.display = (p === 'page-items') ? 'flex' : 'none'; }
-            
-            autoAdjustPadding();
-            window.scrollTo({top: 0, behavior: 'instant'});
+            autoAdjustPadding(); window.scrollTo({top: 0, behavior: 'instant'});
         }
 
-        function goBack() { 
-            if(navigationStack.length > 1) {
-                navigationStack.pop(); 
-                const prev = navigationStack[navigationStack.length-1];
-                showPage(prev);
-            }
-        }
+        function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
         
         init();
     </script>
