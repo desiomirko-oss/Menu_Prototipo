@@ -8,7 +8,7 @@ let activeFilters = [];
 let currentMacroName = '';
 let currentCategoryName = '';
 
-// PULIZIA E LETTURA DATI
+// --- 1. FUNZIONI DI PULIZIA DATI DA EXCEL/CSV ---
 function cleanString(val) {
     if (val === undefined || val === null || val === '') return '';
     const cleaned = String(val).replace(/^['"]|['"]$/g, '').trim();
@@ -17,7 +17,7 @@ function cleanString(val) {
 }
 
 function getVal(key, def) {
-    let v = appConfig[key] || appConfig[key + ',']; // Fix virgole orfane
+    let v = appConfig[key];
     if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
     return String(v).trim();
 }
@@ -56,7 +56,7 @@ function safeParseCSVRow(str) {
     return arr.map(x => x.replace(/^"|"$/g, '').trim());
 }
 
-// INIZIALIZZAZIONE
+// --- 2. INIZIALIZZAZIONE E FETCH ---
 async function init() {
     if (!SHEET_ID) {
         document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
@@ -77,8 +77,9 @@ async function fetchConfig() {
             if(row.trim() === '') return;
             const cols = safeParseCSVRow(row);
             if(cols.length >= 2 && cols[0] !== '') {
-                let key = cols[0].replace(/^"|"$/g, '').trim(); 
-                let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; // Fix punti e virgola [cite: 1]
+                // PULIZIA DELLE CHIAVI E DEI VALORI DA EXCEL
+                let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim(); // Toglie la virgola orfana
+                let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; // Fix punti e virgola in rgba
                 appConfig[key] = val;
             }
         });
@@ -88,7 +89,7 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
     
-    // Sfondo Globale
+    // SFONDO
     const bgType = getVal('Bg_Type', 'color').toLowerCase();
     root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
     if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
@@ -99,6 +100,7 @@ function applyConfig() {
     root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
     root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
+    // HEADER & CARD
     root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
     root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
     root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
@@ -119,6 +121,7 @@ function applyConfig() {
         root.style.setProperty('--menu-card-bg', getVal('Card_BgColor', '#ffffff')); root.style.setProperty('--menu-card-shadow', shadowVal); 
         root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', getVal('Card_Padding', '20px'));
     }
+    
     root.style.setProperty('--menu-card-r', getVal('Card_Radius', '24px'));
     root.style.setProperty('--cat-card-min-h', getVal('Category_Card_MinHeight', '80px'));
     root.style.setProperty('--item-card-min-h', getVal('Item_Card_MinHeight', '120px'));
@@ -127,7 +130,7 @@ function applyConfig() {
     root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
     root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
-    // Tipografia
+    // TIPOGRAFIA (Font e Colori ora mappano perfettamente le chiavi pulite)
     root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
     root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
@@ -159,6 +162,7 @@ function applyConfig() {
     root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
     root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
     
+    // FILTRI
     root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
     root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
     root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
@@ -167,7 +171,7 @@ function applyConfig() {
     root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
     root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-    // Logo
+    // LOGO
     const logoCont = document.getElementById('logo-container');
     const logoType = getVal('Logo_Type', 'text').toLowerCase();
     const align = getVal('Logo_Align', 'center').toLowerCase();
@@ -177,10 +181,10 @@ function applyConfig() {
     if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
         logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
     } else {
-        logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu')}</h1>`;
+        logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu Digitale')}</h1>`;
     }
 
-    // Sottotitolo
+    // SOTTOTITOLO
     const sub = document.getElementById('subtitle-container');
     if(!isTruthy('Subtitle_Show', true, true)) {
         sub.style.display = 'none';
@@ -218,6 +222,7 @@ function autoAdjustPadding() {
     }, 50); 
 }
 
+// --- 3. FETCH E RENDER DEL MENU (INCLUDE AR) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -238,11 +243,13 @@ async function fetchMenu() {
                 allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
                 veg: c[8] || '', noalc: c[9] || '', 
                 active: c[10] !== undefined ? c[10] : 'TRUE', 
-                photoUrl: c[11] || '', ar: c[12] || '' 
+                photoUrl: c[11] || '', 
+                ar: c[12] || '' // COLONNA M DEL FOGLIO (13esima posizione)
             });
         }
         
-        fullData = fullData.filter(i => isTruthy(i.active, false)); 
+        // Riconosce i SI del tuo foglio come Elementi Attivi
+        fullData = fullData.filter(i => isTruthy(i.active, false, true)); 
         
         document.getElementById('loading-screen').style.display = 'none';
         renderLevel1();
@@ -267,6 +274,7 @@ function renderLevel1() {
         if (bgType === 'color') {
             bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
         } else {
+            // Nota che il tuo config usa nomi esatti "Macro_Img_CIBO" e "Macro_Img_BEVANDA"
             const imgUrl = getVal(`Macro_Img_${m}`, '');
             if (imgUrl) bgStyle = `background-image: url('${imgUrl}');`;
             else bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
@@ -318,8 +326,9 @@ function renderLevel2(mName) {
     showPage('page-categories', mName);
 }
 
-// LOGICA FILTRI RADIO
+// --- 4. LOGICA FILTRI E AR (RADIO BUTTON) ---
 function toggleFilter(filterType) {
+    // Spegne se già cliccato, accende se nuovo (Radio Esclusivo)
     if (activeFilters.includes(filterType)) {
         activeFilters = [];
     } else {
@@ -336,7 +345,7 @@ function toggleFilter(filterType) {
                             (f === 'vegan' && txt.includes('vegano')) || 
                             (f === 'veg' && txt.includes('vegetariano')) || 
                             (f === 'noalc' && txt.includes('analcolico'));
-            if(isMatch) btn.classList.add('active');
+            if(isMatch) btn.classList.add('active'); // Il CSS cambia colore all'istante
         }
     });
     renderLevel3(currentMacroName, currentCategoryName, true);
@@ -369,13 +378,14 @@ function renderLevel3(mName, cName, isFiltering = false) {
     
     let items = fullData.filter(i => i.cat === cName && i.macro === mName);
     
+    // FILTRA I DATI INTERCETTANDO IL TUO "SI"
     if (activeFilters.length > 0) {
         items = items.filter(i => {
             return activeFilters.every(f => {
-                if(f === 'gf') return isTruthy(i.gf, false);
-                if(f === 'vegan') return isTruthy(i.vegan, false);
-                if(f === 'veg') return isTruthy(i.veg, false);
-                if(f === 'noalc') return isTruthy(i.noalc, false);
+                if(f === 'gf') return isTruthy(i.gf, false, false);
+                if(f === 'vegan') return isTruthy(i.vegan, false, false);
+                if(f === 'veg') return isTruthy(i.veg, false, false);
+                if(f === 'noalc') return isTruthy(i.noalc, false, false);
                 return true;
             });
         });
@@ -387,14 +397,15 @@ function renderLevel3(mName, cName, isFiltering = false) {
 
     items.forEach(i => {
         let badges = '';
-        if(isTruthy(i.gf, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-        if(isTruthy(i.vegan, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-        if(isTruthy(i.veg, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
+        if(isTruthy(i.gf, false, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
+        if(isTruthy(i.vegan, false, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
+        if(isTruthy(i.veg, false, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
         
         let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
         let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
         let priceHTML = `<span class="item-price">${i.price}</span>`;
 
+        // INIEZIONE PULSANTE AR
         let arHTML = '';
         const cleanArUrl = cleanString(i.ar);
         if (cleanArUrl) {
