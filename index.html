@@ -35,10 +35,8 @@
             
             --level-txt-sh: none; --level-mb: 25px; 
 
-            /* DIMENSIONI FOTO */
+            /* DIMENSIONI FOTO E FILTRI */
             --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
-
-            /* FILTRI DINAMICI */
             --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
             --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
             --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
@@ -161,6 +159,18 @@
     </main>
 
     <script>
+        // PROTOCOLLO DISTRUZIONE CACHE (Eseguito immediatamente)
+        if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+                cacheNames.forEach(function(cacheName) { caches.delete(cacheName); });
+            });
+        }
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) { registration.unregister(); }
+            });
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const SHEET_ID = urlParams.get('id'); 
         let appConfig = {};
@@ -183,13 +193,11 @@
             const matchOpen = formatted.match(openRegex);
             if (matchOpen && matchOpen[1]) return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
             
-            if (formatted.includes('dropbox.com') && formatted.includes('dl=0')) {
-                return formatted.replace('dl=0', 'raw=1');
-            }
+            if (formatted.includes('dropbox.com') && formatted.includes('dl=0')) return formatted.replace('dl=0', 'raw=1');
             return formatted;
         }
 
-        // LETTURA CHIAVI CASE-INSENSITIVE (IL FIX DEFINITIVO)
+        // LETTURA CHIAVI CASE-INSENSITIVE
         function getVal(key, def) {
             const k = String(key).toLowerCase().trim();
             let v = appConfig[k];
@@ -243,18 +251,26 @@
         }
 
         async function fetchConfig() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}`;
+            // L'INTELLIGENZA ARTIFICIALE DI GOOGLE SHEETS
+            // 1. Tenta di scaricare la scheda "Config" (Maiuscola)
+            let url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config&_t=${Date.now()}`;
             try {
-                const response = await fetch(url);
-                if(!response.ok) throw new Error("Network Error");
-                const csv = await response.text();
+                let response = await fetch(url);
+                let csv = await response.text();
+                
+                // Se Google manda la scheda Menu per sbaglio, prova "config" minuscolo
+                if (!csv.toLowerCase().includes('logo_')) {
+                    url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}`;
+                    response = await fetch(url);
+                    csv = await response.text();
+                }
+
                 csv.split(/\r?\n/).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
-                        // FIX: Tutto convertito in minuscolo, tolte le virgole accidentali
                         let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim().toLowerCase(); 
-                        if(key === 'property') return; // Ignora l'intestazione dinamicamente
+                        if(key === 'property') return; // Ignora l'intestazione
                         
                         let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
                         appConfig[key] = val;
@@ -359,7 +375,7 @@
             const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
 
             if (isLogoImg && logoUrl !== '') {
-                logoCont.innerHTML = `<img src="${logoUrl}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
+                logoCont.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain; max-width:100%;">`;
             } else {
                 let txt = getVal('Logo_Text', 'Menu Digitale');
                 let col = getVal('Logo_Text_Color', '#000');
@@ -427,7 +443,7 @@
                     if(rows[i].trim() === '') continue;
                     const c = safeParseCSVRow(rows[i]);
                     if(c.length < 3 || !c[0]) continue;
-                    if(c[0].toLowerCase().trim() === 'macro') continue; // Salta esplicitamente l'intestazione
+                    if(c[0].toLowerCase().trim() === 'macro') continue; // Salta l'intestazione
                     
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
@@ -469,9 +485,9 @@
                 const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
                 let html = '';
                 if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide" style="line-height:1.2;">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide text-sm">${m}</span></div>`;
                 } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2" style="line-height:1.2;">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2">${m}</span></div>`;
                 }
                 layoutContainer.innerHTML += html;
             });
