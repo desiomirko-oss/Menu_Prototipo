@@ -7,12 +7,10 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            /* VARIABILI PER IL CONTROLLO SFONDO GLOBALE */
+            /* VARIABILI BASE SOVRASCRITTE DAL CONFIG */
             --app-bg: #f9fafb; 
             --app-bg-img: none;
-            --app-bg-size: cover;
-            --app-bg-pos: center;
-
+            
             --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
             
@@ -29,29 +27,20 @@
             
             --macro-txt-sh: none; --level-txt-sh: none; --level-mb: 25px; 
 
-            /* LARGHEZZA E ALTEZZA FOTO CONTROLLATE DA TE */
-            --i-photo-w: 110px;
-            --i-photo-h: 110px;
-            --i-photo-sh: none;
+            --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
 
-            /* FILTRI DINAMICI */
             --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
             --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
             --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
         }
 
         body {
-            /* APPLICAZIONE DINAMICA DELLO SFONDO */
-            background: var(--app-bg) !important; 
+            background-color: var(--app-bg) !important; 
             background-image: var(--app-bg-img) !important;
-            background-size: var(--app-bg-size) !important; 
-            background-position: var(--app-bg-pos) !important; 
-            background-attachment: fixed !important;
-            
+            background-size: cover; background-position: center; background-attachment: fixed;
             min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
         }
 
-        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
@@ -61,22 +50,12 @@
         }
         #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
-        /* SUB-HEADER (BG FISSO) PER CATEGORIE E FILTRI */
         #sub-header {
             background: var(--header-bg); 
-            position: fixed; 
-            width: 100%; 
-            z-index: 998;
-            top: var(--header-h); 
-            left: 0; 
-            display: none; 
-            flex-direction: column; 
-            align-items: center;
-            border-radius: 0; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(0,0,0,0.05); 
-            transition: all 0.3s ease;
+            position: fixed; width: 100%; z-index: 998; top: var(--header-h); left: 0; display: none; 
+            flex-direction: column; align-items: center; border-radius: 0; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
         }
 
         #back-button {
@@ -99,7 +78,8 @@
             border: var(--menu-card-border); transition: transform 0.1s ease;
         }
         .menu-card:active { transform: scale(0.98); }
-        .cat-card { min-height: var(--cat-card-min-h); }
+        .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
         .item-card { min-height: var(--item-card-min-h); }
 
         .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
@@ -107,35 +87,20 @@
         .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
         .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
 
-        .item-photo { 
-            width: var(--i-photo-w); 
-            height: var(--i-photo-h); 
-            flex-shrink: 0; 
-            border-radius: 0.75rem; 
-            object-fit: cover; 
-            box-shadow: var(--i-photo-sh); 
-        }
+        .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; box-shadow: var(--i-photo-sh); }
         
-        /* CONTENITORE FILTRI */
-        .filter-container { 
-            display: flex; flex-direction: row; gap: 8px; overflow-x: auto; 
-            padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; 
-        }
+        .filter-container { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
-        
         .filter-btn {
             font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
             background-color: var(--flt-bg-i); color: var(--flt-c-i);
             padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
-            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-shrink: 0;
+            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;
         }
-        /* CLASSE ATTIVA PER CAMBIO COLORE FORZATO */
-        .filter-btn.active { 
-            background-color: var(--flt-bg-a) !important; 
-            color: var(--flt-c-a) !important; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15); 
-        }
+        .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+
+        .ar-badge { background: #111827; color: #ffffff; font-size: 10px; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s ease; text-decoration: none; }
+        .ar-badge:active { transform: scale(0.95); }
 
         .page-content { animation: pageIn 0.3s ease-out forwards; }
         @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
@@ -167,9 +132,7 @@
             <div class="loader mb-4"></div>
             <p class="text-gray-400 text-sm uppercase tracking-widest mt-2" id="loading-text">Sincronizzazione...</p>
         </div>
-
         <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;" class="mb-4"></div>
-
         <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content"></div></section>
         <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
         <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
@@ -181,20 +144,26 @@
         let appConfig = {};
         let fullData = [];
         let navigationStack = ['page-macro'];
-        
         let activeFilters = []; 
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // FUNZIONE TRUTHY BLINDATA PER GESTIRE I "SI" DEL TUO CSV
-        function isTruthy(val) {
-            if(!val) return false;
-            const v = String(val).toUpperCase().trim();
+        // FUNZIONE ESTRAZIONE BLINDATA: Corregge gli errori di battitura del CSV in tempo reale
+        function getVal(key, def) {
+            // Cerca la chiave normale, oppure la chiave con la virgola finale (errore comune CSV)
+            let v = appConfig[key] || appConfig[key + ',']; 
+            if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
+            return String(v).trim();
+        }
+
+        // FUNZIONE TRUTHY: Riconosce i "SI" e i "TRUE" del file Menu
+        function isTruthy(key, defaultVal = true) {
+            let v = getVal(key, defaultVal ? 'TRUE' : 'FALSE').toUpperCase();
             return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
         }
 
         function getShadow(type, isText = false) {
-            const val = (type || 'none').toLowerCase().trim();
+            const val = getVal(type, 'none').toLowerCase();
             if (isText) {
                 if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
                 if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
@@ -208,7 +177,6 @@
             }
         }
 
-        // PARSER SICURO
         function safeParseCSVRow(str) {
             let arr = []; let quote = false; let cell = '';
             for (let i = 0; i < str.length; i++) {
@@ -233,15 +201,21 @@
         }
 
         async function fetchConfig() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config`;
+            // Timestamp per forzare bypass Cache
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
             try {
                 const response = await fetch(url);
                 if(!response.ok) throw new Error("Network Error");
                 const csv = await response.text();
-                csv.split('\n').slice(1).forEach(row => {
+                csv.split(/\r?\n/).slice(1).forEach(row => {
                     if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
-                    if(cols.length >= 2 && cols[0] !== '') appConfig[cols[0]] = cols[1];
+                    if(cols.length >= 2 && cols[0] !== '') {
+                        let key = cols[0].replace(/^"|"$/g, '').trim(); 
+                        // PULIZIA: Sostituisce i punti e virgola (;) con le virgole (,) per ripristinare i colori RGBA rotti da Excel
+                        let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
+                        appConfig[key] = val;
+                    }
                 });
             } catch(e) { console.error("Errore Configurazione:", e); }
         }
@@ -249,111 +223,113 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // SFONDO DINAMICO GLOBALE DAL TUO CONFIG
-            const bgType = (appConfig.Bg_Type || 'color').toLowerCase().trim();
-            root.style.setProperty('--app-bg', appConfig.Bg_Color ? appConfig.Bg_Color.trim() : '#f9fafb');
-            
-            if(bgType === 'image' && appConfig.Bg_Image_URL && appConfig.Bg_Image_URL.trim() !== '') {
-                root.style.setProperty('--app-bg-img', `url('${appConfig.Bg_Image_URL.trim()}')`);
+            const bgType = getVal('Bg_Type', 'color').toLowerCase();
+            root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
+            if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
+                root.style.setProperty('--app-bg-img', `url('${getVal('Bg_Image_URL', '')}')`);
             } else {
                 root.style.setProperty('--app-bg-img', 'none');
             }
-            root.style.setProperty('--app-bg-size', appConfig.Bg_Image_Size ? appConfig.Bg_Image_Size.trim() : 'cover');
-            root.style.setProperty('--app-bg-pos', appConfig.Bg_Image_Pos ? appConfig.Bg_Image_Pos.trim() : 'center');
 
-            root.style.setProperty('--header-bg', appConfig.Header_BgColor || 'rgba(255, 255, 255, 0.95)');
-            root.style.setProperty('--header-h', appConfig.Header_Height || '120px');
-            root.style.setProperty('--macro-h', appConfig.Macro_Height || '180px');
-            root.style.setProperty('--back-bg', appConfig.Back_Btn_Bg || '#fff');
-            root.style.setProperty('--back-color', appConfig.Back_Btn_Color || '#000');
+            root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
+            root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
+            root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
+            root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
+            root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
 
             let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
-            const shadowInt = (appConfig.Card_Shadow_Intensity || 'medium').toLowerCase().trim();
+            const shadowInt = getVal('Card_Shadow_Intensity', 'medium').toLowerCase();
             if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
             else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
             else if(shadowInt === 'none') shadowVal = 'none';
             root.style.setProperty('--card-shadow', shadowVal);
 
-            if((appConfig.Card_Show_Bg || '').toUpperCase().trim() === 'FALSE') {
+            if(!isTruthy('Card_Show_Bg', true)) {
                 root.style.setProperty('--menu-card-bg', 'transparent'); root.style.setProperty('--menu-card-shadow', 'none');
                 root.style.setProperty('--menu-card-border', 'none'); root.style.setProperty('--menu-card-p', '10px 0px'); 
             } else {
-                root.style.setProperty('--menu-card-bg', appConfig.Card_BgColor || '#ffffff'); root.style.setProperty('--menu-card-shadow', shadowVal); 
-                root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', appConfig.Card_Padding || '20px');
+                root.style.setProperty('--menu-card-bg', getVal('Card_BgColor', '#ffffff')); root.style.setProperty('--menu-card-shadow', shadowVal); 
+                root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', getVal('Card_Padding', '20px'));
             }
-            root.style.setProperty('--menu-card-r', appConfig.Card_Radius || '24px');
-            root.style.setProperty('--cat-card-min-h', appConfig.Category_Card_MinHeight || '80px');
-            root.style.setProperty('--item-card-min-h', appConfig.Item_Card_MinHeight || '120px');
+            root.style.setProperty('--menu-card-r', getVal('Card_Radius', '24px'));
+            root.style.setProperty('--cat-card-min-h', getVal('Category_Card_MinHeight', '80px'));
+            root.style.setProperty('--item-card-min-h', getVal('Item_Card_MinHeight', '120px'));
 
-            root.style.setProperty('--i-photo-w', appConfig.Item_Photo_Width || '110px');
-            root.style.setProperty('--i-photo-h', appConfig.Item_Photo_Height || '110px');
-            root.style.setProperty('--i-photo-sh', getShadow(appConfig.Item_Photo_Shadow, false));
+            root.style.setProperty('--i-photo-w', getVal('Item_Photo_Width', '110px'));
+            root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
+            root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
-            root.style.setProperty('--i-name-f', appConfig.Item_Name_Font || 'sans-serif');
-            root.style.setProperty('--i-name-c', appConfig.Item_Name_Color || '#111827');
-            root.style.setProperty('--i-name-s', appConfig.Item_Name_Size || '18px');
-            root.style.setProperty('--i-name-w', isTruthy(appConfig.Item_Name_Bold || 'TRUE') ? 'bold' : 'normal');
-            root.style.setProperty('--i-name-mb', appConfig.Item_Name_MarginBottom || '4px');
-            root.style.setProperty('--i-name-sh', getShadow(appConfig.Item_Name_Shadow, true));
+            // FONT CORRETTI
+            root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
+            root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
+            root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
+            root.style.setProperty('--i-name-w', isTruthy('Item_Name_Bold', true) ? 'bold' : 'normal');
+            root.style.setProperty('--i-name-mb', getVal('Item_Name_MarginBottom', '4px'));
+            root.style.setProperty('--i-name-sh', getShadow('Item_Name_Shadow', true));
 
-            root.style.setProperty('--i-desc-f', appConfig.Item_Desc_Font || 'sans-serif');
-            root.style.setProperty('--i-desc-c', appConfig.Item_Desc_Color || '#6b7280');
-            root.style.setProperty('--i-desc-s', appConfig.Item_Desc_Size || '14px');
-            root.style.setProperty('--i-desc-w', isTruthy(appConfig.Item_Desc_Bold) ? 'bold' : 'normal');
-            root.style.setProperty('--i-desc-mb', appConfig.Item_Desc_MarginBottom || '8px');
-            root.style.setProperty('--i-desc-sh', getShadow(appConfig.Item_Desc_Shadow, true));
+            root.style.setProperty('--i-desc-f', getVal('Item_Desc_Font', 'sans-serif'));
+            root.style.setProperty('--i-desc-c', getVal('Item_Desc_Color', '#6b7280'));
+            root.style.setProperty('--i-desc-s', getVal('Item_Desc_Size', '14px'));
+            root.style.setProperty('--i-desc-w', isTruthy('Item_Desc_Bold', false) ? 'bold' : 'normal');
+            root.style.setProperty('--i-desc-mb', getVal('Item_Desc_MarginBottom', '8px'));
+            root.style.setProperty('--i-desc-sh', getShadow('Item_Desc_Shadow', true));
 
-            root.style.setProperty('--i-allg-f', appConfig.Item_Allerg_Font || 'sans-serif');
-            root.style.setProperty('--i-allg-c', appConfig.Item_Allerg_Color || '#f87171');
-            root.style.setProperty('--i-allg-s', appConfig.Item_Allerg_Size || '11px');
-            root.style.setProperty('--i-allg-w', isTruthy(appConfig.Item_Allerg_Bold) ? 'bold' : 'normal');
-            root.style.setProperty('--i-allg-mb', appConfig.Item_Allerg_MarginBottom || '8px');
-            root.style.setProperty('--i-allg-sh', getShadow(appConfig.Item_Allerg_Shadow, true));
+            root.style.setProperty('--i-allg-f', getVal('Item_Allerg_Font', 'sans-serif'));
+            root.style.setProperty('--i-allg-c', getVal('Item_Allerg_Color', '#f87171'));
+            root.style.setProperty('--i-allg-s', getVal('Item_Allerg_Size', '11px'));
+            root.style.setProperty('--i-allg-w', isTruthy('Item_Allerg_Bold', false) ? 'bold' : 'normal');
+            root.style.setProperty('--i-allg-mb', getVal('Item_Allerg_MarginBottom', '8px'));
+            root.style.setProperty('--i-allg-sh', getShadow('Item_Allerg_Shadow', true));
 
-            root.style.setProperty('--i-pric-f', appConfig.Item_Price_Font || 'sans-serif');
-            root.style.setProperty('--i-pric-c', appConfig.Item_Price_Color || '#4f46e5');
-            root.style.setProperty('--i-pric-s', appConfig.Item_Price_Size || '16px');
-            root.style.setProperty('--i-pric-w', isTruthy(appConfig.Item_Price_Bold || 'TRUE') ? 'bold' : 'normal');
-            root.style.setProperty('--i-pric-sh', getShadow(appConfig.Item_Price_Shadow, true));
-
-            root.style.setProperty('--macro-txt-sh', getShadow(appConfig.Macro_Text_Shadow, true));
+            root.style.setProperty('--i-pric-f', getVal('Item_Price_Font', 'sans-serif'));
+            root.style.setProperty('--i-pric-c', getVal('Item_Price_Color', '#4f46e5'));
+            root.style.setProperty('--i-pric-s', getVal('Item_Price_Size', '16px'));
+            root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true) ? 'bold' : 'normal');
+            root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
             
-            root.style.setProperty('--flt-f', appConfig.Filter_Font || 'sans-serif');
-            root.style.setProperty('--flt-s', appConfig.Filter_Size || '11px');
-            root.style.setProperty('--flt-w', isTruthy(appConfig.Filter_Bold || 'TRUE') ? 'bold' : 'normal');
-            root.style.setProperty('--flt-bg-i', appConfig.Filter_BgColor_Inactive || '#f3f4f6');
-            root.style.setProperty('--flt-c-i', appConfig.Filter_TextColor_Inactive || '#9ca3af');
-            root.style.setProperty('--flt-bg-a', appConfig.Filter_BgColor_Active || '#4f46e5');
-            root.style.setProperty('--flt-c-a', appConfig.Filter_TextColor_Active || '#ffffff');
+            root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
 
+            root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
+            root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
+            root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true) ? 'bold' : 'normal');
+            root.style.setProperty('--flt-bg-i', getVal('Filter_BgColor_Inactive', '#f3f4f6'));
+            root.style.setProperty('--flt-c-i', getVal('Filter_TextColor_Inactive', '#9ca3af'));
+            root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
+            root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
+
+            // LOGO
             const logoCont = document.getElementById('logo-container');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
+            const logoType = getVal('Logo_Type', 'text').toLowerCase();
+            const align = getVal('Logo_Align', 'center').toLowerCase();
             logoCont.innerHTML = ''; 
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-            if ((appConfig.Logo_Type || '').toLowerCase().trim() === 'image' && appConfig.Logo_Image_URL) {
-                logoCont.innerHTML = `<img src="${appConfig.Logo_Image_URL}" style="max-height:${appConfig.Logo_Image_Size || '60px'}; object-fit:contain;" onerror="this.style.display='none'">`;
+            
+            if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
+                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
             } else {
-                let txt = appConfig.Logo_Text || 'Menu Digitale';
-                logoCont.innerHTML = `<h1 style="color:${appConfig.Logo_Text_Color || '#000'}; font-size:${appConfig.Logo_Text_Size || '24px'}; font-weight:${isTruthy(appConfig.Logo_Text_Bold || 'TRUE') ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${appConfig.Logo_Text_Font || 'sans-serif'};">${txt}</h1>`;
+                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu Digitale')}</h1>`;
             }
 
+            // SUBTITLE
             const sub = document.getElementById('subtitle-container');
-            if((appConfig.Subtitle_Show || '').toUpperCase().trim() === 'FALSE') sub.style.display = 'none';
-            else {
-                sub.style.display = 'block'; sub.innerText = appConfig.Subtitle_Text || '';
-                sub.style.cssText = `color:${appConfig.Subtitle_Color || '#666'}; font-size:${appConfig.Subtitle_Size || '14px'}; margin-top:${appConfig.Subtitle_Margin_Top || '5px'}; text-align:${appConfig.Subtitle_Align || 'center'}; font-family:${appConfig.Subtitle_Font || 'sans-serif'};`;
+            if(!isTruthy('Subtitle_Show', true)) {
+                sub.style.display = 'none';
+            } else {
+                sub.style.display = 'block'; 
+                sub.innerText = getVal('Subtitle_Text', '');
+                sub.style.cssText = `color:${getVal('Subtitle_Color', '#6b7280')}; font-size:${getVal('Subtitle_Size', '14px')}; font-weight:${isTruthy('Subtitle_Bold', false) ? 'bold' : 'normal'}; margin-top:${getVal('Subtitle_Margin_Top', '10px')}; text-align:${getVal('Subtitle_Align', 'center')}; font-family:${getVal('Subtitle_Font', 'sans-serif')};`;
             }
 
-            const lvlSh = getShadow(appConfig.Level_Title_Shadow, true);
-            const levelStyle = `color:${appConfig.Level_Title_Color || '#4f46e5'}; font-size:${appConfig.Level_Title_Size || '16px'}; font-weight:${isTruthy(appConfig.Level_Title_Bold || 'TRUE') ? 'bold' : 'normal'}; text-align:${appConfig.Level_Title_Align || 'center'}; font-family:${appConfig.Level_Title_Font || 'sans-serif'}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
+            const lvlSh = getShadow('Level_Title_Shadow', true);
+            const levelStyle = `color:${getVal('Level_Title_Color', '#4f46e5')}; font-size:${getVal('Level_Title_Size', '14px')}; font-weight:${isTruthy('Level_Title_Bold', true) ? 'bold' : 'normal'}; text-align:${getVal('Level_Title_Align', 'center')}; font-family:${getVal('Level_Title_Font', 'sans-serif')}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
             document.getElementById('level-title-inside').style.cssText = levelStyle;
             
-            const levelMarginB = appConfig.Level_Title_Margin_Bottom || '25px';
+            const levelMarginB = getVal('Level_Title_Margin_Bottom', '25px');
             document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
             
             const backBtn = document.getElementById('back-button');
-            const hHeight = parseInt(appConfig.Header_Height || '120');
-            const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
+            const hHeight = parseInt(getVal('Header_Height', '120'));
+            const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
             if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
             else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
@@ -364,7 +340,6 @@
                 const header = document.getElementById('main-header');
                 const subHeader = document.getElementById('sub-header');
                 const mainContent = document.getElementById('main-content');
-                
                 let totalH = header.offsetHeight;
                 if(subHeader && subHeader.style.display !== 'none') {
                     totalH += subHeader.offsetHeight;
@@ -374,14 +349,14 @@
         }
 
         async function fetchMenu() {
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu`;
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
             try {
                 const response = await fetch(url);
                 if(!response.ok) throw new Error("Network Error");
                 const csv = await response.text();
                 
                 fullData = [];
-                const rows = csv.split('\n');
+                const rows = csv.split(/\r?\n/);
                 
                 for(let i=1; i<rows.length; i++) {
                     if(rows[i].trim() === '') continue;
@@ -391,12 +366,18 @@
                     fullData.push({
                         macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
                         allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
-                        veg: c[8] || '', noalc: c[9] || '', active: c[10] !== undefined ? c[10] : 'TRUE', photoUrl: c[11] || '',
-                        ar: c[12] || '' // COLONNA AR (La numero 13)
+                        veg: c[8] || '', noalc: c[9] || '', 
+                        active: c[10] !== undefined ? c[10] : 'TRUE', 
+                        photoUrl: c[11] || '',
+                        ar: c[12] || '' // COLONNA 13 AR
                     });
                 }
                 
-                fullData = fullData.filter(i => isTruthy(i.active)); 
+                // Filtro "SI" / "TRUE" per l'Attivo
+                fullData = fullData.filter(i => {
+                    const v = String(i.active).toUpperCase().trim();
+                    return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
+                });
                 
                 document.getElementById('loading-screen').style.display = 'none';
                 renderLevel1();
@@ -410,29 +391,29 @@
             const layoutContainer = document.getElementById('macro-layout-container');
             const macros = [...new Set(fullData.map(i => i.macro))];
             
-            const isGrid = (appConfig.Macro_Layout || 'grid').toLowerCase().trim() === 'grid';
+            const isGrid = getVal('Macro_Layout', 'grid').toLowerCase() === 'grid';
             layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
             layoutContainer.innerHTML = '';
 
-            const bgType = (appConfig.Macro_Bg_Type || 'image').toLowerCase().trim();
+            const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
 
             macros.forEach(m => {
                 let bgStyle = '';
                 if (bgType === 'color') {
-                    bgStyle = `background: ${appConfig.Macro_Bg_Color || '#cbd5e1'};`;
+                    bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
                 } else {
-                    const imgKey = `Macro_Img_${m}`;
-                    const imgUrl = appConfig[imgKey] ? appConfig[imgKey].trim() : '';
-                    if (imgUrl && imgUrl !== 'undefined') bgStyle = `background-image: url('${imgUrl}');`;
-                    else bgStyle = `background: ${appConfig.Macro_Bg_Color || 'linear-gradient(135deg, #cbd5e1, #f1f5f9)'};`;
+                    const imgUrl = getVal(`Macro_Img_${m}`, '');
+                    if (imgUrl) bgStyle = `background-image: url('${imgUrl}');`;
+                    else bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
                 }
 
-                const tPos = (appConfig.Macro_Text_Pos || 'center').toLowerCase().trim(); 
+                const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
                 let html = '';
+                const fontSettings = `font-family: ${getVal('Macro_Text_Font', 'sans-serif')}; color: ${getVal('Macro_Text_Color', '#ffffff')};`;
                 if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold text-gray-800 uppercase tracking-wide text-sm">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide text-sm" style="${fontSettings}">${m}</span></div>`;
                 } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 text-white font-extrabold text-xl uppercase tracking-widest">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold text-xl uppercase tracking-widest" style="${fontSettings}">${m}</span></div>`;
                 }
                 layoutContainer.innerHTML += html;
             });
@@ -444,18 +425,36 @@
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
             
             container.innerHTML = ''; 
+            const showCatPhoto = isTruthy('Category_Photo_Show', true);
+
             cats.forEach(c => {
+                let bgStyle = '';
+                let overlayHTML = '';
+                let textClass = 'font-bold text-gray-800 text-lg relative z-10';
+                let iconClass = 'text-gray-400 shrink-0 ml-2 relative z-10';
+
+                if(showCatPhoto) {
+                    const imgUrl = getVal(`Category_Img_${c}`, '');
+                    if(imgUrl) {
+                        bgStyle = `background-image: url('${imgUrl}'); border: none; color: white;`;
+                        overlayHTML = `<div class="cat-overlay"></div>`;
+                        textClass = 'font-extrabold text-white text-lg relative z-10 text-shadow';
+                        iconClass = 'text-white shrink-0 ml-2 relative z-10';
+                    }
+                }
+
                 container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3">
-                        <span class="font-bold text-gray-800 text-lg">${c}</span>
-                        <svg class="w-5 h-5 text-gray-400 shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">
+                        ${overlayHTML}
+                        <span class="${textClass}">${c}</span>
+                        <svg class="w-5 h-5 ${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>`;
             });
             navigationStack.push('page-categories');
             showPage('page-categories', mName);
         }
 
-        // LA LOGICA DEL MAESTRO: RADIO BUTTON
+        // RADIO BUTTONS LOGIC
         function toggleFilter(filterType) {
             if (activeFilters.includes(filterType)) {
                 activeFilters = [];
@@ -487,15 +486,15 @@
                 const filterContainer = document.getElementById('sub-header-filters');
                 filterContainer.innerHTML = '';
 
-                if (isTruthy(appConfig.Filter_Show || 'TRUE')) {
+                if (isTruthy('Filter_Show', true)) {
                     const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
                     let filterHtml = '';
                     if (!isDrinks) {
-                        if(isTruthy(appConfig.Filter_Show_GF || 'TRUE')) filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
-                        if(isTruthy(appConfig.Filter_Show_Vegan || 'TRUE')) filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
-                        if(isTruthy(appConfig.Filter_Show_Veg || 'TRUE')) filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
+                        if(isTruthy('Filter_Show_GF', true)) filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
+                        if(isTruthy('Filter_Show_Vegan', true)) filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
+                        if(isTruthy('Filter_Show_Veg', true)) filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
                     } else {
-                        if(isTruthy(appConfig.Filter_Show_NoAlc || 'TRUE')) filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
+                        if(isTruthy('Filter_Show_NoAlc', true)) filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
                     }
                     filterContainer.innerHTML = filterHtml;
                 }
@@ -506,17 +505,17 @@
             
             let items = fullData.filter(i => i.cat === cName && i.macro === mName);
             
-            // FILTRA I DATI REALI ATTRAVERSO I "SI"
+            // APPLICA FILTRI ESCLUSIVI SU DATI (Supporta SI)
             if (activeFilters.length > 0) {
                 items = items.filter(i => {
                     return activeFilters.every(f => {
-                        let valToCheck = '';
-                        if(f === 'gf') valToCheck = i.gf;
-                        if(f === 'vegan') valToCheck = i.vegan;
-                        if(f === 'veg') valToCheck = i.veg;
-                        if(f === 'noalc') valToCheck = i.noalc;
-                        
-                        return isTruthy(valToCheck);
+                        let v = '';
+                        if(f === 'gf') v = i.gf;
+                        if(f === 'vegan') v = i.vegan;
+                        if(f === 'veg') v = i.veg;
+                        if(f === 'noalc') v = i.noalc;
+                        const vUp = String(v).toUpperCase().trim();
+                        return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(vUp);
                     });
                 });
             }
@@ -527,19 +526,24 @@
 
             items.forEach(i => {
                 let badges = '';
-                if(isTruthy(i.gf)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-                if(isTruthy(i.vegan)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-                if(isTruthy(i.veg)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
+                const cGf = String(i.gf).toUpperCase().trim();
+                const cVe = String(i.vegan).toUpperCase().trim();
+                const cVg = String(i.veg).toUpperCase().trim();
+                const truthys = ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'];
+
+                if(truthys.includes(cGf)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
+                if(truthys.includes(cVe)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
+                if(truthys.includes(cVg)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
                 
-                let allergensHTML = i.allerg ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
-                let descHTML = i.desc ? `<p class="item-desc">${i.desc}</p>` : '';
+                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
+                let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
                 let priceHTML = `<span class="item-price">${i.price}</span>`;
 
                 // IL PULSANTE AR
                 let arHTML = '';
                 const cleanArUrl = i.ar ? i.ar.trim() : '';
                 if (cleanArUrl && cleanArUrl !== '-' && cleanArUrl !== 'undefined') {
-                    arHTML = `<a href="${cleanArUrl}" target="_blank" class="mt-2 inline-flex items-center gap-1 bg-gray-800 text-white px-3 py-1 rounded-full text-[10px] font-bold tracking-wider shadow-md active:scale-95 transition-transform" style="text-decoration:none;"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
+                    arHTML = `<a href="${cleanArUrl}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
                 }
 
                 const cleanPhotoUrl = i.photoUrl ? i.photoUrl.trim() : '';
@@ -600,7 +604,7 @@
             const titleInside = document.getElementById('level-title-inside');
             const titleOutside = document.getElementById('level-title-outside');
             const wrapper = document.getElementById('header-content-wrapper');
-            const align = (appConfig.Logo_Align || 'center').toLowerCase().trim();
+            const align = getVal('Logo_Align', 'center').toLowerCase();
             
             titleInside.style.display = 'none'; titleOutside.style.display = 'none';
 
@@ -610,15 +614,15 @@
                 wrapper.style.paddingLeft = '0px'; 
             } else {
                 backBtn.classList.add('active');
-                const pos = (appConfig.Back_Btn_Position || 'center').toLowerCase().trim();
+                const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
                 wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
                 
                 if(p === 'page-items') {
                     subHeader.style.display = 'flex'; 
                 } else {
                     subHeader.style.display = 'none';
-                    if((appConfig.Level_Title_Show || '').toUpperCase().trim() !== 'FALSE') {
-                        if((appConfig.Level_Title_Position || 'inside').toLowerCase().trim() === 'outside') {
+                    if(isTruthy('Level_Title_Show', true)) {
+                        if(getVal('Level_Title_Position', 'inside').toLowerCase() === 'outside') {
                             titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
                         } else {
                             titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
