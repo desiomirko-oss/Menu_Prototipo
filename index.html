@@ -89,7 +89,8 @@
 
         .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; box-shadow: var(--i-photo-sh); }
         
-        .filter-container { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; }
+        /* FIX SINTASSI CSS SU MAX-W-MD */
+        .filter-container { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; white-space: nowrap; scrollbar-width: none; }
         .filter-container::-webkit-scrollbar { display: none; }
         .filter-btn {
             font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
@@ -120,7 +121,7 @@
 
     <div id="sub-header">
         <h2 id="sub-header-title" class="text-[12px] font-black text-gray-500 uppercase tracking-[0.2em] pt-4 px-4 text-center"></h2>
-        <div id="sub-header-filters" class="filter-container justify-start sm:justify-center"></div>
+        <div id="sub-header-filters" class="filter-container justify-start sm:justify-center max-w-md mx-auto"></div>
     </div>
 
     <button id="back-button" onclick="goBack()">
@@ -143,20 +144,32 @@
         const SHEET_ID = urlParams.get('id'); 
         let appConfig = {};
         let fullData = [];
-        let navigationStack = ['page-macro'];
+        
+        // NUOVO SISTEMA DI NAVIGAZIONE SOLIDO
+        let navigationStack = [{ page: 'page-macro', macro: '', cat: '' }];
         let activeFilters = []; 
         let currentMacroName = '';
         let currentCategoryName = '';
 
-        // FUNZIONE ESTRAZIONE BLINDATA: Corregge gli errori di battitura del CSV in tempo reale
+        // FUNZIONE ESCAPE HTML (Sicurezza Anti-XSS)
+        function escapeHTML(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // FUNZIONE ESTRAZIONE BLINDATA: Corregge errori CSV
         function getVal(key, def) {
-            // Cerca la chiave normale, oppure la chiave con la virgola finale (errore comune CSV)
             let v = appConfig[key] || appConfig[key + ',']; 
             if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
             return String(v).trim();
         }
 
-        // FUNZIONE TRUTHY: Riconosce i "SI" e i "TRUE" del file Menu
+        // FUNZIONE TRUTHY
         function isTruthy(key, defaultVal = true) {
             let v = getVal(key, defaultVal ? 'TRUE' : 'FALSE').toUpperCase();
             return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
@@ -190,7 +203,25 @@
             return arr.map(x => x.replace(/^"|"$/g, '').trim());
         }
 
+        // RESIZE OBSERVER (Sostituisce l'Hack del Timer)
+        const headerObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                const header = document.getElementById('main-header');
+                const subHeader = document.getElementById('sub-header');
+                const mainContent = document.getElementById('main-content');
+                let totalH = header.offsetHeight;
+                if(subHeader && subHeader.style.display !== 'none') {
+                    totalH += subHeader.offsetHeight;
+                }
+                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+            });
+        });
+
         async function init() {
+            // Attiviamo l'observer sugli header
+            headerObserver.observe(document.getElementById('main-header'));
+            headerObserver.observe(document.getElementById('sub-header'));
+
             if (!SHEET_ID) {
                 document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
                 return;
@@ -201,7 +232,6 @@
         }
 
         async function fetchConfig() {
-            // Timestamp per forzare bypass Cache
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
             try {
                 const response = await fetch(url);
@@ -212,7 +242,6 @@
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2 && cols[0] !== '') {
                         let key = cols[0].replace(/^"|"$/g, '').trim(); 
-                        // PULIZIA: Sostituisce i punti e virgola (;) con le virgole (,) per ripristinare i colori RGBA rotti da Excel
                         let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
                         appConfig[key] = val;
                     }
@@ -223,17 +252,16 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            const bgType = getVal('Bg_Type', 'color').toLowerCase();
-// Permettiamo all'utente di scrivere image, immagine, img o foto nel CSV
-const isBgImage = ['image', 'immagine', 'img', 'foto'].includes(bgType);
-
-root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
-if(isBgImage && getVal('Bg_Image_URL', '') !== '') {
-    // Risolve un potenziale problema di caching aggiungendo le virgolette corrette
-    root.style.setProperty('--app-bg-img', `url("${getVal('Bg_Image_URL', '')}")`);
-} else {
-    root.style.setProperty('--app-bg-img', 'none');
-}
+            // CORREZIONE BG_TYPE E LOGO_TYPE MULTILINGUA
+            const bgTypeRaw = getVal('Bg_Type', 'color').toLowerCase().trim();
+            const isBgImage = ['image', 'immagine', 'img', 'foto'].includes(bgTypeRaw);
+            
+            root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
+            if(isBgImage && getVal('Bg_Image_URL', '') !== '') {
+                root.style.setProperty('--app-bg-img', `url("${getVal('Bg_Image_URL', '')}")`);
+            } else {
+                root.style.setProperty('--app-bg-img', 'none');
+            }
 
             root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
             root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
@@ -263,7 +291,6 @@ if(isBgImage && getVal('Bg_Image_URL', '') !== '') {
             root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
             root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
-            // FONT CORRETTI
             root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
             root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
             root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
@@ -301,23 +328,21 @@ if(isBgImage && getVal('Bg_Image_URL', '') !== '') {
             root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
             root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-            // LOGO
-const logoCont = document.getElementById('logo-container');
-const logoType = getVal('Logo_Type', 'text').toLowerCase();
-// Stessa logica multi-lingua
-const isLogoImage = ['image', 'immagine', 'img', 'foto'].includes(logoType);
-const align = getVal('Logo_Align', 'center').toLowerCase();
-
-logoCont.innerHTML = ''; 
-// Correzione di un piccolo bug di Tailwind sulle stringhe dinamiche
-const alignClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
-logoCont.className = `w-full flex ${alignClass}`;
-
-if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
-    logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'; console.error('Errore caricamento logo');">`;
-} else {
-    logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu Digitale')}</h1>`;
-}
+            // LOGO ROBUSTO
+            const logoCont = document.getElementById('logo-container');
+            const logoTypeRaw = getVal('Logo_Type', 'text').toLowerCase().trim();
+            const isLogoImage = ['image', 'immagine', 'img', 'foto'].includes(logoTypeRaw);
+            const align = getVal('Logo_Align', 'center').toLowerCase();
+            const alignClass = align === 'left' ? 'justify-start' : align === 'right' ? 'justify-end' : 'justify-center';
+            
+            logoCont.innerHTML = ''; 
+            logoCont.className = `w-full flex ${alignClass}`;
+            
+            if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
+                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
+            } else {
+                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${escapeHTML(getVal('Logo_Text', 'Menu Digitale'))}</h1>`;
+            }
 
             // SUBTITLE
             const sub = document.getElementById('subtitle-container');
@@ -344,19 +369,6 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
             else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
         }
 
-        function autoAdjustPadding() {
-            setTimeout(() => {
-                const header = document.getElementById('main-header');
-                const subHeader = document.getElementById('sub-header');
-                const mainContent = document.getElementById('main-content');
-                let totalH = header.offsetHeight;
-                if(subHeader && subHeader.style.display !== 'none') {
-                    totalH += subHeader.offsetHeight;
-                }
-                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
-            }, 50); 
-        }
-
         async function fetchMenu() {
             const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
             try {
@@ -378,7 +390,7 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                         veg: c[8] || '', noalc: c[9] || '', 
                         active: c[10] !== undefined ? c[10] : 'TRUE', 
                         photoUrl: c[11] || '',
-                        ar: c[12] || '' // COLONNA 13 AR
+                        ar: c[12] || '' 
                     });
                 }
                 
@@ -389,14 +401,14 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                 });
                 
                 document.getElementById('loading-screen').style.display = 'none';
-                renderLevel1();
+                renderLevel1(false); // False = non rimettere nello stack
             } catch (e) { 
                 console.error(e);
                 document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Menu non trovato o in manutenzione.</div>"; 
             }
         }
 
-        function renderLevel1() {
+        function renderLevel1(pushState = true) {
             const layoutContainer = document.getElementById('macro-layout-container');
             const macros = [...new Set(fullData.map(i => i.macro))];
             
@@ -404,11 +416,12 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
             layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
             layoutContainer.innerHTML = '';
 
-            const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
+            const bgTypeRaw = getVal('Macro_Bg_Type', 'image').toLowerCase().trim();
+            const isMacroImg = ['image', 'immagine', 'img', 'foto'].includes(bgTypeRaw);
 
             macros.forEach(m => {
                 let bgStyle = '';
-                if (bgType === 'color') {
+                if (!isMacroImg) {
                     bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
                 } else {
                     const imgUrl = getVal(`Macro_Img_${m}`, '');
@@ -419,17 +432,24 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                 const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
                 let html = '';
                 const fontSettings = `font-family: ${getVal('Macro_Text_Font', 'sans-serif')}; color: ${getVal('Macro_Text_Color', '#ffffff')};`;
+                
+                // Passiamo le stringhe escapeATE per evitare rotture nelle funzioni onclick
+                const safeM = m.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const visualM = escapeHTML(m);
+
                 if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide text-sm" style="${fontSettings}">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${safeM}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide text-sm" style="${fontSettings}">${visualM}</span></div>`;
                 } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold text-xl uppercase tracking-widest" style="${fontSettings}">${m}</span></div>`;
+                    html = `<div onclick="renderLevel2('${safeM}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold text-xl uppercase tracking-widest" style="${fontSettings}">${visualM}</span></div>`;
                 }
                 layoutContainer.innerHTML += html;
             });
+            
+            if (pushState) navigationStack.push({ page: 'page-macro', macro: '', cat: '' });
             showPage('page-macro');
         }
 
-        function renderLevel2(mName) {
+        function renderLevel2(mName, pushState = true) {
             const container = document.getElementById('page-categories');
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
             
@@ -452,18 +472,22 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                     }
                 }
 
+                const safeM = mName.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const safeC = c.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const visualC = escapeHTML(c);
+
                 container.innerHTML += `
-                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">
+                    <div onclick="renderLevel3('${safeM}', '${safeC}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">
                         ${overlayHTML}
-                        <span class="${textClass}">${c}</span>
+                        <span class="${textClass}">${visualC}</span>
                         <svg class="w-5 h-5 ${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     </div>`;
             });
-            navigationStack.push('page-categories');
+            
+            if (pushState) navigationStack.push({ page: 'page-categories', macro: mName, cat: '' });
             showPage('page-categories', mName);
         }
 
-        // RADIO BUTTONS LOGIC
         function toggleFilter(filterType) {
             if (activeFilters.includes(filterType)) {
                 activeFilters = [];
@@ -487,11 +511,11 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
             renderLevel3(currentMacroName, currentCategoryName, true);
         }
 
-        function renderLevel3(mName, cName, isFiltering = false) {
+        function renderLevel3(mName, cName, isFiltering = false, pushState = true) {
             currentMacroName = mName; currentCategoryName = cName;
             
             if (!isFiltering) {
-                document.getElementById('sub-header-title').innerText = cName;
+                document.getElementById('sub-header-title').innerText = escapeHTML(cName);
                 const filterContainer = document.getElementById('sub-header-filters');
                 filterContainer.innerHTML = '';
 
@@ -514,7 +538,6 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
             
             let items = fullData.filter(i => i.cat === cName && i.macro === mName);
             
-            // APPLICA FILTRI ESCLUSIVI SU DATI (Supporta SI)
             if (activeFilters.length > 0) {
                 items = items.filter(i => {
                     return activeFilters.every(f => {
@@ -544,15 +567,15 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                 if(truthys.includes(cVe)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
                 if(truthys.includes(cVg)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
                 
-                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">Allergeni: ${i.allerg}</span>` : '';
-                let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
-                let priceHTML = `<span class="item-price">${i.price}</span>`;
+                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">Allergeni: ${escapeHTML(i.allerg)}</span>` : '';
+                let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${escapeHTML(i.desc)}</p>` : '';
+                let priceHTML = `<span class="item-price">${escapeHTML(i.price)}</span>`;
 
-                // IL PULSANTE AR
                 let arHTML = '';
                 const cleanArUrl = i.ar ? i.ar.trim() : '';
                 if (cleanArUrl && cleanArUrl !== '-' && cleanArUrl !== 'undefined') {
-                    arHTML = `<a href="${cleanArUrl}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
+                    // Usiamo encodeURI per prevenire XSS sui link
+                    arHTML = `<a href="${encodeURI(cleanArUrl)}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
                 }
 
                 const cleanPhotoUrl = i.photoUrl ? i.photoUrl.trim() : '';
@@ -563,7 +586,7 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                         <div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4">
                             <div class="flex flex-col flex-grow">
                                 <div>
-                                    <h3 class="item-name">${i.name}</h3>
+                                    <h3 class="item-name">${escapeHTML(i.name)}</h3>
                                     ${descHTML}
                                     ${allergensHTML}
                                     <div class="flex flex-wrap">${badges}</div>
@@ -571,13 +594,13 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                                 </div>
                                 <div class="mt-auto pt-3">${priceHTML}</div>
                             </div>
-                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
+                            <img src="${encodeURI(cleanPhotoUrl)}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
                         </div>`;
                 } else {
                     container.innerHTML += `
                         <div class="menu-card item-card flex flex-col justify-center mb-4">
                             <div class="flex justify-between items-start gap-4">
-                                <h3 class="item-name flex-grow">${i.name}</h3>
+                                <h3 class="item-name flex-grow">${escapeHTML(i.name)}</h3>
                                 <div class="shrink-0 text-right pl-2">${priceHTML}</div>
                             </div>
                             ${descHTML}
@@ -588,8 +611,8 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                 }
             });
 
-            if (!isFiltering) {
-                navigationStack.push('page-items');
+            if (!isFiltering && pushState) {
+                navigationStack.push({ page: 'page-items', macro: mName, cat: cName });
                 showPage('page-items', mName);
             }
         }
@@ -632,28 +655,27 @@ if (isLogoImage && getVal('Logo_Image_URL', '') !== '') {
                     subHeader.style.display = 'none';
                     if(isTruthy('Level_Title_Show', true)) {
                         if(getVal('Level_Title_Position', 'inside').toLowerCase() === 'outside') {
-                            titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
+                            titleOutside.style.display = 'block'; titleOutside.innerText = escapeHTML(levelTitle);
                         } else {
-                            titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
+                            titleInside.style.display = 'block'; titleInside.innerText = escapeHTML(levelTitle);
                         }
                     }
                 }
             }
             
-            autoAdjustPadding();
             window.scrollTo({top: 0, behavior: 'instant'});
         }
 
         function goBack() { 
             if(navigationStack.length > 1) {
-                navigationStack.pop(); 
-                const prev = navigationStack[navigationStack.length-1];
-                let titleToRestore = '';
-                if(prev === 'page-categories') {
-                    const firstMatch = fullData.find(i => i.cat === document.getElementById('sub-header-title').innerText);
-                    if(firstMatch) titleToRestore = firstMatch.macro;
+                navigationStack.pop(); // Rimuovi la pagina attuale
+                const prev = navigationStack[navigationStack.length - 1]; // Prendi l'oggetto precedente
+                
+                if (prev.page === 'page-macro') {
+                    renderLevel1(false); // Torna alla macro senza aggiungere allo stack
+                } else if (prev.page === 'page-categories') {
+                    renderLevel2(prev.macro, false); // Torna alle categorie
                 }
-                showPage(prev, titleToRestore);
             }
         }
         
