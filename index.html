@@ -8,10 +8,125 @@
     <meta name="google" content="translate">
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ffffff">
-    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        :root {
+            /* VARIABILI BASE SOVRASCRITTE DAL CONFIG */
+            --app-bg: #f9fafb; 
+            --app-bg-img: none;
+            --app-bg-size: cover;
+            --app-bg-pos: center;
+
+            --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
+            --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
+            
+            --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
+            --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
+            --menu-card-border: 1px solid #f3f4f6; --menu-card-shadow: var(--card-shadow);
+            
+            --cat-card-min-h: 80px; --item-card-min-h: 120px;
+
+            /* MACRO TIPOGRAFIA */
+            --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px; --macro-txt-sh: none;
+            
+            /* PIATTI TIPOGRAFIA */
+            --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
+            --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
+            --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
+            --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
+            
+            --level-txt-sh: none; --level-mb: 25px; 
+
+            /* DIMENSIONI FOTO */
+            --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
+
+            /* FILTRI DINAMICI */
+            --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
+            --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
+            --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
+        }
+
+        body {
+            background-color: var(--app-bg) !important; 
+            background-image: var(--app-bg-img) !important;
+            background-size: var(--app-bg-size) !important; 
+            background-position: var(--app-bg-pos) !important; 
+            background-attachment: fixed !important;
+            min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
+        }
+
+        #main-header {
+            background: var(--header-bg); height: var(--header-h); 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
+            display: flex; flex-direction: column; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
+        }
+        #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
+
+        #sub-header {
+            background: var(--header-bg); 
+            position: fixed; width: 100%; z-index: 998; top: var(--header-h); left: 0; display: none; 
+            flex-direction: column; align-items: center; border-radius: 0; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
+        }
+
+        #back-button {
+            position: fixed; left: 15px; width: 44px; height: 44px;
+            background: var(--back-bg); color: var(--back-color);
+            display: none; align-items: center; justify-content: center; border-radius: 50%;
+            box-shadow: var(--card-shadow); z-index: 1000; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.1s ease;
+        }
+        #back-button:active { transform: scale(0.9); }
+        #back-button.active { display: flex; }
+
+        .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); transition: all 0.2s ease; }
+        .macro-card:active { transform: scale(0.96); }
+        .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
+        
+        /* TESTI DELLE MACRO ORA CONTROLLANO ANCHE LA DIMENSIONE */
+        .macro-text-inside, .macro-text-outside { 
+            font-family: var(--macro-t-f) !important; 
+            color: var(--macro-t-c) !important; 
+            font-size: var(--macro-t-s) !important; 
+            text-shadow: var(--macro-txt-sh) !important; 
+        }
+
+        .menu-card {
+            background-color: var(--menu-card-bg); padding: var(--menu-card-p);
+            border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow);
+            border: var(--menu-card-border); transition: transform 0.1s ease;
+        }
+        .menu-card:active { transform: scale(0.98); }
+        .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; }
+        .item-card { min-height: var(--item-card-min-h); }
+
+        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
+        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); font-weight: var(--i-desc-w); margin-bottom: var(--i-desc-mb); text-shadow: var(--i-desc-sh); line-height: 1.4; }
+        .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
+        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
+
+        .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; box-shadow: var(--i-photo-sh); }
+        
+        .filter-container { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-btn {
+            font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
+            background-color: var(--flt-bg-i); color: var(--flt-c-i);
+            padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
+            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;
+        }
+        .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+
+        .ar-badge { background: #111827; color: #ffffff; font-size: 10px; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s ease; text-decoration: none; }
+        .ar-badge:active { transform: scale(0.95); }
+
+        .page-content { animation: pageIn 0.3s ease-out forwards; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--back-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
 
@@ -45,14 +160,518 @@
         <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
     </main>
 
-    <script src="app.js"></script>
-    
     <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').then(r => console.log('SW registrato')).catch(e => console.log('SW error:', e));
-            });
+        const urlParams = new URLSearchParams(window.location.search);
+        const SHEET_ID = urlParams.get('id'); 
+        let appConfig = {};
+        let fullData = [];
+        let navigationStack = ['page-macro'];
+        
+        let activeFilters = []; 
+        let currentMacroName = '';
+        let currentCategoryName = '';
+
+        // FUNZIONI DI PULIZIA DATI DA EXCEL/CSV
+        function cleanString(val) {
+            if (val === undefined || val === null || val === '') return '';
+            const cleaned = String(val).replace(/^['"]|['"]$/g, '').trim();
+            if (cleaned.toLowerCase() === 'undefined' || cleaned === '-') return '';
+            return cleaned;
         }
+
+        function getVal(key, def) {
+            let v = appConfig[key] || appConfig[key + ',']; 
+            if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
+            return String(v).trim();
+        }
+
+        function isTruthy(keyOrValue, isConfigKey = true, defaultVal = true) {
+            let v = isConfigKey ? getVal(keyOrValue, defaultVal ? 'TRUE' : 'FALSE') : (keyOrValue || '');
+            v = String(v).toUpperCase().trim();
+            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
+        }
+
+        function getShadow(type, isText = false) {
+            const val = getVal(type, 'none').toLowerCase();
+            if (isText) {
+                if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
+                if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
+                if(val === 'strong') return '0 3px 6px rgba(0,0,0,0.7)';
+                return 'none';
+            } else {
+                if(val === 'light') return '0 2px 4px rgba(0,0,0,0.1)';
+                if(val === 'medium') return '0 4px 6px rgba(0,0,0,0.15)';
+                if(val === 'strong') return '0 15px 25px -5px rgba(0,0,0,0.2)';
+                return 'none';
+            }
+        }
+
+        function safeParseCSVRow(str) {
+            let arr = []; let quote = false; let cell = '';
+            for (let i = 0; i < str.length; i++) {
+                let c = str[i];
+                if (c === '"' && str[i+1] === '"') { cell += '"'; i++; } 
+                else if (c === '"') { quote = !quote; }
+                else if (c === ',' && !quote) { arr.push(cell.trim()); cell = ''; }
+                else { cell += c; }
+            }
+            arr.push(cell.trim());
+            return arr.map(x => x.replace(/^"|"$/g, '').trim());
+        }
+
+        // INIZIALIZZAZIONE
+        async function init() {
+            if (!SHEET_ID) {
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante</div>";
+                return;
+            }
+            await fetchConfig(); 
+            applyConfig(); 
+            await fetchMenu();
+        }
+
+        async function fetchConfig() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error("Network Error");
+                const csv = await response.text();
+                csv.split(/\r?\n/).slice(1).forEach(row => {
+                    if(row.trim() === '') return;
+                    const cols = safeParseCSVRow(row);
+                    if(cols.length >= 2 && cols[0] !== '') {
+                        let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim(); 
+                        let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
+                        appConfig[key] = val;
+                    }
+                });
+            } catch(e) { console.error("Errore Configurazione:", e); }
+        }
+
+        function applyConfig() {
+            const root = document.documentElement;
+            
+            // SFONDO
+            const bgType = getVal('Bg_Type', 'color').toLowerCase();
+            root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
+            if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
+                root.style.setProperty('--app-bg-img', `url('${getVal('Bg_Image_URL', '')}')`);
+            } else {
+                root.style.setProperty('--app-bg-img', 'none');
+            }
+            root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
+            root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
+
+            // HEADER & CARD
+            root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
+            root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
+            root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
+            root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
+            root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
+
+            let shadowVal = '0 10px 15px -3px rgba(0,0,0,0.1)'; 
+            const shadowInt = getVal('Card_Shadow_Intensity', 'medium').toLowerCase();
+            if(shadowInt === 'light') shadowVal = '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)';
+            else if(shadowInt === 'strong') shadowVal = '0 20px 25px -5px rgba(0,0,0,0.2), 0 10px 10px -5px rgba(0,0,0,0.1)';
+            else if(shadowInt === 'none') shadowVal = 'none';
+            root.style.setProperty('--card-shadow', shadowVal);
+
+            if(!isTruthy('Card_Show_Bg', true, true)) {
+                root.style.setProperty('--menu-card-bg', 'transparent'); root.style.setProperty('--menu-card-shadow', 'none');
+                root.style.setProperty('--menu-card-border', 'none'); root.style.setProperty('--menu-card-p', '10px 0px'); 
+            } else {
+                root.style.setProperty('--menu-card-bg', getVal('Card_BgColor', '#ffffff')); root.style.setProperty('--menu-card-shadow', shadowVal); 
+                root.style.setProperty('--menu-card-border', '1px solid rgba(0,0,0,0.03)'); root.style.setProperty('--menu-card-p', getVal('Card_Padding', '20px'));
+            }
+            
+            root.style.setProperty('--menu-card-r', getVal('Card_Radius', '24px'));
+            root.style.setProperty('--cat-card-min-h', getVal('Category_Card_MinHeight', '80px'));
+            root.style.setProperty('--item-card-min-h', getVal('Item_Card_MinHeight', '120px'));
+
+            root.style.setProperty('--i-photo-w', getVal('Item_Photo_Width', '110px'));
+            root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
+            root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
+
+            // TIPOGRAFIA MACRO (Con il nuovo parametro Size)
+            root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
+            root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
+            root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
+            root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
+
+            root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
+            root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
+            root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
+            root.style.setProperty('--i-name-w', isTruthy('Item_Name_Bold', true, true) ? 'bold' : 'normal');
+            root.style.setProperty('--i-name-mb', getVal('Item_Name_MarginBottom', '4px'));
+            root.style.setProperty('--i-name-sh', getShadow('Item_Name_Shadow', true));
+
+            root.style.setProperty('--i-desc-f', getVal('Item_Desc_Font', 'sans-serif'));
+            root.style.setProperty('--i-desc-c', getVal('Item_Desc_Color', '#6b7280'));
+            root.style.setProperty('--i-desc-s', getVal('Item_Desc_Size', '14px'));
+            root.style.setProperty('--i-desc-w', isTruthy('Item_Desc_Bold', true, false) ? 'bold' : 'normal');
+            root.style.setProperty('--i-desc-mb', getVal('Item_Desc_MarginBottom', '8px'));
+            root.style.setProperty('--i-desc-sh', getShadow('Item_Desc_Shadow', true));
+
+            root.style.setProperty('--i-allg-f', getVal('Item_Allerg_Font', 'sans-serif'));
+            root.style.setProperty('--i-allg-c', getVal('Item_Allerg_Color', '#f87171'));
+            root.style.setProperty('--i-allg-s', getVal('Item_Allerg_Size', '11px'));
+            root.style.setProperty('--i-allg-w', isTruthy('Item_Allerg_Bold', true, false) ? 'bold' : 'normal');
+            root.style.setProperty('--i-allg-mb', getVal('Item_Allerg_MarginBottom', '8px'));
+            root.style.setProperty('--i-allg-sh', getShadow('Item_Allerg_Shadow', true));
+
+            root.style.setProperty('--i-pric-f', getVal('Item_Price_Font', 'sans-serif'));
+            root.style.setProperty('--i-pric-c', getVal('Item_Price_Color', '#4f46e5'));
+            root.style.setProperty('--i-pric-s', getVal('Item_Price_Size', '16px'));
+            root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
+            root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
+            
+            // FILTRI
+            root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
+            root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
+            root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
+            root.style.setProperty('--flt-bg-i', getVal('Filter_BgColor_Inactive', '#f3f4f6'));
+            root.style.setProperty('--flt-c-i', getVal('Filter_TextColor_Inactive', '#9ca3af'));
+            root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
+            root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
+
+            // LOGO
+            const logoCont = document.getElementById('logo-container');
+            const logoType = getVal('Logo_Type', 'text').toLowerCase();
+            const align = getVal('Logo_Align', 'center').toLowerCase();
+            logoCont.innerHTML = ''; 
+            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
+            
+            if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
+                logoCont.innerHTML = `<img src="${getVal('Logo_Image_URL', '')}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;" onerror="this.style.display='none'">`;
+            } else {
+                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')};">${getVal('Logo_Text', 'Menu')}</h1>`;
+            }
+
+            // Sottotitolo
+            const sub = document.getElementById('subtitle-container');
+            if(!isTruthy('Subtitle_Show', true, true)) {
+                sub.style.display = 'none';
+            } else {
+                sub.style.display = 'block'; 
+                sub.innerText = getVal('Subtitle_Text', '');
+                sub.style.cssText = `color:${getVal('Subtitle_Color', '#6b7280')}; font-size:${getVal('Subtitle_Size', '14px')}; font-weight:${isTruthy('Subtitle_Bold', true, false) ? 'bold' : 'normal'}; margin-top:${getVal('Subtitle_Margin_Top', '10px')}; text-align:${getVal('Subtitle_Align', 'center')}; font-family:${getVal('Subtitle_Font', 'sans-serif')};`;
+            }
+
+            const lvlSh = getShadow('Level_Title_Shadow', true);
+            const levelStyle = `color:${getVal('Level_Title_Color', '#4f46e5')}; font-size:${getVal('Level_Title_Size', '14px')}; font-weight:${isTruthy('Level_Title_Bold', true, true) ? 'bold' : 'normal'}; text-align:${getVal('Level_Title_Align', 'center')}; font-family:${getVal('Level_Title_Font', 'sans-serif')}; text-shadow: ${lvlSh}; margin-top: 8px; display: none;`;
+            document.getElementById('level-title-inside').style.cssText = levelStyle;
+            
+            const levelMarginB = getVal('Level_Title_Margin_Bottom', '25px');
+            document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
+            
+            const backBtn = document.getElementById('back-button');
+            const hHeight = parseInt(getVal('Header_Height', '120'));
+            const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
+            if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
+            else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
+            else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
+        }
+
+        function autoAdjustPadding() {
+            setTimeout(() => {
+                const header = document.getElementById('main-header');
+                const subHeader = document.getElementById('sub-header');
+                const mainContent = document.getElementById('main-content');
+                let totalH = header.offsetHeight;
+                if(subHeader && subHeader.style.display !== 'none') {
+                    totalH += subHeader.offsetHeight;
+                }
+                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+            }, 50); 
+        }
+
+        async function fetchMenu() {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error("Network Error");
+                const csv = await response.text();
+                
+                fullData = [];
+                const rows = csv.split(/\r?\n/);
+                
+                for(let i=1; i<rows.length; i++) {
+                    if(rows[i].trim() === '') continue;
+                    const c = safeParseCSVRow(rows[i]);
+                    if(c.length < 3 || !c[0]) continue;
+                    
+                    fullData.push({
+                        macro: c[0] || '', cat: c[1] || '', name: c[2] || '', desc: c[3] || '', 
+                        allerg: c[4] || '', price: c[5] || '', gf: c[6] || '', vegan: c[7] || '', 
+                        veg: c[8] || '', noalc: c[9] || '', 
+                        active: c[10] !== undefined ? c[10] : 'TRUE', 
+                        photoUrl: c[11] || '', ar: c[12] || '' 
+                    });
+                }
+                
+                fullData = fullData.filter(i => isTruthy(i.active, false)); 
+                
+                document.getElementById('loading-screen').style.display = 'none';
+                renderLevel1();
+            } catch (e) { 
+                console.error(e);
+                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>Menu non trovato o in manutenzione.</div>"; 
+            }
+        }
+
+        function renderLevel1() {
+            const layoutContainer = document.getElementById('macro-layout-container');
+            const macros = [...new Set(fullData.map(i => i.macro))];
+            
+            const isGrid = getVal('Macro_Layout', 'grid').toLowerCase() === 'grid';
+            layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
+            layoutContainer.innerHTML = '';
+
+            const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
+
+            macros.forEach(m => {
+                let bgStyle = '';
+                if (bgType === 'color') {
+                    bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
+                } else {
+                    const imgUrl = getVal(`Macro_Img_${m}`, '');
+                    if (imgUrl) bgStyle = `background-image: url('${imgUrl}');`;
+                    else bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
+                }
+
+                const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
+                let html = '';
+                
+                if(tPos === 'outside') {
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide" style="line-height:1.2;">${m}</span></div>`;
+                } else {
+                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2" style="line-height:1.2;">${m}</span></div>`;
+                }
+                layoutContainer.innerHTML += html;
+            });
+            showPage('page-macro');
+        }
+
+        function renderLevel2(mName) {
+            const container = document.getElementById('page-categories');
+            const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
+            
+            container.innerHTML = ''; 
+            const showCatPhoto = isTruthy('Category_Photo_Show', true, true);
+
+            cats.forEach(c => {
+                let bgStyle = '';
+                let overlayHTML = '';
+                let textClass = 'font-bold text-gray-800 text-lg relative z-10';
+                let iconClass = 'text-gray-400 shrink-0 ml-2 relative z-10';
+
+                if(showCatPhoto) {
+                    const imgUrl = getVal(`Category_Img_${c}`, '');
+                    if(imgUrl) {
+                        bgStyle = `background-image: url('${imgUrl}'); border: none;`;
+                        overlayHTML = `<div class="cat-overlay"></div>`;
+                        textClass = 'font-extrabold text-white text-lg relative z-10 text-shadow';
+                        iconClass = 'text-white shrink-0 ml-2 relative z-10';
+                    }
+                }
+
+                container.innerHTML += `
+                    <div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">
+                        ${overlayHTML}
+                        <span class="${textClass}">${c}</span>
+                        <svg class="w-5 h-5 ${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </div>`;
+            });
+            navigationStack.push('page-categories');
+            showPage('page-categories', mName);
+        }
+
+        // LOGICA FILTRI RADIO
+        function toggleFilter(filterType) {
+            if (activeFilters.includes(filterType)) {
+                activeFilters = [];
+            } else {
+                activeFilters = [filterType];
+            }
+            
+            const btns = document.getElementById('sub-header-filters').querySelectorAll('.filter-btn');
+            btns.forEach(btn => {
+                btn.classList.remove('active');
+                if(activeFilters.length > 0) {
+                    const f = activeFilters[0];
+                    const txt = btn.innerText.toLowerCase();
+                    const isMatch = (f === 'gf' && txt.includes('glutine')) || 
+                                    (f === 'vegan' && txt.includes('vegano')) || 
+                                    (f === 'veg' && txt.includes('vegetariano')) || 
+                                    (f === 'noalc' && txt.includes('analcolico'));
+                    if(isMatch) btn.classList.add('active');
+                }
+            });
+            renderLevel3(currentMacroName, currentCategoryName, true);
+        }
+
+        function renderLevel3(mName, cName, isFiltering = false) {
+            currentMacroName = mName; currentCategoryName = cName;
+            
+            if (!isFiltering) {
+                document.getElementById('sub-header-title').innerText = cName;
+                const filterContainer = document.getElementById('sub-header-filters');
+                filterContainer.innerHTML = '';
+
+                if (isTruthy('Filter_Show', true, true)) {
+                    const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
+                    let filterHtml = '';
+                    if (!isDrinks) {
+                        if(isTruthy('Filter_Show_GF', true, true)) filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
+                        if(isTruthy('Filter_Show_Vegan', true, true)) filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
+                        if(isTruthy('Filter_Show_Veg', true, true)) filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
+                    } else {
+                        if(isTruthy('Filter_Show_NoAlc', true, true)) filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
+                    }
+                    filterContainer.innerHTML = filterHtml;
+                }
+            }
+
+            const container = document.getElementById('page-items');
+            container.innerHTML = ''; 
+            
+            let items = fullData.filter(i => i.cat === cName && i.macro === mName);
+            
+            if (activeFilters.length > 0) {
+                items = items.filter(i => {
+                    return activeFilters.every(f => {
+                        if(f === 'gf') return isTruthy(i.gf, false);
+                        if(f === 'vegan') return isTruthy(i.vegan, false);
+                        if(f === 'veg') return isTruthy(i.veg, false);
+                        if(f === 'noalc') return isTruthy(i.noalc, false);
+                        return true;
+                    });
+                });
+            }
+
+            if(items.length === 0) {
+                container.innerHTML = `<div class="text-center text-gray-400 py-10 font-bold">Nessun piatto trovato.</div>`;
+            }
+
+            items.forEach(i => {
+                let badges = '';
+                if(isTruthy(i.gf, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
+                if(isTruthy(i.vegan, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
+                if(isTruthy(i.veg, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
+                
+                let allergensHTML = i.allerg && i.allerg !== '-' ? `<span class="item-allerg">${i.allerg}</span>` : '';
+                let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
+                let priceHTML = `<span class="item-price">${i.price}</span>`;
+
+                let arHTML = '';
+                const cleanArUrl = cleanString(i.ar);
+                if (cleanArUrl) {
+                    arHTML = `<a href="${cleanArUrl}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg> VEDI AR</a>`;
+                }
+
+                const cleanPhotoUrl = cleanString(i.photoUrl);
+                const hasPhoto = cleanPhotoUrl !== '';
+
+                if (hasPhoto) {
+                    container.innerHTML += `
+                        <div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4">
+                            <div class="flex flex-col flex-grow">
+                                <div>
+                                    <h3 class="item-name">${i.name}</h3>
+                                    ${descHTML}
+                                    ${allergensHTML}
+                                    <div class="flex flex-wrap">${badges}</div>
+                                    ${arHTML}
+                                </div>
+                                <div class="mt-auto pt-3">${priceHTML}</div>
+                            </div>
+                            <img src="${cleanPhotoUrl}" alt="" onerror="this.style.display='none'" class="item-photo shrink-0">
+                        </div>`;
+                } else {
+                    container.innerHTML += `
+                        <div class="menu-card item-card flex flex-col justify-center mb-4">
+                            <div class="flex justify-between items-start gap-4">
+                                <h3 class="item-name flex-grow">${i.name}</h3>
+                                <div class="shrink-0 text-right pl-2">${priceHTML}</div>
+                            </div>
+                            ${descHTML}
+                            ${allergensHTML}
+                            <div class="flex flex-wrap">${badges}</div>
+                            ${arHTML}
+                        </div>`;
+                }
+            });
+
+            if (!isFiltering) {
+                navigationStack.push('page-items');
+                showPage('page-items', mName);
+            }
+        }
+
+        function showPage(p, levelTitle = '') {
+            if(p !== 'page-items') activeFilters = [];
+
+            document.getElementById('page-macro').style.display = 'none';
+            document.getElementById('page-categories').style.display = 'none';
+            document.getElementById('page-items').style.display = 'none';
+            document.getElementById(p).style.display = 'block';
+            
+            const contentDiv = document.querySelector(`#${p} .page-content`) || document.getElementById(p);
+            if(contentDiv) {
+                contentDiv.style.animation = 'none'; contentDiv.offsetHeight; 
+                contentDiv.style.animation = 'pageIn 0.3s ease-out forwards';
+            }
+
+            const backBtn = document.getElementById('back-button');
+            const subHeader = document.getElementById('sub-header');
+            const titleInside = document.getElementById('level-title-inside');
+            const titleOutside = document.getElementById('level-title-outside');
+            const wrapper = document.getElementById('header-content-wrapper');
+            const align = getVal('Logo_Align', 'center').toLowerCase();
+            
+            titleInside.style.display = 'none'; titleOutside.style.display = 'none';
+
+            if(p === 'page-macro') {
+                backBtn.classList.remove('active');
+                subHeader.style.display = 'none';
+                wrapper.style.paddingLeft = '0px'; 
+            } else {
+                backBtn.classList.add('active');
+                const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
+                wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
+                
+                if(p === 'page-items') {
+                    subHeader.style.display = 'flex'; 
+                } else {
+                    subHeader.style.display = 'none';
+                    if(isTruthy('Level_Title_Show', true, true)) {
+                        if(getVal('Level_Title_Position', 'inside').toLowerCase() === 'outside') {
+                            titleOutside.style.display = 'block'; titleOutside.innerText = levelTitle;
+                        } else {
+                            titleInside.style.display = 'block'; titleInside.innerText = levelTitle;
+                        }
+                    }
+                }
+            }
+            
+            autoAdjustPadding();
+            window.scrollTo({top: 0, behavior: 'instant'});
+        }
+
+        function goBack() { 
+            if(navigationStack.length > 1) {
+                navigationStack.pop(); 
+                const prev = navigationStack[navigationStack.length-1];
+                let titleToRestore = '';
+                if(prev === 'page-categories') {
+                    const firstMatch = fullData.find(i => i.cat === document.getElementById('sub-header-title').innerText);
+                    if(firstMatch) titleToRestore = firstMatch.macro;
+                }
+                showPage(prev, titleToRestore);
+            }
+        }
+        
+        init();
     </script>
 </body>
 </html>
