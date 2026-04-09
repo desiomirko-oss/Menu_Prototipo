@@ -1,131 +1,83 @@
 <!DOCTYPE html>
-<html lang="auto" translate="yes">
+<html id="html-tag" lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Menu Digitale Premium</title>
     
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="google" content="translate">
+    <meta name="google" content="translate"> 
     
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         :root {
-            /* VARIABILI DINAMICHE - VERRANNO SOVRASCRITTE DAL TUO CSV */
-            --app-bg: #f9fafb; 
-            --app-bg-img: none;
-            --app-bg-size: cover;
-            --app-bg-pos: center;
-
+            /* VARIABILI DINAMICHE */
+            --app-bg: #f9fafb; --app-bg-img: none; --app-bg-size: cover; --app-bg-pos: center;
             --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
-            
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
             --menu-card-border: 1px solid #f3f4f6; --menu-card-shadow: var(--card-shadow);
-            
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
-
-            /* MACRO E PIATTI TIPOGRAFIA */
             --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px; --macro-txt-sh: none;
-            
-            --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold; --i-name-mb: 4px; --i-name-sh: none;
-            --i-desc-f: sans-serif; --i-desc-c: #6b7280; --i-desc-s: 14px; --i-desc-w: normal; --i-desc-mb: 8px; --i-desc-sh: none;
-            --i-allg-f: sans-serif; --i-allg-c: #f87171; --i-allg-s: 11px; --i-allg-w: normal; --i-allg-mb: 8px; --i-allg-sh: none;
-            --i-pric-f: sans-serif; --i-pric-c: #4f46e5; --i-pric-s: 16px; --i-pric-w: bold; --i-pric-sh: none;
-            
-            --level-txt-sh: none; --level-mb: 25px; 
-
-            /* DIMENSIONI FOTO E FILTRI */
-            --i-photo-w: 110px; --i-photo-h: 110px; --i-photo-sh: none;
-            --flt-f: sans-serif; --flt-s: 11px; --flt-w: bold;
-            --flt-bg-i: #f3f4f6; --flt-c-i: #9ca3af;
+            --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold;
+            --i-pric-c: #4f46e5;
             --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
         }
 
         body {
-            background-color: var(--app-bg) !important; 
+            background-color: var(--app-bg) !important;
             background-image: var(--app-bg-img) !important;
-            background-size: var(--app-bg-size) !important; 
-            background-position: var(--app-bg-pos) !important; 
+            background-size: var(--app-bg-size) !important;
+            background-position: var(--app-bg-pos) !important;
             background-attachment: fixed !important;
-            min-height: 100vh; font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; margin: 0; overscroll-behavior-y: none; 
+            min-height: 100vh; margin: 0; overscroll-behavior-y: none;
         }
 
-        /* HEADER PRINCIPALE */
         #main-header {
             background: var(--header-bg); min-height: var(--header-h); 
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
             display: flex; flex-direction: column; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 10px 20px; transition: all 0.3s ease; overflow: hidden;
+            padding: 10px 20px; overflow: hidden;
         }
-        #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 
-        /* SUB-HEADER PER CATEGORIE E FILTRI */
         #sub-header {
-            background: var(--header-bg); 
-            position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
+            background: var(--header-bg); position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
             flex-direction: column; align-items: center; border-radius: 0; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border-top: 1px solid rgba(0,0,0,0.05);
         }
 
         #back-button {
             position: fixed; left: 15px; width: 44px; height: 44px;
             background: var(--back-bg); color: var(--back-color);
             display: none; align-items: center; justify-content: center; border-radius: 50%;
-            box-shadow: var(--card-shadow); z-index: 1000; cursor: pointer; border: 1px solid rgba(0,0,0,0.05); transition: transform 0.1s ease;
+            box-shadow: var(--card-shadow); z-index: 1000; border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
         }
-        #back-button:active { transform: scale(0.9); }
-        #back-button.active { display: flex; }
 
-        .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); transition: all 0.2s ease; cursor: pointer;}
-        .macro-card:active { transform: scale(0.96); }
+        .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); cursor: pointer;}
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
-        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
         
-        .macro-text-inside, .macro-text-outside { 
-            font-family: var(--macro-t-f) !important; 
-            color: var(--macro-t-c) !important; 
-            font-size: var(--macro-t-s) !important; 
-            text-shadow: var(--macro-txt-sh) !important; 
+        .macro-text-inside { 
+            font-family: var(--macro-t-f) !important; color: var(--macro-t-c) !important; 
+            font-size: var(--macro-t-s) !important; text-shadow: var(--macro-txt-sh) !important; 
         }
 
-        .menu-card {
-            background-color: var(--menu-card-bg); padding: var(--menu-card-p);
-            border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow);
-            border: var(--menu-card-border); transition: transform 0.1s ease;
-        }
-        .menu-card:active { transform: scale(0.98); }
+        .menu-card { background-color: var(--menu-card-bg); padding: var(--menu-card-p); border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow); border: var(--menu-card-border); }
         .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; cursor: pointer;}
-        .item-card { min-height: var(--item-card-min-h); }
+        .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
 
-        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); margin-bottom: var(--i-name-mb); text-shadow: var(--i-name-sh); line-height: 1.2; }
-        .item-desc { font-family: var(--i-desc-f); color: var(--i-desc-c); font-size: var(--i-desc-s); font-weight: var(--i-desc-w); margin-bottom: var(--i-desc-mb); text-shadow: var(--i-desc-sh); line-height: 1.4; }
-        .item-allerg { font-family: var(--i-allg-f); color: var(--i-allg-c); font-size: var(--i-allg-s); font-weight: var(--i-allg-w); margin-bottom: var(--i-allg-mb); text-shadow: var(--i-allg-sh); display: block; }
-        .item-price { font-family: var(--i-pric-f); color: var(--i-pric-c); font-size: var(--i-pric-s); font-weight: var(--i-pric-w); text-shadow: var(--i-pric-sh); line-height: 1; }
-
-        .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; box-shadow: var(--i-photo-sh); }
+        .item-name { font-family: var(--i-name-f); color: var(--i-name-c); font-size: var(--i-name-s); font-weight: var(--i-name-w); }
+        .item-price { color: var(--i-pric-c); font-weight: bold; }
+        .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; }
         
-        .filter-container { display: flex; flex-direction: row; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; max-w-md; white-space: nowrap; scrollbar-width: none; }
-        .filter-container::-webkit-scrollbar { display: none; }
-        .filter-btn {
-            font-family: var(--flt-f); font-size: var(--flt-s); font-weight: var(--flt-w);
-            background-color: var(--flt-bg-i); color: var(--flt-c-i);
-            padding: 8px 16px; border-radius: 9999px; cursor: pointer; transition: all 0.2s ease;
-            text-transform: uppercase; letter-spacing: 0.1em; border: none; outline: none; box-shadow: 0 2px 4px rgba(0,0,0,0.05); flex-shrink: 0;
-        }
-        .filter-btn.active { background-color: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+        .filter-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; scrollbar-width: none; }
+        .filter-btn { padding: 8px 16px; border-radius: 9999px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #f3f4f6; color: #9ca3af; flex-shrink: 0; border: none; cursor: pointer; transition: all 0.2s; }
+        .filter-btn.active { background: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-        .ar-badge { background: #111827; color: #ffffff; font-size: 10px; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s ease; text-decoration: none; }
-        .ar-badge:active { transform: scale(0.95); }
-
-        .page-content { animation: pageIn 0.3s ease-out forwards; }
-        @keyframes pageIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .ar-badge { background: #111827; color: white; font-size: 10px; padding: 4px 10px; border-radius: 999px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; }
+        
         .loader { border: 3px solid #f3f3f3; border-top: 3px solid var(--back-color); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -146,28 +98,23 @@
     </div>
 
     <button id="back-button" onclick="goBack()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
 
     <main id="main-content" class="px-5 pb-10 max-w-md mx-auto relative">
         <div id="loading-screen" class="flex flex-col items-center pt-20">
             <div class="loader mb-4"></div>
-            <p class="text-gray-400 text-sm uppercase tracking-widest mt-2" id="loading-text">Sincronizzazione...</p>
+            <p class="text-gray-400 text-sm uppercase tracking-widest mt-2">Sincronizzazione...</p>
         </div>
-
-        <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;" class="mb-4"></div>
-
-        <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="page-content"></div></section>
-        <section id="page-categories" style="display: none;" class="page-content space-y-4"></section>
-        <section id="page-items" style="display: none;" class="page-content space-y-4"></section>
+        <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="grid grid-cols-1 gap-4"></div></section>
+        <section id="page-categories" style="display: none;" class="space-y-4"></section>
+        <section id="page-items" style="display: none;" class="space-y-4"></section>
     </main>
 
     <script>
-        // --- 🛡️ PROTOCOLLO ANTI-CACHE ---
+        // PROTOCOLLO ANTI-CACHE
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) { registration.unregister(); }
-            });
+            navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); });
         }
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -175,28 +122,35 @@
         let appConfig = {};
         let fullData = [];
         let navigationStack = ['page-macro'];
-        
         let activeFilters = []; 
-        let currentMacroName = '';
-        let currentCategoryName = '';
+        let currentMacroName = '', currentCategoryName = '';
 
-        // --- 🛠️ CLOUD LINK CONVERTER ---
-        function formatImgUrl(url) {
-            if (!url) return '';
-            let formatted = String(url).trim();
-            const driveRegex = /drive\.google\.com\/file\/d\/([^\/]+)/;
-            const match = formatted.match(driveRegex);
-            if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-            
-            const openRegex = /drive\.google\.com\/open\?id=([^&]+)/;
-            const matchOpen = formatted.match(openRegex);
-            if (matchOpen && matchOpen[1]) return `https://drive.google.com/uc?export=view&id=${matchOpen[1]}`;
-            
-            if (formatted.includes('dropbox.com') && formatted.includes('dl=0')) return formatted.replace('dl=0', 'raw=1');
-            return formatted;
+        // FUNZIONE TRADUZIONE SILENZIOSA
+        function handleSilentTranslation(configLang) {
+            const deviceLang = navigator.language.split('-')[0].toLowerCase();
+            const menuLang = String(configLang || 'it').toLowerCase().trim();
+            const html = document.getElementById('html-tag');
+
+            if (deviceLang !== menuLang) {
+                // Imposta l'attributo lang sulla lingua del menu.
+                // Questo "dice" al browser dell'utente che la pagina è straniera,
+                // innescando la traduzione automatica nativa del dispositivo.
+                html.setAttribute('lang', menuLang);
+            } else {
+                html.setAttribute('lang', deviceLang);
+            }
         }
 
-        // --- 🧠 CASE-INSENSITIVE VALUE ENGINE ---
+        function formatImgUrl(url) {
+            if (!url) return '';
+            let f = String(url).trim();
+            const driveRegex = /drive\.google\.com\/file\/d\/([^\/]+)/;
+            const match = f.match(driveRegex);
+            if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            if (f.includes('dropbox.com')) return f.replace('dl=0', 'raw=1');
+            return f;
+        }
+
         function getVal(key, def) {
             const k = String(key).toLowerCase().trim();
             let v = appConfig[k];
@@ -204,29 +158,13 @@
             return String(v).trim();
         }
 
-        function isTruthy(keyOrValue, isConfigKey = true, defaultVal = true) {
-            let v = isConfigKey ? getVal(keyOrValue, defaultVal ? 'TRUE' : 'FALSE') : (keyOrValue || '');
-            v = String(v).toUpperCase().trim();
-            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO', 'ON', 'IMAGE', 'IMMAGINE'].includes(v);
-        }
-
-        function getShadow(type, isText = false) {
-            const val = getVal(type, 'none').toLowerCase();
-            if (isText) {
-                if(val === 'light') return '0 1px 2px rgba(0,0,0,0.15)';
-                if(val === 'medium') return '0 2px 4px rgba(0,0,0,0.4)';
-                if(val === 'strong') return '0 3px 6px rgba(0,0,0,0.7)';
-                return 'none';
-            } else {
-                if(val === 'light') return '0 2px 4px rgba(0,0,0,0.1)';
-                if(val === 'medium') return '0 4px 6px rgba(0,0,0,0.15)';
-                if(val === 'strong') return '0 15px 25px -5px rgba(0,0,0,0.2)';
-                return 'none';
-            }
+        function isTruthy(val) {
+            const v = String(val || '').toUpperCase().trim();
+            return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'VERO', 'ON'].includes(v);
         }
 
         function safeParseCSVRow(str) {
-            let arr = []; let quote = false; let cell = '';
+            let arr = [], quote = false, cell = '';
             for (let i = 0; i < str.length; i++) {
                 let c = str[i];
                 if (c === '"' && str[i+1] === '"') { cell += '"'; i++; } 
@@ -238,12 +176,8 @@
             return arr.map(x => x.replace(/^"|"$/g, '').trim());
         }
 
-        // --- 🚀 AVVIO SISTEMA ---
         async function init() {
-            if (!SHEET_ID) {
-                document.getElementById('loading-screen').innerHTML = "<div class='text-center pt-20 text-red-500 font-bold'>ID Cliente Mancante nell'URL</div>";
-                return;
-            }
+            if (!SHEET_ID) return;
             await fetchConfig(); 
             applyConfig(); 
             await fetchMenu();
@@ -251,272 +185,176 @@
         }
 
         async function fetchConfig() {
-            const rString = Math.random().toString(36).substring(7);
-            const variants = ['Config', 'config', 'CONFIG', 'Settaggi', 'Ajustes', 'Settings'];
-            let csv = '';
-            
-            for(let v of variants) {
-                try {
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${rString}`;
-                    const res = await fetch(url);
-                    const text = await res.text();
-                    // Se contiene Logo o Bg, è il file giusto
-                    if((text.toLowerCase().includes('logo_') || text.toLowerCase().includes('bg_')) && text.includes(',')) {
-                        csv = text; break;
-                    }
-                } catch(e) {}
-            }
-
-            appConfig = {}; 
-            if(csv) {
+            const r = Math.random().toString(36).substring(7);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config&_t=${Date.now()}&_r=${r}`;
+            try {
+                let res = await fetch(url);
+                let csv = await res.text();
+                if (!csv.toLowerCase().includes('logo_')) {
+                    const fUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}`;
+                    res = await fetch(fUrl); csv = await res.text();
+                }
+                appConfig = {};
                 csv.split(/\r?\n/).forEach(row => {
-                    if(row.trim() === '') return;
                     const cols = safeParseCSVRow(row);
-                    if(cols.length >= 2 && cols[0] !== '') {
-                        let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim().toLowerCase(); 
-                        if(key === 'property' || key === 'proprietà') return; 
-                        let val = cols[1] ? cols[1].replace(/^"|"$/g, '').trim() : ''; 
-                        // Fix punti e virgola di Excel
-                        if(val.toLowerCase().includes('rgba') || val.toLowerCase().includes('rgb')) {
-                            val = val.replace(/;/g, ',');
-                        }
-                        appConfig[key] = val;
+                    if(cols.length >= 2) {
+                        let k = cols[0].toLowerCase().replace(/,+$/, '').trim();
+                        let v = cols[1] ? cols[1].replace(/;/g, ',').trim() : '';
+                        appConfig[k] = v;
                     }
                 });
-            }
+            } catch(e) { console.error("Config Error"); }
         }
 
         function applyConfig() {
             const root = document.documentElement;
             
-            // --- 🖼️ LOGICA SFONDO AUTO-DETECT ---
+            // LOGICA TRADUZIONE
+            handleSilentTranslation(getVal('App_Language', 'it'));
+
+            // SFONDO (Sistemato)
             const bgUrl = formatImgUrl(getVal('Bg_Image_URL', ''));
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
-            
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
-            
-            if(bgUrl !== '' || bgType.includes('img') || bgType.includes('imag')) {
-                if (bgUrl) root.style.setProperty('--app-bg-img', `url('${bgUrl}')`);
-                else root.style.setProperty('--app-bg-img', 'none');
+            if(bgUrl !== '' || bgType.includes('img')) {
+                root.style.setProperty('--app-bg-img', `url('${bgUrl}')`);
             } else {
                 root.style.setProperty('--app-bg-img', 'none');
             }
             root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
-            // HEADER E ALTRE VARS
+            // LOGO
+            const logoCont = document.getElementById('logo-container');
+            const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
+            const align = getVal('Logo_Align', 'center').toLowerCase();
+            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
+            if (logoUrl !== '') {
+                logoCont.innerHTML = `<img src="${logoUrl}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;">`;
+            } else {
+                const bld = isTruthy(getVal('Logo_Text_Bold', 'TRUE')) ? 'bold' : 'normal';
+                logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${bld}; font-family:${getVal('Logo_Text_Font', 'sans-serif')}; margin:0;">${getVal('Logo_Text', 'MENU')}</h1>`;
+            }
+
             root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
             root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
             root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
             root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
             root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
-
-            // TIPOGRAFIA
-            root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
-            root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
             root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
-            root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
-            root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
-            root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
-            root.style.setProperty('--i-name-w', isTruthy('Item_Name_Bold', true, true) ? 'bold' : 'normal');
-
-            // --- 🏷️ LOGICA LOGO AUTO-DETECT ---
-            const logoCont = document.getElementById('logo-container');
-            const logoType = getVal('Logo_Type', 'text').toLowerCase();
-            const align = getVal('Logo_Align', 'center').toLowerCase();
-            const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
+            root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
             
-            logoCont.innerHTML = ''; 
-            logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
-
-            if (logoUrl !== '' || logoType.includes('img') || logoType.includes('imag')) {
-                if(logoUrl) logoCont.innerHTML = `<img src="${logoUrl}" alt="Logo" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain; max-width:100%;">`;
-                else logoCont.innerHTML = `<span style="color:red; font-size:10px;">URL Logo Errato</span>`;
-            } else {
-                let txt = getVal('Logo_Text', 'MENU');
-                let col = getVal('Logo_Text_Color', '#000');
-                let siz = getVal('Logo_Text_Size', '28px');
-                let fnt = getVal('Logo_Text_Font', 'sans-serif');
-                let bld = isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal';
-                logoCont.innerHTML = `<h1 style="color:${col}; font-size:${siz}; font-weight:${bld}; font-family:${fnt}; margin:0; line-height:1;">${txt}</h1>`;
-            }
-
-            // SOTTOTITOLO
             const sub = document.getElementById('subtitle-container');
-            if(!isTruthy('Subtitle_Show', true, true)) {
-                sub.style.display = 'none';
-            } else {
-                sub.style.display = 'block'; 
-                sub.innerText = getVal('Subtitle_Text', '');
-                sub.style.cssText = `color:${getVal('Subtitle_Color', '#6b7280')}; font-size:${getVal('Subtitle_Size', '14px')}; font-weight:${isTruthy('Subtitle_Bold', true, false) ? 'bold' : 'normal'}; margin-top:${getVal('Subtitle_Margin_Top', '10px')}; text-align:${getVal('Subtitle_Align', 'center')}; font-family:${getVal('Subtitle_Font', 'sans-serif')};`;
+            if(!isTruthy(getVal('Subtitle_Show', 'TRUE'))) sub.style.display = 'none';
+            else {
+                sub.style.display = 'block'; sub.innerText = getVal('Subtitle_Text', '');
+                sub.style.cssText = `color:${getVal('Subtitle_Color', '#666')}; font-size:${getVal('Subtitle_Size', '14px')}; text-align:center; margin-top:5px;`;
             }
-        }
-
-        // GEOMETRIA FLUIDA
-        function autoAdjustPadding() {
-            setTimeout(() => {
-                const header = document.getElementById('main-header');
-                const subHeader = document.getElementById('sub-header');
-                const mainContent = document.getElementById('main-content');
-                const backBtn = document.getElementById('back-button');
-                
-                let hHeight = header ? header.offsetHeight : 0;
-                if(subHeader) subHeader.style.top = hHeight + 'px';
-
-                if(backBtn) {
-                    const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
-                    if (pos === 'center') backBtn.style.top = (hHeight / 2 - 22) + 'px';
-                    else if (pos === 'bottom') backBtn.style.top = (hHeight - 55) + 'px';
-                    else if (pos === 'outside') backBtn.style.top = (hHeight + 15) + 'px';
-                }
-
-                let totalH = hHeight;
-                if(subHeader && subHeader.style.display !== 'none') totalH += subHeader.offsetHeight;
-                if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
-            }, 50); 
         }
 
         async function fetchMenu() {
-            const rString = Math.random().toString(36).substring(7);
-            const variants = ['Menu', 'menu', 'MENU', 'Piatto', 'Carta', 'Comida'];
-            let csv = '';
-
-            for(let v of variants) {
-                try {
-                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${rString}`;
-                    const res = await fetch(url);
-                    const text = await res.text();
-                    if(text.toLowerCase().includes('macro')) { csv = text; break; }
-                } catch(e) {}
-            }
-
-            if(!csv) return;
-            fullData = [];
-            csv.split(/\r?\n/).forEach(row => {
-                if(row.trim() === '') return;
-                const c = safeParseCSVRow(row);
-                if(c.length < 3 || !c[0] || c[0].toLowerCase().trim() === 'macro') return;
-                fullData.push({
-                    macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photoUrl: c[11], ar: c[12] 
+            const r = Math.random().toString(36).substring(7);
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Menu&_t=${Date.now()}&_r=${r}`;
+            try {
+                let res = await fetch(url);
+                let csv = await res.text();
+                if (!csv.toLowerCase().includes('macro')) {
+                    const fUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&_t=${Date.now()}`;
+                    res = await fetch(fUrl); csv = await res.text();
+                }
+                fullData = [];
+                csv.split(/\r?\n/).forEach(row => {
+                    const c = safeParseCSVRow(row);
+                    if(c.length >= 11 && c[0].toLowerCase() !== 'macro') {
+                        fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photo: c[11], ar: c[12] });
+                    }
                 });
-            });
-            fullData = fullData.filter(i => isTruthy(i.active, false, true)); 
-            document.getElementById('loading-screen').style.display = 'none';
-            renderLevel1();
+                fullData = fullData.filter(i => isTruthy(i.active));
+                document.getElementById('loading-screen').style.display = 'none';
+                renderLevel1();
+            } catch(e) { console.error("Menu Error"); }
         }
 
         function renderLevel1() {
-            const layoutContainer = document.getElementById('macro-layout-container');
+            const cont = document.getElementById('macro-layout-container');
+            cont.innerHTML = '';
             const macros = [...new Set(fullData.map(i => i.macro))];
-            const isGrid = getVal('Macro_Layout', 'grid').toLowerCase() === 'grid';
-            layoutContainer.className = `page-content ${isGrid ? 'grid grid-cols-2 gap-4' : 'flex flex-col space-y-6'}`;
-            layoutContainer.innerHTML = '';
             macros.forEach(m => {
-                let bgStyle = '';
-                const bgType = getVal('Macro_Bg_Type', 'color').toLowerCase();
-                if (bgType === 'color') bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
-                else {
-                    const imgUrl = formatImgUrl(getVal(`Macro_Img_${m}`, ''));
-                    bgStyle = imgUrl ? `background-image: url('${imgUrl}');` : `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
-                }
-                const tPos = getVal('Macro_Text_Pos', 'center').toLowerCase(); 
-                let html = '';
-                if(tPos === 'outside') {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="flex flex-col cursor-pointer"><div class="macro-card w-full" style="${bgStyle}"></div><span class="macro-text-outside text-center mt-2 font-bold uppercase tracking-wide" style="line-height:1.2;">${m}</span></div>`;
-                } else {
-                    html = `<div onclick="renderLevel2('${m.replace(/'/g, "\\'")}')" class="macro-card w-full flex items-center justify-center cursor-pointer" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside relative z-10 font-extrabold uppercase tracking-widest text-center px-2" style="line-height:1.2;">${m}</span></div>`;
-                }
-                layoutContainer.innerHTML += html;
+                const img = formatImgUrl(getVal(`Macro_Img_${m}`, ''));
+                cont.innerHTML += `<div onclick="renderLevel2('${m}')" class="macro-card flex items-center justify-center" style="background-image:url('${img}')">
+                    <div class="macro-overlay"></div><span class="relative z-10 text-white font-bold uppercase tracking-widest macro-text-inside">${m}</span></div>`;
             });
             showPage('page-macro');
         }
 
         function renderLevel2(mName) {
-            const container = document.getElementById('page-categories');
+            const cont = document.getElementById('page-categories');
+            cont.innerHTML = '';
             const cats = [...new Set(fullData.filter(i => i.macro === mName).map(i => i.cat))];
-            container.innerHTML = ''; 
-            const showCatPhoto = isTruthy('Category_Photo_Show', true, true);
             cats.forEach(c => {
-                let bgStyle = ''; let overlayHTML = ''; let textClass = 'font-bold text-gray-800 text-lg relative z-10';
-                if(showCatPhoto) {
-                    const imgUrl = formatImgUrl(getVal(`Category_Img_${c}`, ''));
-                    if(imgUrl) {
-                        bgStyle = `background-image: url('${imgUrl}'); border: none;`;
-                        overlayHTML = `<div class="cat-overlay"></div>`;
-                        textClass = 'font-extrabold text-white text-lg relative z-10 text-shadow';
-                    }
-                }
-                container.innerHTML += `<div onclick="renderLevel3('${mName.replace(/'/g, "\\'")}', '${c.replace(/'/g, "\\'")}')" class="menu-card cat-card flex justify-between items-center cursor-pointer mb-3" style="${bgStyle}">${overlayHTML}<span class="${textClass}">${c}</span><svg class="w-5 h-5 relative z-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+                const img = formatImgUrl(getVal(`Category_Img_${c}`, ''));
+                cont.innerHTML += `<div onclick="renderLevel3('${mName}', '${c}')" class="menu-card cat-card flex justify-between items-center" style="background-image:url('${img}')">
+                    <div class="cat-overlay"></div><span class="relative z-10 font-bold text-white text-lg">${c}</span>
+                    <svg class="w-5 h-5 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
             });
             navigationStack.push('page-categories');
-            showPage('page-categories', mName);
+            showPage('page-categories');
         }
 
-        function toggleFilter(filterType) {
-            activeFilters = activeFilters.includes(filterType) ? [] : [filterType];
-            const btns = document.querySelectorAll('.filter-btn');
-            btns.forEach(btn => {
-                btn.classList.remove('active');
-                if(activeFilters.length > 0) {
-                    const f = activeFilters[0];
-                    const txt = btn.innerText.toLowerCase();
-                    if((f === 'gf' && txt.includes('glutine')) || (f === 'vegan' && txt.includes('vegano')) || (f === 'veg' && txt.includes('vegetariano')) || (f === 'noalc' && txt.includes('analcolico'))) btn.classList.add('active');
-                }
-            });
+        function toggleFilter(f) {
+            activeFilters = activeFilters.includes(f) ? [] : [f];
             renderLevel3(currentMacroName, currentCategoryName, true);
         }
 
-        function renderLevel3(mName, cName, isFiltering = false) {
-            currentMacroName = mName; currentCategoryName = cName;
-            if (!isFiltering) {
-                document.getElementById('sub-header-title').innerText = cName;
-                const filterContainer = document.getElementById('sub-header-filters');
-                filterContainer.innerHTML = '';
-                if (isTruthy('Filter_Show', true, true)) {
-                    const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
-                    let filterHtml = '';
-                    if (!isDrinks) {
-                        if(isTruthy('Filter_Show_GF', true, true)) filterHtml += `<button onclick="toggleFilter('gf')" class="filter-btn">Senza Glutine</button>`;
-                        if(isTruthy('Filter_Show_Vegan', true, true)) filterHtml += `<button onclick="toggleFilter('vegan')" class="filter-btn">Vegano</button>`;
-                        if(isTruthy('Filter_Show_Veg', true, true)) filterHtml += `<button onclick="toggleFilter('veg')" class="filter-btn">Vegetariano</button>`;
-                    } else {
-                        if(isTruthy('Filter_Show_NoAlc', true, true)) filterHtml += `<button onclick="toggleFilter('noalc')" class="filter-btn">Analcolico</button>`;
-                    }
-                    filterContainer.innerHTML = filterHtml;
-                }
+        function renderLevel3(m, c, isF = false) {
+            currentMacroName = m; currentCategoryName = c;
+            const cont = document.getElementById('page-items');
+            if(!isF) {
+                document.getElementById('sub-header-title').innerText = c;
+                const fCont = document.getElementById('sub-header-filters');
+                const isD = m.toLowerCase().includes('bev');
+                fCont.innerHTML = isD ? `<button onclick="toggleFilter('noalc')" class="filter-btn ${activeFilters.includes('noalc')?'active':''}">Analcolico</button>` : 
+                `<button onclick="toggleFilter('gf')" class="filter-btn ${activeFilters.includes('gf')?'active':''}">Senza Glutine</button>
+                 <button onclick="toggleFilter('vegan')" class="filter-btn ${activeFilters.includes('vegan')?'active':''}">Vegano</button>`;
             }
-            const container = document.getElementById('page-items');
-            container.innerHTML = ''; 
-            let items = fullData.filter(i => i.cat === cName && i.macro === mName);
-            if (activeFilters.length > 0) items = items.filter(i => activeFilters.every(f => isTruthy(i[f], false, false)));
-
+            cont.innerHTML = '';
+            let items = fullData.filter(i => i.macro === m && i.cat === c);
+            if(activeFilters.length > 0) items = items.filter(i => isTruthy(i[activeFilters[0]]));
+            
             items.forEach(i => {
-                let badges = '';
-                if(isTruthy(i.gf, false, false)) badges += `<span class="bg-amber-100 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Senza Glutine</span>`;
-                if(isTruthy(i.vegan, false, false)) badges += `<span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegano</span>`;
-                if(isTruthy(i.veg, false, false)) badges += `<span class="bg-lime-100 text-lime-700 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1 mt-1">Vegetariano</span>`;
-                let descHTML = i.desc && i.desc !== '-' ? `<p class="item-desc">${i.desc}</p>` : '';
-                let arHTML = formatImgUrl(i.ar) ? `<a href="${formatImgUrl(i.ar)}" target="_blank" class="ar-badge"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> VEDI AR</a>` : '';
-                const photoUrl = formatImgUrl(i.photoUrl);
-                if (photoUrl) {
-                    container.innerHTML += `<div class="menu-card item-card flex justify-between items-stretch gap-4 mb-4"><div class="flex flex-col flex-grow"><div><h3 class="item-name">${i.name}</h3>${descHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}</div><div class="mt-auto pt-3"><span class="item-price">${i.price}</span></div></div><img src="${photoUrl}" alt="" class="item-photo shrink-0" onerror="this.style.display='none'"></div>`;
-                } else {
-                    container.innerHTML += `<div class="menu-card item-card flex flex-col justify-center mb-4"><div class="flex justify-between items-start gap-4"><h3 class="item-name flex-grow">${i.name}</h3><span class="item-price pl-2">${i.price}</span></div>${descHTML}<div class="flex flex-wrap">${badges}</div>${arHTML}</div>`;
-                }
+                const photo = formatImgUrl(i.photo);
+                const ar = formatImgUrl(i.ar);
+                cont.innerHTML += `<div class="menu-card flex gap-4">
+                    <div class="flex-grow">
+                        <h3 class="item-name">${i.name}</h3><p class="text-sm text-gray-500">${i.desc}</p>
+                        <p class="text-[10px] text-red-400 mt-1">${i.allerg?'Allergeni: '+i.allerg:''}</p>
+                        ${ar ? `<a href="${ar}" class="ar-badge">🔍 VEDI AR</a>` : ''}
+                        <div class="mt-3 item-price">${i.price}€</div>
+                    </div>
+                    ${photo ? `<img src="${photo}" class="item-photo">` : ''}
+                </div>`;
             });
-            if (!isFiltering) { navigationStack.push('page-items'); showPage('page-items'); }
+            if(!isF) { navigationStack.push('page-items'); showPage('page-items'); }
         }
 
         function showPage(p) {
-            if(p !== 'page-items') activeFilters = [];
             ['page-macro', 'page-categories', 'page-items'].forEach(s => document.getElementById(s).style.display = 'none');
             document.getElementById(p).style.display = 'block';
-            const backBtn = document.getElementById('back-button');
-            const subHeader = document.getElementById('sub-header');
-            if(p === 'page-macro') { backBtn.classList.remove('active'); subHeader.style.display = 'none'; } 
-            else { backBtn.classList.add('active'); subHeader.style.display = (p === 'page-items') ? 'flex' : 'none'; }
-            autoAdjustPadding(); window.scrollTo({top: 0, behavior: 'instant'});
+            document.getElementById('sub-header').style.display = p === 'page-items' ? 'flex' : 'none';
+            document.getElementById('back-button').style.display = p === 'page-macro' ? 'none' : 'flex';
+            autoAdjustPadding();
+        }
+
+        function autoAdjustPadding() {
+            setTimeout(() => {
+                const h = document.getElementById('main-header').offsetHeight;
+                const sh = document.getElementById('sub-header');
+                const btn = document.getElementById('back-button');
+                btn.style.top = (h/2 - 22) + 'px';
+                let total = h + (sh.style.display !== 'none' ? sh.offsetHeight : 0);
+                sh.style.top = h + 'px';
+                document.getElementById('main-content').style.paddingTop = (total + 20) + 'px';
+            }, 50);
         }
 
         function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
