@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="auto">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Menu Digitale</title>
+    <title>Menu Digitale Premium</title>
     
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
         :root {
+            /* VARIABILI DINAMICHE - SOVRASCRITTE DAL TUO CSV */
             --app-bg: #f9fafb; --app-bg-img: none; --app-bg-size: cover; --app-bg-pos: center;
             --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
@@ -17,17 +18,11 @@
             --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
             --menu-card-border: 1px solid #f3f4f6; --menu-card-shadow: var(--card-shadow);
             --cat-card-min-h: 80px; --item-card-min-h: 120px;
-            --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px;
+            --macro-t-f: sans-serif; --macro-t-c: #ffffff; --macro-t-s: 20px; --macro-txt-sh: none;
             --i-name-f: sans-serif; --i-name-c: #111827; --i-name-s: 18px; --i-name-w: bold;
             --i-pric-c: #4f46e5;
             --flt-bg-a: #4f46e5; --flt-c-a: #ffffff;
         }
-
-        /* LOGICA PER NASCONDERE IL TOOLBAR DI TRADUZIONE */
-        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
-        body { top: 0px !important; }
-        .goog-te-menu-value { display: none !important; }
-        #google_translate_element { display: none; }
 
         body {
             background-color: var(--app-bg) !important;
@@ -35,7 +30,7 @@
             background-size: var(--app-bg-size) !important;
             background-position: var(--app-bg-pos) !important;
             background-attachment: fixed !important;
-            min-height: 100vh; margin: 0;
+            min-height: 100vh; margin: 0; overscroll-behavior-y: none;
         }
 
         #main-header {
@@ -43,7 +38,7 @@
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
             display: flex; flex-direction: column; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 10px 20px;
+            padding: 10px 20px; overflow: hidden;
         }
 
         #sub-header {
@@ -56,12 +51,17 @@
             position: fixed; left: 15px; width: 44px; height: 44px;
             background: var(--back-bg); color: var(--back-color);
             display: none; align-items: center; justify-content: center; border-radius: 50%;
-            box-shadow: var(--card-shadow); z-index: 1000; border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: var(--card-shadow); z-index: 1000; border: 1px solid rgba(0,0,0,0.05); cursor: pointer;
         }
 
         .macro-card { height: var(--macro-h); border-radius: 1.25rem; background-size: cover; background-position: center; position: relative; overflow: hidden; box-shadow: var(--card-shadow); cursor: pointer;}
         .macro-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0,0,0,0.4)); }
         
+        .macro-text-inside { 
+            font-family: var(--macro-t-f) !important; color: var(--macro-t-c) !important; 
+            font-size: var(--macro-t-s) !important; text-shadow: var(--macro-txt-sh) !important; 
+        }
+
         .menu-card { background-color: var(--menu-card-bg); padding: var(--menu-card-p); border-radius: var(--menu-card-r); box-shadow: var(--menu-card-shadow); border: var(--menu-card-border); }
         .cat-card { min-height: var(--cat-card-min-h); position: relative; background-size: cover; background-position: center; overflow: hidden; cursor: pointer;}
         .cat-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.2)); border-radius: inherit; }
@@ -71,8 +71,9 @@
         .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; }
         
         .filter-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; scrollbar-width: none; }
-        .filter-btn { padding: 8px 16px; border-radius: 9999px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #f3f4f6; color: #9ca3af; flex-shrink: 0; }
-        .filter-btn.active { background: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; }
+        .filter-container::-webkit-scrollbar { display: none; }
+        .filter-btn { padding: 8px 16px; border-radius: 9999px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #f3f4f6; color: #9ca3af; flex-shrink: 0; border: none; cursor: pointer; transition: all 0.2s; }
+        .filter-btn.active { background: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
         .ar-badge { background: #111827; color: white; font-size: 10px; padding: 4px 10px; border-radius: 999px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; margin-top: 8px; }
         
@@ -81,8 +82,6 @@
     </style>
 </head>
 <body>
-
-    <div id="google_translate_element"></div>
 
     <header id="main-header">
         <div id="header-content-wrapper">
@@ -98,7 +97,7 @@
     </div>
 
     <button id="back-button" onclick="goBack()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
 
     <main id="main-content" class="px-5 pb-10 max-w-md mx-auto relative">
@@ -106,13 +105,10 @@
             <div class="loader mb-4"></div>
             <p class="text-gray-400 text-sm uppercase tracking-widest mt-2">Sincronizzazione...</p>
         </div>
-        <div id="level-title-outside" style="display: none; letter-spacing: 0.1em; text-transform: uppercase;" class="mb-4"></div>
         <section id="page-macro" style="display: none;"><div id="macro-layout-container" class="grid grid-cols-1 gap-4"></div></section>
         <section id="page-categories" style="display: none;" class="space-y-4"></section>
         <section id="page-items" style="display: none;" class="space-y-4"></section>
     </main>
-
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -123,39 +119,12 @@
         let activeFilters = []; 
         let currentMacroName = '', currentCategoryName = '';
 
-        // --- MOTORE DI TRADUZIONE AUTOMATICA SILENTE ---
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({
-                pageLanguage: 'auto', 
-                autoDisplay: false
-            }, 'google_translate_element');
-        }
-
-        async function forceAutoTranslate(menuLang) {
-            const deviceLang = navigator.language.split('-')[0].toLowerCase();
-            const sourceLang = String(menuLang || 'it').toLowerCase().trim();
-
-            if (deviceLang !== sourceLang) {
-                console.log(`Forzo traduzione da ${sourceLang} a ${deviceLang}`);
-                // Aspetta che il plugin Google sia pronto e forza il cambio lingua nel selettore nascosto
-                setTimeout(() => {
-                    const select = document.querySelector('select.goog-te-combo');
-                    if (select) {
-                        select.value = deviceLang;
-                        select.dispatchEvent(new Event('change'));
-                    }
-                }, 1500); 
-            }
-        }
-
-        // --- PULIZIA E GESTIONE IMMAGINI ---
         function formatImgUrl(url) {
             if (!url) return '';
             let f = String(url).trim();
-            if (f.includes('drive.google.com')) {
-                const id = f.match(/[-\w]{25,}/);
-                return id ? `https://drive.google.com/uc?export=view&id=${id[0]}` : f;
-            }
+            const driveRegex = /drive\.google\.com\/file\/d\/([^\/]+)/;
+            const match = f.match(driveRegex);
+            if (match && match[1]) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
             if (f.includes('dropbox.com')) return f.replace('dl=0', 'raw=1');
             return f;
         }
@@ -218,7 +187,7 @@
         function applyConfig() {
             const root = document.documentElement;
             
-            // LOGICA SFONDO
+            // SFONDO
             const bgUrl = formatImgUrl(getVal('Bg_Image_URL', ''));
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
@@ -229,9 +198,6 @@
             }
             root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
-
-            // TRADUZIONE AUTOMATICA
-            forceAutoTranslate(getVal('App_Language', 'it'));
 
             // LOGO
             const logoCont = document.getElementById('logo-container');
@@ -304,7 +270,7 @@
                 const img = formatImgUrl(getVal(`Category_Img_${c}`, ''));
                 cont.innerHTML += `<div onclick="renderLevel3('${mName}', '${c}')" class="menu-card cat-card flex justify-between items-center" style="background-image:url('${img}')">
                     <div class="cat-overlay"></div><span class="relative z-10 font-bold text-white text-lg">${c}</span>
-                    <svg class="w-5 h-5 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2"/></svg></div>`;
+                    <svg class="w-5 h-5 relative z-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
             });
             navigationStack.push('page-categories');
             showPage('page-categories');
