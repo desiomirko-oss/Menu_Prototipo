@@ -14,7 +14,7 @@
         :root {
             /* VARIABILI DINAMICHE */
             --app-bg: #f9fafb; --app-bg-img: none; --app-bg-size: cover; --app-bg-pos: center;
-            --header-bg: rgba(255, 255, 255, 0.95); --header-h: 120px;
+            --header-bg: rgba(255, 255, 255, 0.95); --header-h: 100px;
             --back-bg: rgba(255, 255, 255, 0.9); --back-color: #4f46e5; --macro-h: 180px;
             --card-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
             --menu-card-bg: #ffffff; --menu-card-p: 20px; --menu-card-r: 24px;
@@ -35,13 +35,18 @@
             min-height: 100vh; margin: 0; overscroll-behavior-y: none;
         }
 
+        /* HEADER OTTIMIZZATO: ALTEZZA DINAMICA E TRASPARENZA */
         #main-header {
-            background: var(--header-bg); min-height: var(--header-h); 
+            background: var(--header-bg) !important; 
+            min-height: var(--header-h); 
+            height: auto; /* Permette all'header di crescere se il logo è grande */
             position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
             display: flex; flex-direction: column; justify-content: center;
             box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            padding: 10px 20px; overflow: hidden;
+            padding: 15px 20px; overflow: hidden;
         }
+
+        #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; display: flex; flex-direction: column; align-items: center; }
 
         #sub-header {
             background: var(--header-bg); position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
@@ -73,6 +78,7 @@
         .item-photo { width: var(--i-photo-w); height: var(--i-photo-h); flex-shrink: 0; border-radius: 0.75rem; object-fit: cover; }
         
         .filter-container { display: flex; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; scrollbar-width: none; }
+        .filter-container::-webkit-scrollbar { display: none; }
         .filter-btn { padding: 8px 16px; border-radius: 9999px; font-size: 11px; font-weight: bold; text-transform: uppercase; background: #f3f4f6; color: #9ca3af; flex-shrink: 0; border: none; cursor: pointer; transition: all 0.2s; }
         .filter-btn.active { background: var(--flt-bg-a) !important; color: var(--flt-c-a) !important; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
@@ -112,7 +118,6 @@
     </main>
 
     <script>
-        // PROTOCOLLO ANTI-CACHE
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then(regs => { regs.forEach(r => r.unregister()); });
         }
@@ -125,20 +130,12 @@
         let activeFilters = []; 
         let currentMacroName = '', currentCategoryName = '';
 
-        // FUNZIONE TRADUZIONE SILENZIOSA
         function handleSilentTranslation(configLang) {
             const deviceLang = navigator.language.split('-')[0].toLowerCase();
             const menuLang = String(configLang || 'it').toLowerCase().trim();
             const html = document.getElementById('html-tag');
-
-            if (deviceLang !== menuLang) {
-                // Imposta l'attributo lang sulla lingua del menu.
-                // Questo "dice" al browser dell'utente che la pagina è straniera,
-                // innescando la traduzione automatica nativa del dispositivo.
-                html.setAttribute('lang', menuLang);
-            } else {
-                html.setAttribute('lang', deviceLang);
-            }
+            if (deviceLang !== menuLang) html.setAttribute('lang', menuLang);
+            else html.setAttribute('lang', deviceLang);
         }
 
         function formatImgUrl(url) {
@@ -186,15 +183,20 @@
 
         async function fetchConfig() {
             const r = Math.random().toString(36).substring(7);
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Config&_t=${Date.now()}&_r=${r}`;
-            try {
-                let res = await fetch(url);
-                let csv = await res.text();
-                if (!csv.toLowerCase().includes('logo_')) {
-                    const fUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&_t=${Date.now()}`;
-                    res = await fetch(fUrl); csv = await res.text();
-                }
-                appConfig = {};
+            const variants = ['Config', 'config', 'CONFIG', 'Settaggi', 'Ajustes', 'Settings'];
+            let csv = '';
+            for(let v of variants) {
+                try {
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${r}`;
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    if((text.toLowerCase().includes('logo_') || text.toLowerCase().includes('bg_')) && text.includes(',')) {
+                        csv = text; break;
+                    }
+                } catch(e) {}
+            }
+            appConfig = {}; 
+            if(csv) {
                 csv.split(/\r?\n/).forEach(row => {
                     const cols = safeParseCSVRow(row);
                     if(cols.length >= 2) {
@@ -203,44 +205,41 @@
                         appConfig[k] = v;
                     }
                 });
-            } catch(e) { console.error("Config Error"); }
+            }
         }
 
         function applyConfig() {
             const root = document.documentElement;
-            
-            // LOGICA TRADUZIONE
             handleSilentTranslation(getVal('App_Language', 'it'));
 
-            // SFONDO (Sistemato)
             const bgUrl = formatImgUrl(getVal('Bg_Image_URL', ''));
             const bgType = getVal('Bg_Type', 'color').toLowerCase();
             root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
-            if(bgUrl !== '' || bgType.includes('img')) {
-                root.style.setProperty('--app-bg-img', `url('${bgUrl}')`);
-            } else {
-                root.style.setProperty('--app-bg-img', 'none');
-            }
+            if(bgUrl !== '' || bgType.includes('img')) root.style.setProperty('--app-bg-img', `url('${bgUrl}')`);
+            else root.style.setProperty('--app-bg-img', 'none');
+            
             root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
             root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
-            // LOGO
+            // LOGICA HEADER DINAMICO
+            root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
+            root.style.setProperty('--header-h', getVal('Header_Height', '100px'));
+
             const logoCont = document.getElementById('logo-container');
             const logoUrl = formatImgUrl(getVal('Logo_Image_URL', ''));
             const align = getVal('Logo_Align', 'center').toLowerCase();
             logoCont.className = `w-full flex justify-${align === 'left' ? 'start' : align === 'right' ? 'end' : 'center'}`;
+            
             if (logoUrl !== '') {
-                logoCont.innerHTML = `<img src="${logoUrl}" style="max-height:${getVal('Logo_Image_Size', '60px')}; object-fit:contain;">`;
+                logoCont.innerHTML = `<img src="${logoUrl}" style="max-height:${getVal('Logo_Image_Size', '60px')}; width:auto; object-fit:contain;">`;
             } else {
                 const bld = isTruthy(getVal('Logo_Text_Bold', 'TRUE')) ? 'bold' : 'normal';
                 logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${bld}; font-family:${getVal('Logo_Text_Font', 'sans-serif')}; margin:0;">${getVal('Logo_Text', 'MENU')}</h1>`;
             }
 
-            root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
-            root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
-            root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
             root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
             root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
+            root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
             root.style.setProperty('--macro-t-s', getVal('Macro_Text_Size', '20px'));
             root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
             
@@ -250,29 +249,32 @@
                 sub.style.display = 'block'; sub.innerText = getVal('Subtitle_Text', '');
                 sub.style.cssText = `color:${getVal('Subtitle_Color', '#666')}; font-size:${getVal('Subtitle_Size', '14px')}; text-align:center; margin-top:5px;`;
             }
+            autoAdjustPadding();
         }
 
         async function fetchMenu() {
             const r = Math.random().toString(36).substring(7);
-            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Menu&_t=${Date.now()}&_r=${r}`;
-            try {
-                let res = await fetch(url);
-                let csv = await res.text();
-                if (!csv.toLowerCase().includes('macro')) {
-                    const fUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&_t=${Date.now()}`;
-                    res = await fetch(fUrl); csv = await res.text();
+            const variants = ['Menu', 'menu', 'MENU', 'Piatto', 'Carta', 'Comida'];
+            let csv = '';
+            for(let v of variants) {
+                try {
+                    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${v}&_t=${Date.now()}&_r=${r}`;
+                    const res = await fetch(url);
+                    const text = await res.text();
+                    if(text.toLowerCase().includes('macro')) { csv = text; break; }
+                } catch(e) {}
+            }
+            if(!csv) return;
+            fullData = [];
+            csv.split(/\r?\n/).forEach(row => {
+                const c = safeParseCSVRow(row);
+                if(c.length >= 11 && c[0].toLowerCase() !== 'macro') {
+                    fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photo: c[11], ar: c[12] });
                 }
-                fullData = [];
-                csv.split(/\r?\n/).forEach(row => {
-                    const c = safeParseCSVRow(row);
-                    if(c.length >= 11 && c[0].toLowerCase() !== 'macro') {
-                        fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10], photo: c[11], ar: c[12] });
-                    }
-                });
-                fullData = fullData.filter(i => isTruthy(i.active));
-                document.getElementById('loading-screen').style.display = 'none';
-                renderLevel1();
-            } catch(e) { console.error("Menu Error"); }
+            });
+            fullData = fullData.filter(i => isTruthy(i.active));
+            document.getElementById('loading-screen').style.display = 'none';
+            renderLevel1();
         }
 
         function renderLevel1() {
@@ -320,7 +322,6 @@
             cont.innerHTML = '';
             let items = fullData.filter(i => i.macro === m && i.cat === c);
             if(activeFilters.length > 0) items = items.filter(i => isTruthy(i[activeFilters[0]]));
-            
             items.forEach(i => {
                 const photo = formatImgUrl(i.photo);
                 const ar = formatImgUrl(i.ar);
@@ -347,18 +348,18 @@
 
         function autoAdjustPadding() {
             setTimeout(() => {
-                const h = document.getElementById('main-header').offsetHeight;
+                const header = document.getElementById('main-header');
+                const h = header.offsetHeight;
                 const sh = document.getElementById('sub-header');
                 const btn = document.getElementById('back-button');
                 btn.style.top = (h/2 - 22) + 'px';
-                let total = h + (sh.style.display !== 'none' ? sh.offsetHeight : 0);
                 sh.style.top = h + 'px';
+                let total = h + (sh.style.display !== 'none' ? sh.offsetHeight : 0);
                 document.getElementById('main-content').style.paddingTop = (total + 20) + 'px';
-            }, 50);
+            }, 60);
         }
 
         function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
-        
         init();
     </script>
 </body>
