@@ -1,4 +1,4 @@
-const VERSION = "2.0-CLEAN-SLATE";
+const VERSION = "2.1-AUTO-TRANSLATE";
 console.log("Menu App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,7 +10,53 @@ let activeFilters = [];
 let currentMacroName = '';
 let currentCategoryName = '';
 
-// --- SICUREZZA E PULIZIA (INTATTE) ---
+// --- MODULO 1: TRADUZIONE AUTOMATICA INVISIBILE ---
+function setupAutoTranslate() {
+    const baseLang = 'it'; // La lingua di partenza del tuo Menu
+    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
+    
+    // Se la lingua del telefono è diversa dall'italiano, attiviamo la magia
+    if (userLang !== baseLang) {
+        console.log(`Lingua rilevata: ${userLang}. Avvio traduzione automatica...`);
+        
+        // 1. Scudo CSS per nascondere i banner e i popup di Google Translate
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .goog-te-banner-frame.skiptranslate { display: none !important; } 
+            body { top: 0px !important; }
+            #goog-gt-tt { display: none !important; }
+            .goog-text-highlight { background-color: transparent !important; box-shadow: none !important; }
+        `;
+        document.head.appendChild(style);
+
+        // 2. Forza il cookie per eseguire la traduzione senza chiedere il permesso
+        const cookieString = `googtrans=/${baseLang}/${userLang}`;
+        document.cookie = `${cookieString}; path=/`;
+        
+        // 3. Crea il contenitore invisibile per il motore
+        const widgetDiv = document.createElement('div');
+        widgetDiv.id = 'google_translate_element';
+        widgetDiv.style.display = 'none';
+        document.body.appendChild(widgetDiv);
+
+        // 4. Inizializza Google Translate
+        window.googleTranslateElementInit = function() {
+            new google.translate.TranslateElement({
+                pageLanguage: baseLang,
+                autoDisplay: false
+            }, 'google_translate_element');
+        };
+        
+        // 5. Scarica il motore
+        const script = document.createElement('script');
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+    } else {
+        console.log("Lingua italiana rilevata. Menu originale mantenuto.");
+    }
+}
+
+// --- SICUREZZA E PULIZIA ---
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>'"]/g, tag => ({
@@ -50,6 +96,8 @@ function isDataTruthy(val) {
 
 // --- INIT APP ---
 async function init() {
+    setupAutoTranslate(); // Avviamo subito il modulo traduzione
+
     if (!SHEET_ID) {
         document.getElementById('loading-screen').innerHTML = "<div class='text-error pt-20'>ID Cliente Mancante</div>";
         return;
@@ -59,11 +107,9 @@ async function init() {
 }
 
 function setupStaticHeader() {
-    // Logo Fisso di Default
     const logoCont = document.getElementById('logo-container');
-    logoCont.innerHTML = `<h1 style="color:#111827; font-size:28px; font-weight:bold; margin:0; line-height:1; font-family:sans-serif; text-align:center; width:100%;">IL MIO MENU</h1>`;
+    logoCont.innerHTML = `<h1 style="color:#111827; font-size:28px; font-weight:bold; margin:0; line-height:1; font-family:sans-serif; text-align:center; width:100%;" translate="no">IL MIO MENU</h1>`;
     
-    // Rimuoviamo Sottotitolo e Titoli extra per ora
     document.getElementById('subtitle-container').style.display = 'none';
     document.getElementById('level-title-inside').style.display = 'none';
     document.getElementById('level-title-outside').style.display = 'none';
@@ -87,7 +133,6 @@ function updateLayout() {
         }
         if (mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
 
-        // Tasto back fisso al centro dell'header
         backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
     }, 50); 
 }
@@ -133,7 +178,6 @@ function renderLevel1() {
     const layoutContainer = document.getElementById('macro-layout-container');
     const macros = [...new Set(fullData.map(i => i.macro))];
     
-    // Layout fisso a griglia
     layoutContainer.className = `page-content macro-grid`;
     layoutContainer.innerHTML = '';
 
@@ -161,7 +205,6 @@ function renderLevel2(mName) {
         const argMacro = escapeJS(mName);
         const argCat = escapeJS(c);
         
-        // Stile categoria fisso testuale
         const textStyle = 'font-weight: 800; color: #1f2937; font-size: 1.125rem; position: relative; z-index: 10;';
 
         container.innerHTML += `
@@ -201,7 +244,6 @@ function renderLevel3(mName, cName, isFiltering = false) {
         document.getElementById('sub-header-title').textContent = cName;
         const filterContainer = document.getElementById('sub-header-filters');
         
-        // Filtri Fissi di Base
         const isDrinks = mName.toLowerCase().match(/bevand|bebid|drink/);
         let filterHtml = '';
         if (!isDrinks) {
@@ -250,7 +292,7 @@ function renderLevel3(mName, cName, isFiltering = false) {
         
         let allergensHTML = safeAllerg && safeAllerg !== '-' ? `<span class="item-allerg">Allergeni: ${safeAllerg}</span>` : '';
         let descHTML = safeDesc && safeDesc !== '-' ? `<p class="item-desc">${safeDesc}</p>` : '';
-        let priceHTML = `<span class="item-price">${safePrice}</span>`;
+        let priceHTML = `<span class="item-price" translate="no">${safePrice}</span>`; // Non tradurre il prezzo!
 
         let arHTML = '';
         if (safeAr) {
