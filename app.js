@@ -8,7 +8,7 @@ let activeFilters = [];
 let currentMacroName = '';
 let currentCategoryName = '';
 
-// --- SICUREZZA: PREVENZIONE XSS & JS ---
+// --- SICUREZZA E PULIZIA ---
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>'"]/g, tag => ({
@@ -28,14 +28,12 @@ function cleanString(val) {
     return cleaned;
 }
 
-// --- LETTURA CONFIGURAZIONI ---
 function getVal(key, def) {
     let v = appConfig[key];
     if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
     return String(v).trim();
 }
 
-// Funzione intelligente per le foto: trova la chiave anche se le maiuscole non combaciano
 function getDynamicVal(prefix, suffix, def) {
     const searchKey = `${prefix}${suffix}`.toLowerCase();
     for (let k in appConfig) {
@@ -78,7 +76,7 @@ function safeParseCSVRow(str) {
     return arr.map(x => x.replace(/^"|"$/g, '').trim());
 }
 
-// --- INIZIALIZZAZIONE E FETCH DATI ---
+// --- INIT APP ---
 async function init() {
     if (!SHEET_ID) {
         document.getElementById('loading-screen').innerHTML = "<div class='text-error pt-20'>ID Cliente Mancante</div>";
@@ -99,7 +97,6 @@ async function fetchConfig() {
             if(row.trim() === '') return;
             const cols = safeParseCSVRow(row);
             if(cols.length >= 2 && cols[0] !== '') {
-                // IL FIX PRINCIPALE: pulisce le chiavi rimuovendo sia virgolette che virgole extra
                 let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim(); 
                 let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
                 if(key) appConfig[key] = val;
@@ -111,7 +108,7 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
     
-    // SFONDO GLOBALE
+    // SFONDO APP
     const bgType = getVal('Bg_Type', 'color').toLowerCase();
     root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
     if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
@@ -122,8 +119,16 @@ function applyConfig() {
     root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
     root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
+    // HEADER (Trasparenza e Ombre)
     root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
-    root.style.setProperty('--header-h', getVal('Header_Height', '120px'));
+    let headerShadow = '0 4px 15px rgba(0,0,0,0.06)'; 
+    const hShadowInt = getVal('Header_Shadow_Intensity', 'medium').toLowerCase();
+    if(hShadowInt === 'light') headerShadow = '0 2px 4px rgba(0,0,0,0.03)';
+    else if(hShadowInt === 'strong') headerShadow = '0 10px 25px rgba(0,0,0,0.15)';
+    else if(hShadowInt === 'none') headerShadow = 'none';
+    root.style.setProperty('--header-shadow', headerShadow);
+
+    // MENU CARDS E OMBRE
     root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
     root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
     root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
@@ -145,42 +150,39 @@ function applyConfig() {
     root.style.setProperty('--menu-card-r', getVal('Card_Radius', '24px'));
     root.style.setProperty('--cat-card-min-h', getVal('Category_Card_MinHeight', '80px'));
     root.style.setProperty('--item-card-min-h', getVal('Item_Card_MinHeight', '120px'));
-
     root.style.setProperty('--i-photo-w', getVal('Item_Photo_Width', '110px'));
     root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
     root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
+    // TESTI
     root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
     root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
-
     root.style.setProperty('--i-name-f', getVal('Item_Name_Font', 'sans-serif'));
     root.style.setProperty('--i-name-c', getVal('Item_Name_Color', '#111827'));
     root.style.setProperty('--i-name-s', getVal('Item_Name_Size', '18px'));
     root.style.setProperty('--i-name-w', isTruthy('Item_Name_Bold', true, true) ? 'bold' : 'normal');
     root.style.setProperty('--i-name-mb', getVal('Item_Name_MarginBottom', '4px'));
     root.style.setProperty('--i-name-sh', getShadow('Item_Name_Shadow', true));
-
     root.style.setProperty('--i-desc-f', getVal('Item_Desc_Font', 'sans-serif'));
     root.style.setProperty('--i-desc-c', getVal('Item_Desc_Color', '#6b7280'));
     root.style.setProperty('--i-desc-s', getVal('Item_Desc_Size', '14px'));
     root.style.setProperty('--i-desc-w', isTruthy('Item_Desc_Bold', true, false) ? 'bold' : 'normal');
     root.style.setProperty('--i-desc-mb', getVal('Item_Desc_MarginBottom', '8px'));
     root.style.setProperty('--i-desc-sh', getShadow('Item_Desc_Shadow', true));
-
     root.style.setProperty('--i-allg-f', getVal('Item_Allerg_Font', 'sans-serif'));
     root.style.setProperty('--i-allg-c', getVal('Item_Allerg_Color', '#f87171'));
     root.style.setProperty('--i-allg-s', getVal('Item_Allerg_Size', '11px'));
     root.style.setProperty('--i-allg-w', isTruthy('Item_Allerg_Bold', true, false) ? 'bold' : 'normal');
     root.style.setProperty('--i-allg-mb', getVal('Item_Allerg_MarginBottom', '8px'));
     root.style.setProperty('--i-allg-sh', getShadow('Item_Allerg_Shadow', true));
-
     root.style.setProperty('--i-pric-f', getVal('Item_Price_Font', 'sans-serif'));
     root.style.setProperty('--i-pric-c', getVal('Item_Price_Color', '#4f46e5'));
     root.style.setProperty('--i-pric-s', getVal('Item_Price_Size', '16px'));
     root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
     root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
     
+    // FILTRI MARGINI
     root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
     root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
     root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
@@ -191,7 +193,7 @@ function applyConfig() {
     root.style.setProperty('--flt-bg-a', getVal('Filter_BgColor_Active', '#4f46e5'));
     root.style.setProperty('--flt-c-a', getVal('Filter_TextColor_Active', '#ffffff'));
 
-   // LOGO - Gestione Sicura e Allineata
+    // LOGO
     const logoCont = document.getElementById('logo-container');
     const logoType = getVal('Logo_Type', 'text').toLowerCase();
     const align = getVal('Logo_Align', 'center').toLowerCase();
@@ -201,14 +203,14 @@ function applyConfig() {
     
     if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
         const url = escapeHTML(getVal('Logo_Image_URL', ''));
-        // Aggiunto onload="updateLayout()" per ricalcolare tutto quando l'immagine è pronta
+        // onload avvia il ricalcolo dell'header dinamico
         logoCont.innerHTML = `<img src="${url}" style="max-height:${escapeHTML(getVal('Logo_Image_Size', '60px'))}; object-fit:contain;" alt="Logo Menu" onload="updateLayout()">`;
     } else {
         const text = escapeHTML(getVal('Logo_Text', 'Menu'));
         logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')}; text-align:${align}; width:100%;">${text}</h1>`;
     }
 
-    // SOTTOTITOLO
+    // SOTTOTITOLO E TITOLI DI LIVELLO
     const sub = document.getElementById('subtitle-container');
     if(!isTruthy('Subtitle_Show', true, true)) {
         sub.style.display = 'none';
@@ -225,17 +227,8 @@ function applyConfig() {
     const levelMarginB = getVal('Level_Title_Margin_Bottom', '25px');
     document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
 }
-// <-- Fine della funzione applyConfig() 
-    
-    const backBtn = document.getElementById('back-button');
-    const hHeight = parseInt(getVal('Header_Height', '120')) || 120;
-    const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
-    if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
-    else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
-    else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
-}
 
-// NUOVO MOTORE DI LAYOUT DINAMICO
+// MOTORE LAYOUT ADATTIVO
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -243,29 +236,26 @@ function updateLayout() {
         const mainContent = document.getElementById('main-content');
         const backBtn = document.getElementById('back-button');
 
-        // Misura l'altezza REALE dell'header in questo esatto momento
-        const hHeight = header.offsetHeight; 
+        if (!header) return;
+        const hHeight = header.offsetHeight || 100; 
 
-        // 1. Riposiziona il Sub-Header (Filtri)
-        if(subHeader) subHeader.style.top = `${hHeight}px`;
+        if (subHeader) subHeader.style.top = `${hHeight}px`;
 
-        // 2. Riposiziona il padding dei piatti
         let totalH = hHeight;
-        if(subHeader && !subHeader.classList.contains('hidden') && subHeader.style.display !== 'none') {
+        if (subHeader && !subHeader.classList.contains('hidden') && subHeader.style.display !== 'none') {
             totalH += subHeader.offsetHeight;
         }
-        if(mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
+        if (mainContent) mainContent.style.paddingTop = `calc(${totalH}px + 20px)`;
 
-        // 3. Riposiziona il tasto indietro
         const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
         if (pos === 'center') backBtn.style.top = `calc(${hHeight}px / 2 - 22px)`;
         else if (pos === 'bottom') backBtn.style.top = `calc(${hHeight}px - 55px)`;
         else if (pos === 'outside') backBtn.style.top = `calc(${hHeight}px + 15px)`;
         
-    }, 50); // Piccolo ritardo per permettere al browser di renderizzare i pixel
+    }, 50); 
 }
 
-// --- LOGICA RENDER E NAVIGAZIONE ---
+// --- FETCH E RENDER MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -522,17 +512,17 @@ function showPage(p, levelTitle = '') {
 
     if(p === 'page-macro') {
         backBtn.classList.remove('active');
-        subHeader.style.display = 'none';
-        wrapper.style.paddingLeft = '0px'; 
+        if(subHeader) subHeader.style.display = 'none';
+        if(wrapper) wrapper.style.paddingLeft = '0px'; 
     } else {
         backBtn.classList.add('active');
         const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
-        wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
+        if(wrapper) wrapper.style.paddingLeft = (align === 'left' && pos !== 'outside') ? '45px' : '0px';
         
         if(p === 'page-items') {
-            subHeader.style.display = 'flex'; 
+            if(subHeader) subHeader.style.display = 'flex'; 
         } else {
-            subHeader.style.display = 'none';
+            if(subHeader) subHeader.style.display = 'none';
             if(isTruthy('Level_Title_Show', true, true)) {
                 if(getVal('Level_Title_Position', 'inside').toLowerCase() === 'outside') {
                     titleOutside.classList.remove('hidden'); 
