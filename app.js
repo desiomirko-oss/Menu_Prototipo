@@ -1,3 +1,6 @@
+const VERSION = "1.1";
+console.log("Menu App Version: " + VERSION);
+
 const urlParams = new URLSearchParams(window.location.search);
 const SHEET_ID = urlParams.get('id'); 
 let appConfig = {};
@@ -23,21 +26,30 @@ function escapeJS(str) {
 
 function cleanString(val) {
     if (val === undefined || val === null || val === '') return '';
-    const cleaned = String(val).replace(/^['"]|['"]$/g, '').trim();
+    // Rimuove virgolette esterne e spazi
+    let cleaned = String(val).trim().replace(/^["']|["']$/g, '').trim();
     if (cleaned.toLowerCase() === 'undefined' || cleaned === '-') return '';
     return cleaned;
 }
 
+// --- MOTORE DI RICERCA CONFIG ---
 function getVal(key, def) {
-    let v = appConfig[key];
-    if (v === undefined || v === null || v === '' || String(v).toLowerCase() === 'undefined' || v === '-') return def;
-    return String(v).trim();
+    // Ricerca Case-Insensitive: cerca "Logo_Text" anche se nel CSV è "logo_text" o "Logo_text "
+    const searchKey = key.toLowerCase().trim();
+    for (let k in appConfig) {
+        if (k.toLowerCase().trim() === searchKey) {
+            let val = appConfig[k];
+            if (val === '' || val === undefined || val === null || val === '-') return def;
+            return val;
+        }
+    }
+    return def;
 }
 
 function getDynamicVal(prefix, suffix, def) {
-    const searchKey = `${prefix}${suffix}`.toLowerCase();
+    const searchKey = (prefix + suffix).toLowerCase().trim();
     for (let k in appConfig) {
-        if (k.toLowerCase() === searchKey) return getVal(k, def);
+        if (k.toLowerCase().trim() === searchKey) return appConfig[k] || def;
     }
     return def;
 }
@@ -69,11 +81,11 @@ function safeParseCSVRow(str) {
         let c = str[i];
         if (c === '"' && str[i+1] === '"') { cell += '"'; i++; } 
         else if (c === '"') { quote = !quote; }
-        else if (c === ',' && !quote) { arr.push(cell.trim()); cell = ''; }
+        else if (c === ',' && !quote) { arr.push(cell); cell = ''; }
         else { cell += c; }
     }
-    arr.push(cell.trim());
-    return arr.map(x => x.replace(/^"|"$/g, '').trim());
+    arr.push(cell);
+    return arr.map(x => cleanString(x));
 }
 
 // --- INIT APP ---
@@ -92,23 +104,29 @@ async function fetchConfig() {
     try {
         const response = await fetch(url);
         if(!response.ok) throw new Error("Network Error");
-        const csv = await response.text();
-        csv.split(/\r?\n/).slice(1).forEach(row => {
+        let csv = await response.text();
+        
+        // PULIZIA CARATTERI INVISIBILI (BOM)
+        csv = csv.replace(/^\ufeff/, '');
+
+        const rows = csv.split(/\r?\n/);
+        rows.slice(1).forEach(row => {
             if(row.trim() === '') return;
             const cols = safeParseCSVRow(row);
-            if(cols.length >= 2 && cols[0] !== '') {
-                let key = cols[0].replace(/^"|"$/g, '').replace(/,+$/, '').trim(); 
-                let val = cols[1] ? cols[1].replace(/^"|"$/g, '').replace(/;/g, ',').trim() : ''; 
+            if(cols.length >= 2) {
+                let key = cols[0];
+                let val = cols[1];
                 if(key) appConfig[key] = val;
             }
         });
+        console.log("Config Caricato:", appConfig);
     } catch(e) { console.error("Errore Config:", e); }
 }
 
 function applyConfig() {
     const root = document.documentElement;
     
-    // SFONDO APP
+    // SFONDO
     const bgType = getVal('Bg_Type', 'color').toLowerCase();
     root.style.setProperty('--app-bg', getVal('Bg_Color', '#f9fafb'));
     if(bgType === 'image' && getVal('Bg_Image_URL', '') !== '') {
@@ -119,7 +137,7 @@ function applyConfig() {
     root.style.setProperty('--app-bg-size', getVal('Bg_Image_Size', 'cover'));
     root.style.setProperty('--app-bg-pos', getVal('Bg_Image_Pos', 'center'));
 
-    // HEADER (Trasparenza e Ombre)
+    // HEADER
     root.style.setProperty('--header-bg', getVal('Header_BgColor', 'rgba(255, 255, 255, 0.95)'));
     let headerShadow = '0 4px 15px rgba(0,0,0,0.06)'; 
     const hShadowInt = getVal('Header_Shadow_Intensity', 'medium').toLowerCase();
@@ -128,7 +146,7 @@ function applyConfig() {
     else if(hShadowInt === 'none') headerShadow = 'none';
     root.style.setProperty('--header-shadow', headerShadow);
 
-    // MENU CARDS E OMBRE
+    // OMBRE E CARDS
     root.style.setProperty('--macro-h', getVal('Macro_Height', '180px'));
     root.style.setProperty('--back-bg', getVal('Back_Btn_Bg', 'rgba(255, 255, 255, 0.9)'));
     root.style.setProperty('--back-color', getVal('Back_Btn_Color', '#000'));
@@ -154,7 +172,7 @@ function applyConfig() {
     root.style.setProperty('--i-photo-h', getVal('Item_Photo_Height', '110px'));
     root.style.setProperty('--i-photo-sh', getShadow('Item_Photo_Shadow', false));
 
-    // TESTI
+    // TIPOGRAFIA
     root.style.setProperty('--macro-t-f', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-t-c', getVal('Macro_Text_Color', '#ffffff'));
     root.style.setProperty('--macro-txt-sh', getShadow('Macro_Text_Shadow', true));
@@ -182,7 +200,7 @@ function applyConfig() {
     root.style.setProperty('--i-pric-w', isTruthy('Item_Price_Bold', true, true) ? 'bold' : 'normal');
     root.style.setProperty('--i-pric-sh', getShadow('Item_Price_Shadow', true));
     
-    // FILTRI MARGINI
+    // FILTRI
     root.style.setProperty('--flt-f', getVal('Filter_Font', 'sans-serif'));
     root.style.setProperty('--flt-s', getVal('Filter_Size', '11px'));
     root.style.setProperty('--flt-w', isTruthy('Filter_Bold', true, true) ? 'bold' : 'normal');
@@ -203,14 +221,13 @@ function applyConfig() {
     
     if (logoType === 'image' && getVal('Logo_Image_URL', '') !== '') {
         const url = escapeHTML(getVal('Logo_Image_URL', ''));
-        // onload avvia il ricalcolo dell'header dinamico
         logoCont.innerHTML = `<img src="${url}" style="max-height:${escapeHTML(getVal('Logo_Image_Size', '60px'))}; object-fit:contain;" alt="Logo Menu" onload="updateLayout()">`;
     } else {
-        const text = escapeHTML(getVal('Logo_Text', 'Menu'));
+        const text = escapeHTML(getVal('Logo_Text', 'Il Mio Menu'));
         logoCont.innerHTML = `<h1 style="color:${getVal('Logo_Text_Color', '#000')}; font-size:${getVal('Logo_Text_Size', '28px')}; font-weight:${isTruthy('Logo_Text_Bold', true, true) ? 'bold' : 'normal'}; margin:0; line-height:1; font-family:${getVal('Logo_Text_Font', 'sans-serif')}; text-align:${align}; width:100%;">${text}</h1>`;
     }
 
-    // SOTTOTITOLO E TITOLI DI LIVELLO
+    // TITOLI E LIVELLI
     const sub = document.getElementById('subtitle-container');
     if(!isTruthy('Subtitle_Show', true, true)) {
         sub.style.display = 'none';
@@ -228,7 +245,7 @@ function applyConfig() {
     document.getElementById('level-title-outside').style.cssText = levelStyle + ` margin-top: 0px; margin-bottom: ${levelMarginB};`; 
 }
 
-// MOTORE LAYOUT ADATTIVO
+// MOTORE LAYOUT
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -255,7 +272,7 @@ function updateLayout() {
     }, 50); 
 }
 
-// --- FETCH E RENDER MENU ---
+// --- FETCH MENU ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -299,10 +316,9 @@ function renderLevel1() {
     layoutContainer.className = `page-content ${isGrid ? 'macro-grid' : 'macro-list'}`;
     layoutContainer.innerHTML = '';
 
-    const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
-
     macros.forEach(m => {
         let bgStyle = '';
+        const bgType = getVal('Macro_Bg_Type', 'image').toLowerCase();
         if (bgType === 'color') {
             bgStyle = `background: ${getVal('Macro_Bg_Color', '#cbd5e1')};`;
         } else {
