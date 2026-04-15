@@ -55,18 +55,22 @@ body {
 
 /* LAYOUT HEADER */
 #main-header {
-    background: var(--header-bg); height: var(--header-h); 
+    background: var(--header-bg); 
+    min-height: 100px; /* L'header ora può crescere! */
+    box-shadow: var(--header-shadow); 
     position: fixed; top: 0; left: 0; width: 100%; z-index: 999;
     display: flex; flex-direction: column; justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-    padding: 0 20px; transition: all 0.3s ease; overflow: hidden;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    padding: 15px 20px; /* Padding verticale per non far toccare i bordi al logo */
+    transition: all 0.3s ease; overflow: hidden;
 }
 #header-content-wrapper { transition: padding-left 0.3s ease; width: 100%; }
 #logo-container { width: 100%; display: flex; align-items: center; }
 .level-title { letter-spacing: 0.1em; text-transform: uppercase; }
 
 #sub-header {
-    background: var(--header-bg); position: fixed; width: 100%; z-index: 998; top: var(--header-h); left: 0; display: none; 
+    /* Ho rimosso 'top: 100px;', ora lo calcola JavaScript dinamicamente */
+    background: var(--header-bg); position: fixed; width: 100%; z-index: 998; left: 0; display: none; 
     flex-direction: column; align-items: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); 
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(0,0,0,0.05); transition: all 0.3s ease;
 }
