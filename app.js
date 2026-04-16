@@ -1,4 +1,4 @@
-const VERSION = "8.1-LIVELLO3-FILTRI";
+const VERSION = "8.2-FILTRI-ESCLUSIVI-MARGIN";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -7,7 +7,6 @@ let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
 
-// Variabili di stato per i filtri
 let currentMacro = '';
 let currentCat = '';
 let activeFilters = [];
@@ -76,7 +75,6 @@ function parseColor(colorVal, opacityVal = 1) {
 async function init() {
     setupAutoTranslate();
     
-    // Iniezione automatica del Sub-Header nel DOM se non esiste
     if (!document.getElementById('sub-header')) {
         const sh = document.createElement('div');
         sh.id = 'sub-header';
@@ -167,7 +165,9 @@ function applyConfig() {
         sub.style.display = 'none';
     }
 
-    // Parametri Sub-Header
+    // Variabili Sub-Header e Margine Filtri
+    root.style.setProperty('--filter-margin', getVal('SubHeader_Filter_Margin', '12px'));
+    
     const subHeaderTitle = document.getElementById('sub-header-title');
     if (subHeaderTitle) {
         subHeaderTitle.style.fontSize = getVal('SubHeader_Size', '16px');
@@ -175,7 +175,6 @@ function applyConfig() {
     }
 }
 
-// MOTORE MATEMATICO (Adattato per Sub-Header)
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -193,7 +192,6 @@ function updateLayout() {
                 else backBtn.style.top = (hHeight / 2 - 17) + "px"; 
             }
 
-            // Se il sub-header è visibile, si aggancia sotto al main header
             if (subHeader && subHeader.style.display === 'flex') {
                 subHeader.style.top = hHeight + "px";
                 totalHeight += subHeader.offsetHeight;
@@ -204,7 +202,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- MENU RENDERING (Ripristino Colonne Filtri) ---
+// --- MENU RENDERING ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -214,7 +212,6 @@ async function fetchMenu() {
         const rows = csv.split(/\r?\n/);
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
-            // Ripristinata la lettura delle colonne 6(gf), 7(vegan), 8(veg)
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
                     macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
@@ -258,27 +255,27 @@ function renderLevel2(m) {
     showPage('page-categories');
 }
 
-// LOGICA FILTRI
+// LOGICA FILTRI ESCLUSIVA (Radio Button Style)
 function toggleFilter(filterType) {
+    // Se il filtro cliccato è già attivo, lo spengo (torno a vedere tutti i piatti)
     if (activeFilters.includes(filterType)) {
-        activeFilters = activeFilters.filter(f => f !== filterType);
+        activeFilters = [];
     } else {
-        activeFilters.push(filterType);
+        // Altrimenti, svuoto l'array e inserisco SOLO il filtro cliccato
+        activeFilters = [filterType];
     }
     renderLevel3(currentMacro, currentCat, true);
 }
 
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
-    if (!isFiltering) activeFilters = []; // Resetta filtri se entro nuova categoria
+    if (!isFiltering) activeFilters = []; 
     
     const container = document.getElementById('page-items');
     container.innerHTML = '';
     
-    // Recupera tutti i piatti della categoria
     let allCategoryItems = fullData.filter(i => i.macro === m && i.cat === c);
     
-    // Crea i bottoni dei filtri in base a cosa esiste nella categoria
     if (!isFiltering) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
@@ -293,13 +290,11 @@ function renderLevel3(m, c, isFiltering = false) {
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
 
-    // Applica stato visuale ai bottoni
     ['gf', 'vegan', 'veg'].forEach(f => {
         const btn = document.getElementById(`btn-${f}`);
         if(btn) { activeFilters.includes(f) ? btn.classList.add('active') : btn.classList.remove('active'); }
     });
 
-    // Filtra gli items da mostrare
     let itemsToShow = allCategoryItems;
     if (activeFilters.length > 0) {
         itemsToShow = itemsToShow.filter(i => activeFilters.every(f => isTruthy(i[f])));
@@ -325,7 +320,7 @@ function renderLevel3(m, c, isFiltering = false) {
     }
 }
 
-// --- NAVIGAZIONE PROTETTA ---
+// --- NAVIGAZIONE ---
 function showPage(p) {
     ['page-macro','page-categories','page-items'].forEach(id => {
         const el = document.getElementById(id);
@@ -348,13 +343,9 @@ function showPage(p) {
         }
     }
 
-    // Il sub-header appare SOLO nel Terzo Livello (page-items)
     if (subHeader) {
-        if (p === 'page-items') {
-            subHeader.style.display = 'flex';
-        } else {
-            subHeader.style.display = 'none';
-        }
+        if (p === 'page-items') subHeader.style.display = 'flex';
+        else subHeader.style.display = 'none';
     }
 
     updateLayout();
