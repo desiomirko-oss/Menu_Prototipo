@@ -1,8 +1,9 @@
-const VERSION = "2.1-AUTO-TRANSLATE";
+const VERSION = "3.0-MODULO-LOGO";
 console.log("Menu App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
 const SHEET_ID = urlParams.get('id'); 
+let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
 
@@ -10,16 +11,13 @@ let activeFilters = [];
 let currentMacroName = '';
 let currentCategoryName = '';
 
-// --- MODULO 1: TRADUZIONE AUTOMATICA INVISIBILE ---
+// --- MODULO TRADUZIONE AUTOMATICA INVISIBILE ---
 function setupAutoTranslate() {
-    const baseLang = 'it'; // La lingua di partenza del tuo Menu
+    const baseLang = 'it'; 
     const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
     
-    // Se la lingua del telefono è diversa dall'italiano, attiviamo la magia
     if (userLang !== baseLang) {
         console.log(`Lingua rilevata: ${userLang}. Avvio traduzione automatica...`);
-        
-        // 1. Scudo CSS per nascondere i banner e i popup di Google Translate
         const style = document.createElement('style');
         style.innerHTML = `
             .goog-te-banner-frame.skiptranslate { display: none !important; } 
@@ -29,17 +27,14 @@ function setupAutoTranslate() {
         `;
         document.head.appendChild(style);
 
-        // 2. Forza il cookie per eseguire la traduzione senza chiedere il permesso
         const cookieString = `googtrans=/${baseLang}/${userLang}`;
         document.cookie = `${cookieString}; path=/`;
         
-        // 3. Crea il contenitore invisibile per il motore
         const widgetDiv = document.createElement('div');
         widgetDiv.id = 'google_translate_element';
         widgetDiv.style.display = 'none';
         document.body.appendChild(widgetDiv);
 
-        // 4. Inizializza Google Translate
         window.googleTranslateElementInit = function() {
             new google.translate.TranslateElement({
                 pageLanguage: baseLang,
@@ -47,16 +42,13 @@ function setupAutoTranslate() {
             }, 'google_translate_element');
         };
         
-        // 5. Scarica il motore
         const script = document.createElement('script');
         script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
         document.body.appendChild(script);
-    } else {
-        console.log("Lingua italiana rilevata. Menu originale mantenuto.");
     }
 }
 
-// --- SICUREZZA E PULIZIA ---
+// --- UTILITIES, SICUREZZA E TAGLIOLA VIRGOLE ---
 function escapeHTML(str) {
     if (str === null || str === undefined) return '';
     return String(str).replace(/[&<>'"]/g, tag => ({
@@ -71,6 +63,7 @@ function escapeJS(str) {
 
 function cleanString(val) {
     if (val === undefined || val === null || val === '') return '';
+    // Tagliola: distrugge le virgole fantasma di Google Sheets
     let cleaned = String(val).trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim();
     if (cleaned.toLowerCase() === 'undefined' || cleaned === '-') return '';
     return cleaned;
@@ -89,6 +82,18 @@ function safeParseCSVRow(str) {
     return arr.map(x => cleanString(x));
 }
 
+function getVal(key, def) {
+    const searchKey = key.toLowerCase().trim();
+    for (let k in appConfig) {
+        if (k.toLowerCase().trim() === searchKey) {
+            let val = appConfig[k];
+            if (val === '' || val === undefined || val === null || val === '-') return def;
+            return val;
+        }
+    }
+    return def;
+}
+
 function isDataTruthy(val) {
     let v = String(val || '').toUpperCase().trim();
     return ['TRUE', 'SI', 'SÌ', 'YES', '1', 'V', 'VERO'].includes(v);
@@ -96,25 +101,73 @@ function isDataTruthy(val) {
 
 // --- INIT APP ---
 async function init() {
-    setupAutoTranslate(); // Avviamo subito il modulo traduzione
+    setupAutoTranslate();
 
     if (!SHEET_ID) {
         document.getElementById('loading-screen').innerHTML = "<div class='text-error pt-20'>ID Cliente Mancante</div>";
         return;
     }
-    setupStaticHeader();
+    
+    await fetchConfig(); // Ora legge il Config per il Logo
+    applyConfig();       // Applica il Logo
     await fetchMenu();
 }
 
-function setupStaticHeader() {
-    const logoCont = document.getElementById('logo-container');
-    logoCont.innerHTML = `<h1 style="color:#111827; font-size:28px; font-weight:bold; margin:0; line-height:1; font-family:sans-serif; text-align:center; width:100%;" translate="no">IL MIO MENU</h1>`;
-    
-    document.getElementById('subtitle-container').style.display = 'none';
-    document.getElementById('level-title-inside').style.display = 'none';
-    document.getElementById('level-title-outside').style.display = 'none';
+// --- FETCH CONFIG E CABLAGGIO ---
+async function fetchConfig() {
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
+    try {
+        const response = await fetch(url);
+        if(!response.ok) throw new Error("Network Error");
+        let csv = await response.text();
+        csv = csv.replace(/^\ufeff/, ''); // Pulizia BOM
+        
+        const rows = csv.split(/\r?\n/);
+        rows.slice(1).forEach(row => {
+            if(row.trim() === '') return;
+            const cols = safeParseCSVRow(row);
+            if(cols.length >= 2) {
+                let key = cols[0];
+                let val = cols[1];
+                if(key) appConfig[key] = val;
+            }
+        });
+        console.log("Config Caricato:", appConfig);
+    } catch(e) { console.error("Errore Config:", e); }
 }
 
+function applyConfig() {
+    // MODULO 1: CABLAGGIO LOGO IMMAGINE
+    const logoCont = document.getElementById('logo-container');
+    const logoUrl = getVal('Logo_Image_URL', '');
+    const align = getVal('Logo_Align', 'center').toLowerCase();
+    const height = getVal('Logo_Height', '60px');
+    const mt = getVal('Logo_Margin_Top', '0px');
+    const mb = getVal('Logo_Margin_Bottom', '0px');
+
+    // Applicazione allineamenti e margini
+    logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
+    logoCont.style.marginTop = mt;
+    logoCont.style.marginBottom = mb;
+    
+    // Iniezione Immagine
+    if (logoUrl !== '') {
+        // L'evento onload attiva updateLayout() per espandere l'header se il logo è grande
+        logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" style="max-height:${escapeHTML(height)}; object-fit:contain;" alt="Logo Menu" onload="updateLayout()" translate="no">`;
+    } else {
+        logoCont.innerHTML = ''; // Se la cella è vuota, l'header rimane vuoto (nessun testo di emergenza)
+    }
+
+    // Altri elementi dell'header tenuti spenti e blindati per ora
+    const subContainer = document.getElementById('subtitle-container');
+    const lvlInside = document.getElementById('level-title-inside');
+    const lvlOutside = document.getElementById('level-title-outside');
+    if(subContainer) subContainer.style.display = 'none';
+    if(lvlInside) lvlInside.style.display = 'none';
+    if(lvlOutside) lvlOutside.style.display = 'none';
+}
+
+// --- MOTORE LAYOUT ---
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -137,7 +190,7 @@ function updateLayout() {
     }, 50); 
 }
 
-// --- FETCH MENU ---
+// --- FETCH MENU E RENDER ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -292,7 +345,7 @@ function renderLevel3(mName, cName, isFiltering = false) {
         
         let allergensHTML = safeAllerg && safeAllerg !== '-' ? `<span class="item-allerg">Allergeni: ${safeAllerg}</span>` : '';
         let descHTML = safeDesc && safeDesc !== '-' ? `<p class="item-desc">${safeDesc}</p>` : '';
-        let priceHTML = `<span class="item-price" translate="no">${safePrice}</span>`; // Non tradurre il prezzo!
+        let priceHTML = `<span class="item-price" translate="no">${safePrice}</span>`;
 
         let arHTML = '';
         if (safeAr) {
