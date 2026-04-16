@@ -1,4 +1,4 @@
-const VERSION = "7.0-STABILE-BLINDATA";
+const VERSION = "1.0-REBOOT-LOGO";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -7,27 +7,7 @@ let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
 
-// --- TRADUZIONE ---
-function setupAutoTranslate() {
-    const baseLang = 'it'; 
-    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
-    if (userLang !== baseLang) {
-        const style = document.createElement('style');
-        style.innerHTML = `.goog-te-banner-frame.skiptranslate { display: none !important; } body { top: 0px !important; } #goog-gt-tt { display: none !important; }`;
-        document.head.appendChild(style);
-        document.cookie = `googtrans=/${baseLang}/${userLang}; path=/`;
-        const widgetDiv = document.createElement('div');
-        widgetDiv.id = 'google_translate_element';
-        widgetDiv.style.display = 'none';
-        document.body.appendChild(widgetDiv);
-        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({pageLanguage: baseLang, autoDisplay: false}, 'google_translate_element'); };
-        const script = document.createElement('script');
-        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        document.body.appendChild(script);
-    }
-}
-
-// --- UTILITIES ---
+// --- UTILITIES BLINDATE ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
 function escapeHTML(str) { return String(str || '').replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":"&#39;",'"':'&quot;'}[t] || t)); }
 function escapeJS(str) { return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
@@ -50,69 +30,31 @@ function getVal(key, def) {
     return def;
 }
 
-function isTruthy(val) { return ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(val || '').toUpperCase().trim()); }
-
-function parseColor(colorVal, opacityVal = 1) {
-    let op = parseFloat(opacityVal); if(isNaN(op)) op = 1; 
-    let c = String(colorVal).trim(); if (!c) return `rgba(255,255,255,${op})`;
-    if(/^[0-9A-Fa-f]{3,6}$/.test(c)) c = '#' + c;
-    if (c.startsWith('#')) {
-        let hex = c.replace('#', '');
-        if(hex.length === 3) hex = hex.split('').map(x => x+x).join(''); 
-        if(hex.length === 6) {
-            let r = parseInt(hex.substring(0, 2), 16), g = parseInt(hex.substring(2, 4), 16), b = parseInt(hex.substring(4, 6), 16);
-            return `rgba(${r}, ${g}, ${b}, ${op})`;
-        }
-    }
-    return c; 
-}
-
-// --- CORE ---
+// --- INIT ---
 async function init() {
-    setupAutoTranslate();
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
     await fetchMenu();
 }
 
+// --- FETCH CONFIG (Modulo 1) ---
 async function fetchConfig() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
     try {
         const response = await fetch(url);
         let csv = await response.text();
-        csv.replace(/^\ufeff/, '').split(/\r?\n/).forEach(row => {
-            const cols = safeParseCSVRow(row);
-            if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
-        });
         
-        // --- ALLARME SALVA-VITA PER GOOGLE SHEETS ---
-        const keys = Object.keys(appConfig);
-        if (keys.length > 0 && keys[0].includes("Logo_Image_URL") && keys[0].length > 30) {
-            document.body.innerHTML = `
-            <div style="padding: 40px; text-align: center; font-family: sans-serif;">
-                <h2 style="color: #ef4444;">🚨 Errore Google Sheets! 🚨</h2>
-                <p>Hai incollato tutti i dati in un'unica cella.</p>
-                <p>Vai nel tuo foglio Google, seleziona la Colonna A, e clicca su <b>Dati > Dividi testo in colonne</b>.</p>
-            </div>`;
-            throw new Error("Dati schiacciati in una sola cella");
-        }
-
+        csv.replace(/^\ufeff/, '').split(/\r?\n/).forEach(row => {
+            if(!row.trim()) return;
+            const cols = safeParseCSVRow(row);
+            if(cols.length >= 2) appConfig[cols[0]] = cols[1];
+        });
         console.log("Config Caricato:", appConfig);
-    } catch(e) { console.error(e); }
+    } catch(e) { console.error("Errore Config:", e); }
 }
 
 function applyConfig() {
-    const root = document.documentElement;
-
-    // Header Colori
-    root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), getVal('Header_Opacity', '1')));
-    
-    // Tasto Indietro
-    root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
-    root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
-
-    // Logo
     const logoCont = document.getElementById('logo-container');
     const logoUrl = getVal('Logo_Image_URL', '');
     const align = getVal('Logo_Align', 'center').toLowerCase();
@@ -123,33 +65,26 @@ function applyConfig() {
     
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
+        // Aspettiamo che il logo sia visibile prima di spostare i piatti giù
         document.getElementById('app-logo').onload = updateLayout;
     } else {
         logoCont.innerHTML = '';
         updateLayout();
     }
-
-    // Nascondiamo il sottotitolo per tornare alla versione stabile e pulita
-    const sub = document.getElementById('subtitle-container');
-    if (sub) sub.style.display = 'none';
 }
 
+// Calcola lo spazio esatto sotto l'header
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
         const main = document.getElementById('main-content');
-        const back = document.getElementById('back-button');
-
-        if (!header || !main) return;
-        const hHeight = header.offsetHeight;
-        main.style.paddingTop = `calc(${hHeight}px + 20px)`;
-        
-        // Tasto indietro fisso in alto a sinistra
-        if (back) back.style.top = "25px";
+        if (header && main) {
+            main.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
+        }
     }, 50);
 }
 
-// --- RENDERING MENU ---
+// --- FETCH MENU E RENDERING (Per far funzionare l'app) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -161,7 +96,7 @@ async function fetchMenu() {
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], active: c[10]||'TRUE', photo: c[11] });
         }
-        fullData = fullData.filter(i => isTruthy(i.active));
+        fullData = fullData.filter(i => ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(i.active).toUpperCase().trim()));
         document.getElementById('loading-screen').classList.add('hidden');
         renderLevel1();
     } catch(e) { console.error(e); }
@@ -200,14 +135,16 @@ function renderLevel3(m, c) {
 }
 
 function showPage(p) {
-    ['page-macro','page-categories','page-items'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    ['page-macro','page-categories','page-items'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
+    });
     document.getElementById(p).classList.remove('hidden');
-    const back = document.getElementById('back-button');
-    if (back) p === 'page-macro' ? back.classList.remove('active') : back.classList.add('active');
     updateLayout();
     window.scrollTo({top: 0, behavior: 'instant'});
 }
 
+// Il tasto indietro per ora è disattivato visivamente, ma la funzione c'è
 function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
 
 init();
