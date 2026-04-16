@@ -12,6 +12,9 @@
     --macro-text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
     --macro-align-v: center;
     --macro-align-h: center;
+    /* Variabili Tasto Indietro */
+    --back-bg: #111827;
+    --back-color: #ffffff;
 }
 
 body {
@@ -26,7 +29,7 @@ body {
     color: #111827;
 }
 
-/* HEADER COMPATTO (Modulo 6) */
+/* HEADER COMPATTO CON TASTO INDIETRO */
 #main-header {
     background: var(--header-bg);
     box-shadow: var(--header-shadow);
@@ -38,8 +41,7 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    /* 10px fissi sopra e sotto! */
-    padding: 10px 20px 10px 20px; 
+    padding: 10px 20px; 
     min-height: 100px; 
     height: auto;      
     transition: background 0.3s ease;
@@ -47,9 +49,33 @@ body {
     -webkit-backdrop-filter: blur(12px);
 }
 
+/* Wrapper per proteggere il logo se il tasto appare a sinistra */
+#header-content-wrapper { width: 100%; transition: padding-left 0.3s ease; }
+
 #logo-container { width: 100%; display: flex; align-items: center; }
 #subtitle-container { width: 100%; display: none; line-height: 1.4; word-wrap: break-word; }
-#back-button { display: none !important; }
+
+/* TASTO INDIETRO MATEMATICO */
+#back-button {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: var(--back-bg);
+    color: var(--back-color);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    cursor: pointer;
+    z-index: 1000;
+    transition: opacity 0.2s;
+}
+#back-button.active { display: flex; }
 
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
