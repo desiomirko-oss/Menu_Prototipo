@@ -1,21 +1,16 @@
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-:root {
-    --header-bg: rgba(255, 255, 255, 0.95);
-    --header-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    --back-bg: #111827;
-    --back-color: #ffffff;
-}
-
 body {
     background-color: #f9fafb;
     min-height: 100vh;
     font-family: ui-sans-serif, system-ui, sans-serif;
+    color: #111827;
 }
 
+/* HEADER BASE - Si adatta dinamicamente all'altezza del logo */
 #main-header {
-    background: var(--header-bg);
-    box-shadow: var(--header-shadow);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     position: fixed;
     top: 0;
     left: 0;
@@ -25,40 +20,26 @@ body {
     flex-direction: column;
     justify-content: center;
     padding: 10px 20px;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
 }
 
 #logo-container { width: 100%; display: flex; align-items: center; }
-#subtitle-container { width: 100%; display: none; }
 
-#back-button {
-    position: fixed;
-    left: 15px;
-    width: 44px;
-    height: 44px;
-    background: var(--back-bg);
-    color: var(--back-color);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    z-index: 1000;
-    border: none;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-#back-button.active { display: flex; }
+/* NASCONDIAMO SOTTOTITOLO E TASTO INDIETRO PER ORA */
+#subtitle-container, #back-button { display: none !important; }
 
-#main-content { padding-top: 120px; } /* Valore di base, verrà ricalcolato */
-
+/* CONTENUTO */
+#main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
+
+/* GRIGLIA MENU */
 .macro-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 .macro-card { 
     height: 180px; border-radius: 1.25rem; background-size: cover; background-position: center; 
     position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+    background-color: #d1d5db; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-.macro-text-inside { color: white; font-weight: 800; text-transform: uppercase; z-index: 10; font-size: 1.2rem; }
 .macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); }
+.macro-text-inside { color: white; font-weight: 800; text-transform: uppercase; z-index: 10; font-size: 1.2rem; }
 
 .menu-card { background: white; padding: 20px; border-radius: 24px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .item-card { display: flex; justify-content: space-between; gap: 1rem; }
