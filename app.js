@@ -1,4 +1,4 @@
-const VERSION = "2.0-MODULO-HEADER";
+const VERSION = "2.1-HEADER-TRASPARENZA";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -6,6 +6,26 @@ const SHEET_ID = urlParams.get('id');
 let appConfig = {};
 let fullData = [];
 let navigationStack = ['page-macro'];
+
+// --- TRADUZIONE ---
+function setupAutoTranslate() {
+    const baseLang = 'it'; 
+    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
+    if (userLang !== baseLang) {
+        const style = document.createElement('style');
+        style.innerHTML = `.goog-te-banner-frame.skiptranslate { display: none !important; } body { top: 0px !important; } #goog-gt-tt { display: none !important; }`;
+        document.head.appendChild(style);
+        document.cookie = `googtrans=/${baseLang}/${userLang}; path=/`;
+        const widgetDiv = document.createElement('div');
+        widgetDiv.id = 'google_translate_element';
+        widgetDiv.style.display = 'none';
+        document.body.appendChild(widgetDiv);
+        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({pageLanguage: baseLang, autoDisplay: false}, 'google_translate_element'); };
+        const script = document.createElement('script');
+        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+        document.body.appendChild(script);
+    }
+}
 
 // --- UTILITIES BLINDATE ---
 function cleanString(val) { return String(val || '').trim().replace(/^["']|["']$/g, '').replace(/,+$/, '').trim(); }
@@ -30,7 +50,8 @@ function getVal(key, def) {
     return def;
 }
 
-// Convertitore Colori Antiproiettile
+function isTruthy(val) { return ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(val || '').toUpperCase().trim()); }
+
 function parseColor(colorVal, opacityVal = 1) {
     let op = parseFloat(opacityVal); if(isNaN(op)) op = 1; 
     let c = String(colorVal).trim(); if (!c) return `rgba(255,255,255,${op})`;
@@ -46,27 +67,26 @@ function parseColor(colorVal, opacityVal = 1) {
     return c; 
 }
 
-// --- INIT ---
+// --- CORE ---
 async function init() {
+    setupAutoTranslate();
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
     await fetchMenu();
 }
 
-// --- FETCH CONFIG ---
 async function fetchConfig() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=config&t=${Date.now()}`;
     try {
         const response = await fetch(url);
         let csv = await response.text();
-        
         csv.replace(/^\ufeff/, '').split(/\r?\n/).forEach(row => {
             if(!row.trim()) return;
             const cols = safeParseCSVRow(row);
-            if(cols.length >= 2) appConfig[cols[0]] = cols[1];
+            if(cols.length >= 2 && cols[0].toLowerCase() !== 'property') appConfig[cols[0]] = cols[1];
         });
-
+        
         // Allarme Salva-Vita Google Sheets
         const keys = Object.keys(appConfig);
         if (keys.length > 0 && keys[0].includes("Logo_Image_URL") && keys[0].length > 30) {
@@ -74,14 +94,18 @@ async function fetchConfig() {
             throw new Error("Dati CSV compressi");
         }
         console.log("Config Caricato:", appConfig);
-    } catch(e) { console.error("Errore Config:", e); }
+    } catch(e) { console.error(e); }
 }
 
 function applyConfig() {
     const root = document.documentElement;
 
-    // --- MODULO 2: HEADER E COLORI ---
-    root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), getVal('Header_Opacity', '0.95')));
+    // --- MODULO 2: HEADER E COLORI (Fix Trasparenza) ---
+    // Se Header_Transparent è VERO, opacità 0.5. Altrimenti 1.
+    const isTransparent = isTruthy(getVal('Header_Transparent', 'FALSE'));
+    const headerOpacity = isTransparent ? '0.5' : '1';
+    
+    root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), headerOpacity));
     
     let shadow = 'none'; 
     const intensity = getVal('Header_Shadow_Intensity', 'medium').toLowerCase();
@@ -89,6 +113,10 @@ function applyConfig() {
     else if(intensity === 'medium') shadow = '0 4px 15px rgba(0,0,0,0.08)';
     else if(intensity === 'strong') shadow = '0 8px 25px rgba(0,0,0,0.15)';
     root.style.setProperty('--header-shadow', shadow);
+
+    // Tasto Indietro (Nascosto ma cablato in sicurezza)
+    root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
+    root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
 
     // --- MODULO 1: LOGO ---
     const logoCont = document.getElementById('logo-container');
@@ -113,7 +141,6 @@ function updateLayout() {
         const header = document.getElementById('main-header');
         const main = document.getElementById('main-content');
         if (header && main) {
-            // L'header ora è ALMENO 100px. Calcoliamo lo spazio effettivo in base all'ingombro del logo.
             main.style.paddingTop = `calc(${header.offsetHeight}px + 20px)`;
         }
     }, 50);
@@ -131,7 +158,7 @@ async function fetchMenu() {
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) fullData.push({ macro: c[0], cat: c[1], name: c[2], desc: c[3], price: c[5], active: c[10]||'TRUE', photo: c[11] });
         }
-        fullData = fullData.filter(i => ['TRUE','SI','SÌ','YES','1','V','VERO'].includes(String(i.active).toUpperCase().trim()));
+        fullData = fullData.filter(i => isTruthy(i.active));
         document.getElementById('loading-screen').classList.add('hidden');
         renderLevel1();
     } catch(e) { console.error(e); }
