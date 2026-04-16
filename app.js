@@ -1,4 +1,4 @@
-const VERSION = "7.2-MICRO-NAV-FIX";
+const VERSION = "8.0-FINAL-VAULT";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -97,9 +97,17 @@ async function fetchConfig() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // --- MODULO 7: TASTO INDIETRO ---
+    // --- MODULO 7: TASTO INDIETRO E OMBRA ---
     root.style.setProperty('--back-bg', parseColor(getVal('Back_Btn_Bg', '#111827')));
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
+    
+    let bShadow = '0 4px 6px rgba(0,0,0,0.1)';
+    const bInt = getVal('Back_Btn_Shadow_Intensity', 'medium').toLowerCase();
+    if(bInt === 'none') bShadow = 'none';
+    else if(bInt === 'light') bShadow = '0 2px 4px rgba(0,0,0,0.05)';
+    else if(bInt === 'strong') bShadow = '0 10px 15px rgba(0,0,0,0.3)';
+    root.style.setProperty('--back-shadow', bShadow);
+
     const backBtn = document.getElementById('back-button');
     if (backBtn) {
         const svg = backBtn.querySelector('svg');
@@ -188,7 +196,7 @@ function applyConfig() {
     }
 }
 
-// IL MOTORE MATEMATICO DEL BOTTONE INDIETRO
+// MOTORE MATEMATICO
 function updateLayout() {
     setTimeout(() => {
         const header = document.getElementById('main-header');
@@ -201,12 +209,9 @@ function updateLayout() {
             
             if (backBtn) {
                 const pos = getVal('Back_Btn_Position', 'center').toLowerCase();
-                // Il bottone ora è 34px. La metà è 17px.
                 if (pos === 'bottom') {
-                    // Se lo vuoi in basso, calcola l'altezza dell'header meno i 34px del bottone, meno 10px di margine
                     backBtn.style.top = (hHeight - 34 - 10) + "px"; 
                 } else {
-                    // Di default è al centro perfetto
                     backBtn.style.top = (hHeight / 2 - 17) + "px"; 
                 }
             }
@@ -291,7 +296,6 @@ function showPage(p) {
             if(wrapper) wrapper.style.paddingLeft = '0px'; 
         } else {
             backBtn.classList.add('active');
-            // La protezione a sinistra è rimasta di 50px per evitare che testi o loghi tocchino il bottone
             if(wrapper && align === 'left') {
                 wrapper.style.paddingLeft = '50px';
             }
