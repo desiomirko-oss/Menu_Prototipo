@@ -3,7 +3,6 @@
 :root {
     --header-bg: rgba(255, 255, 255, 0.95);
     --header-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    /* Nuove variabili per le Macro (Modulo 5) */
     --macro-cols: 2;
     --macro-height: 180px;
     --macro-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -27,6 +26,7 @@ body {
     color: #111827;
 }
 
+/* HEADER COMPATTO (Modulo 6) */
 #main-header {
     background: var(--header-bg);
     box-shadow: var(--header-shadow);
@@ -38,7 +38,8 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 10px 20px;
+    /* 10px fissi sopra e sotto! */
+    padding: 10px 20px 10px 20px; 
     min-height: 100px; 
     height: auto;      
     transition: background 0.3s ease;
@@ -53,42 +54,20 @@ body {
 #main-content { padding-top: 100px; transition: padding-top 0.2s ease; }
 .container { max-width: 28rem; margin: 0 auto; padding: 0 1.25rem 2.5rem; }
 
-/* MODULO 5: MACRO GRID DINAMICA */
-.macro-container { 
-    display: grid; 
-    grid-template-columns: repeat(var(--macro-cols), 1fr); 
-    gap: 1rem; 
-}
+/* MACRO E CARD */
+.macro-container { display: grid; grid-template-columns: repeat(var(--macro-cols), 1fr); gap: 1rem; }
 .macro-card { 
-    height: var(--macro-height); 
-    border-radius: 1.25rem; 
-    background-size: cover; 
-    background-position: center; 
-    position: relative; 
-    overflow: hidden; 
-    display: flex; 
-    align-items: var(--macro-align-v); 
-    justify-content: var(--macro-align-h);
-    padding: 20px;
-    background-color: #d1d5db; 
-    cursor: pointer; 
-    box-shadow: var(--macro-shadow);
-    transition: transform 0.2s;
+    height: var(--macro-height); border-radius: 1.25rem; background-size: cover; background-position: center; 
+    position: relative; overflow: hidden; display: flex; align-items: var(--macro-align-v); justify-content: var(--macro-align-h);
+    padding: 20px; background-color: #d1d5db; cursor: pointer; box-shadow: var(--macro-shadow); transition: transform 0.2s;
 }
 .macro-card:active { transform: scale(0.98); }
 .macro-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); z-index: 1; }
 .macro-text-inside { 
-    color: var(--macro-text-color); 
-    font-family: var(--macro-text-font);
-    font-weight: var(--macro-text-weight);
-    text-shadow: var(--macro-text-shadow);
-    text-align: var(--macro-align-h);
-    z-index: 10; 
-    font-size: 1.5rem; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: var(--macro-text-color); font-family: var(--macro-text-font); font-weight: var(--macro-text-weight);
+    text-shadow: var(--macro-text-shadow); text-align: var(--macro-align-h); z-index: 10; font-size: 1.5rem; 
+    text-transform: uppercase; letter-spacing: 1px;
 }
-
 .menu-card { background: white; padding: 20px; border-radius: 24px; margin-bottom: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 .item-card { display: flex; justify-content: space-between; gap: 1rem; }
 .item-photo { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; }
