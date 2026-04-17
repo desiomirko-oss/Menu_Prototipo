@@ -1,4 +1,4 @@
-const VERSION = "12.0-INVISIBLE-TRANSLATOR";
+const VERSION = "12.1-TRANSLATOR-KILLER";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -56,11 +56,8 @@ async function init() {
     }
     if (!SHEET_ID) return;
     await fetchConfig(); 
-    applyConfig();  
-    
-    // Il traduttore ora parte DOPO aver letto le tue impostazioni
-    setupAutoTranslate();     
-    
+    applyConfig();       
+    setupAutoTranslate(); // Avvia il traduttore killer dopo aver letto le impostazioni
     await fetchMenu();
 }
 
@@ -77,47 +74,27 @@ async function fetchConfig() {
     } catch(e) { console.error(e); }
 }
 
-// --- MODULO 12: TRADUZIONE INVISIBILE E INTELLIGENTE ---
+// --- MODULO 12.1: TRANSLATOR KILLER ---
 function setupAutoTranslate() {
-    // 1. Legge la lingua sorgente (default 'es' se non trovata)
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase();
-    
-    // 2. Legge le lingue permesse (default 'ALL')
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase();
-    
-    // 3. Rileva la lingua del telefono dell'utente
-    const userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
+    let userLang = navigator.language || navigator.userLanguage;
+    userLang = userLang.slice(0, 2).toLowerCase();
 
-    // REGOLA A: Se il telefono è nella stessa lingua del menu, NON FARE NULLA.
-    if (userLang === sourceLang) {
-        console.log("Lingua utente coincide con menu. Nessuna traduzione necessaria.");
-        return;
-    }
+    // Se lingua telefono = lingua app, spegni tutto
+    if (userLang === sourceLang) return;
 
-    // REGOLA B: Se hai limitato le lingue (es. 'en,de,fr') e quella dell'utente non c'è, NON FARE NULLA.
+    // Se la lingua telefono non è tra quelle permesse, spegni tutto
     if (targetLangsStr !== 'ALL') {
         const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
-        if (!allowedLangs.includes(userLang)) {
-            console.log("Lingua utente non nelle target permesse. Nessuna traduzione.");
-            return;
-        }
+        if (!allowedLangs.includes(userLang)) return;
     }
 
-    // Se passa i controlli, prepariamo lo scudo invisibile contro i banner di Google
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .goog-te-banner-frame.skiptranslate, .goog-te-gadget-icon { display: none !important; }
-        body { top: 0px !important; position: static !important; }
-        #goog-gt-tt, .goog-tooltip { display: none !important; }
-        .goog-tooltip:hover { display: none !important; }
-        .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
-    `;
-    document.head.appendChild(style);
-
-    // Forza il cookie di traduzione per renderla immediata
+    // Forza aggressivamente il cookie per tradurre senza chiedere
     document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
+    document.cookie = `googtrans=/${sourceLang}/${userLang}; domain=${window.location.hostname}; path=/`;
 
-    // Inietta il widget nascosto
+    // Inietta il contenitore nascosto di Google
     const widgetDiv = document.createElement('div');
     widgetDiv.id = 'google_translate_element';
     widgetDiv.style.display = 'none';
@@ -133,7 +110,18 @@ function setupAutoTranslate() {
     const script = document.createElement('script');
     script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     document.body.appendChild(script);
-    console.log(`Traduzione attivata: da ${sourceLang} a ${userLang}`);
+
+    // IL CECCHINO: Controlla ogni 100ms se Google prova a sfasare la pagina e lo blocca. Si spegne dopo 5 secondi.
+    const killerInterval = setInterval(() => {
+        const frames = document.querySelectorAll('iframe.goog-te-banner-frame');
+        frames.forEach(f => f.style.display = 'none');
+        
+        if (document.body.style.top !== '0px' && document.body.style.top !== '') {
+            document.body.style.top = '0px';
+        }
+    }, 100);
+
+    setTimeout(() => clearInterval(killerInterval), 5000);
 }
 
 function applyConfig() {
@@ -181,7 +169,7 @@ function applyConfig() {
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
     logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
-        logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no">`;
+        logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
     }
 
@@ -360,9 +348,9 @@ function renderLevel3(m, c, isFiltering = false) {
         <div class="menu-card">
             <div class="item-card">
                 <div style="flex-grow:1;">
-                    <div class="item-name">${escapeHTML(i.name)}</div>
+                    <div class="item-name notranslate">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
-                    <div class="item-price">${escapeHTML(i.price)}</div>
+                    <div class="item-price notranslate">${escapeHTML(i.price)}</div>
                 </div>
                 ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
