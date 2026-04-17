@@ -6,47 +6,51 @@
     <title>Menu Digitale</title>
     
     <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ffffff">
     
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Menu">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header id="main-header">
         <div id="header-content-wrapper">
+            <button id="back-button" onclick="goBack()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
             <div id="logo-container"></div>
             <div id="subtitle-container"></div>
-            <div id="level-title-inside" class="level-title hidden"></div>
         </div>
     </header>
 
-    <div id="sub-header">
-        <h2 id="sub-header-title"></h2>
-        <div id="sub-header-filters" class="filter-container"></div>
-    </div>
-
-    <button id="back-button" onclick="goBack()" aria-label="Torna indietro">
-        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-    </button>
-
-    <main id="main-content" class="container">
-        <div id="loading-screen" class="flex-center-col pt-20">
-            <div class="loader mb-4"></div>
-            <p id="loading-text">Sincronizzazione...</p>
+    <main id="main-content">
+        <div class="container">
+            <div id="macro-layout-container" class="macro-container hidden"></div>
+            <div id="page-categories" class="hidden"></div>
+            <div id="page-items" class="hidden"></div>
         </div>
-
-        <div id="level-title-outside" class="level-title hidden mb-4"></div>
-
-        <section id="page-macro" class="hidden"><div id="macro-layout-container" class="page-content"></div></section>
-        <section id="page-categories" class="hidden page-content space-y-4"></section>
-        <section id="page-items" class="hidden page-content space-y-4"></section>
     </main>
 
+    <div id="loading-screen" style="position:fixed; inset:0; background:#fff; z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <span style="font-family:sans-serif; font-weight:bold; color:#111827;">Caricamento Menu...</span>
+    </div>
+
     <script src="app.js"></script>
+
     <script>
-        // Registrazione Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(err => console.log('SW setup fallito:', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('PWA Service Worker registrato con successo:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('Registrazione Service Worker fallita:', error);
+                    });
             });
         }
     </script>
