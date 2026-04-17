@@ -16,6 +16,14 @@
     --ar-btn-bg: #111827; --ar-btn-color: #ffffff;
 }
 
+/* 🚨 BLOCCO TRADUTTORE INVISIBILE 🚨 */
+iframe.goog-te-banner-frame, .goog-te-banner-frame { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; border: none !important; }
+html { margin-top: 0px !important; height: 100% !important; }
+body { top: 0px !important; position: static !important; min-height: 100vh !important; }
+#goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; visibility: hidden !important; }
+.goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
+#google_translate_element { display: none !important; height: 0 !important; }
+
 body {
     background-color: var(--app-bg-color, #f9fafb); background-image: var(--app-bg-image, none);
     background-size: var(--app-bg-size, cover); background-position: var(--app-bg-position, center);
