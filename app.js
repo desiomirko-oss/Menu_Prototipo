@@ -1,11 +1,11 @@
-const VERSION = "11.6.1-PIATTI-SPACING-FIX";
+const VERSION = "12.2-SUPER-MOTORE-BLINDATO";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
 const SHEET_ID = urlParams.get('id'); 
 let appConfig = {};
 let fullData = [];
-let navigationStack = ['page-macro'];
+let navigationStack = [];
 let currentMacro = '';
 let currentCat = '';
 let activeFilters = [];
@@ -127,7 +127,6 @@ function setupAutoTranslate() {
 function applyConfig() {
     const root = document.documentElement;
 
-    // Sfondo App Fisso 
     const bgType = getVal('App_Bg_Type', 'color').toLowerCase().trim();
     const bgImgUrl = getVal('App_Bg_Image_URL', '');
     if (bgType === 'image' && bgImgUrl !== '') {
@@ -143,14 +142,12 @@ function applyConfig() {
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
     
-    // Colori Filtri
     const defaultFilterColor = getVal('Subtitle_Color', '#6b7280');
     root.style.setProperty('--filter-bg', parseColor(getVal('Filter_Bg_Color', 'transparent')));
     root.style.setProperty('--filter-text', parseColor(getVal('Filter_Text_Color', defaultFilterColor)));
     root.style.setProperty('--filter-active-bg', parseColor(getVal('Filter_Active_Bg_Color', defaultFilterColor)));
     root.style.setProperty('--filter-active-text', parseColor(getVal('Filter_Active_Text_Color', '#ffffff')));
 
-    // Bordi Configurabili
     const mBorderEn = isTruthy(getVal('Macro_Border_Enable', 'FALSE'));
     const mBorderW = getVal('Macro_Border_Width', '1px');
     root.style.setProperty('--macro-border', mBorderEn ? `${mBorderW} solid ${parseColor(getVal('Macro_Border_Color', '#e5e7eb'))}` : 'none');
@@ -163,7 +160,6 @@ function applyConfig() {
     const iBorderW = getVal('Item_Border_Width', '1px');
     root.style.setProperty('--item-border', iBorderEn ? `${iBorderW} solid ${parseColor(getVal('Item_Border_Color', '#e5e7eb'))}` : 'none');
 
-    // Layout
     root.style.setProperty('--macro-cols', getVal('Macro_Layout', 'grid').toLowerCase() === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
     const mInt = getVal('Macro_Shadow_Intensity', 'medium').toLowerCase();
@@ -255,7 +251,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- FETCH MENU (Rigidi 15 Parametri) ---
+// --- FETCH MENU E ROUTING (MENU_LEVELS) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -266,6 +262,7 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
+                // Lettura rigida e blindata delle colonne
                 fullData.push({ 
                     _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
                     gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '' 
@@ -274,7 +271,21 @@ async function fetchMenu() {
         }
         fullData = fullData.filter(i => isTruthy(i.active));
         document.getElementById('loading-screen').classList.add('hidden');
-        renderLevel1(); 
+        
+        // 🆕 Lettura Menu_Levels
+        const levels = parseInt(getVal('Menu_Levels', '3')) || 3;
+        
+        if (levels === 1) {
+            navigationStack = ['page-items'];
+            renderLevel3('', ''); // Lista piatti totale
+        } else if (levels === 2) {
+            navigationStack = ['page-categories'];
+            renderLevel2(''); // Lista categorie totale
+        } else {
+            navigationStack = ['page-macro'];
+            renderLevel1(); // Standard 3 livelli
+        }
+
     } catch(e) { console.error(e); }
 }
 
@@ -294,7 +305,10 @@ function renderLevel1() {
 
 function renderLevel2(m) {
     const container = document.getElementById('page-categories');
-    const cats = [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
+    
+    // 🆕 Se m === '' (livello 2 diretto), prendi tutte le categorie. Altrimenti filtra per macro.
+    let cats = m === '' ? [...new Set(fullData.map(i => i.cat))] : [...new Set(fullData.filter(i => i.macro === m).map(i => i.cat))];
+    
     container.className = 'cat-container'; container.innerHTML = '';
     const layout = getVal('Cat_Layout', 'list').toLowerCase();
 
@@ -328,13 +342,20 @@ function renderLevel3(m, c, isFiltering = false) {
     const container = document.getElementById('page-items');
     container.innerHTML = '';
     
-    let allCategoryItems = fullData.filter(i => i.macro === m && i.cat === c);
+    // 🆕 Selezione intelligente degli items in base al livello
+    let allCategoryItems = fullData;
+    if (m !== '' && c !== '') allCategoryItems = fullData.filter(i => i.macro === m && i.cat === c);
+    else if (m === '' && c !== '') allCategoryItems = fullData.filter(i => i.cat === c);
     
     if (!isFiltering) {
-        document.getElementById('sub-header-title').innerText = c;
+        let titleText = c !== '' ? c : (m !== '' ? m : getVal('Subtitle_Text', 'Menu'));
+        document.getElementById('sub-header-title').innerText = titleText;
+        
         let filtersHtml = '';
         
-        const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
+        // Controllo se c'è almeno un "drink" nel macro o nella categoria
+        const checkStr = (m + ' ' + c).toLowerCase();
+        const isDrinks = checkStr.match(/bevand|bebid|drink/);
         
         if (isDrinks) {
             if(allCategoryItems.some(i => isTruthy(i.noalc))) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
@@ -381,7 +402,6 @@ function renderLevel3(m, c, isFiltering = false) {
             </div>`;
         }
 
-        // 🆕 FIX MARGINI: AR Button container settato a 8px invece di 15px
         const arHtml = i.ar ? `
             <div style="width: 100%; display: flex; justify-content: center; margin-top: 8px;">
                 <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
@@ -416,7 +436,6 @@ function renderLevel3(m, c, isFiltering = false) {
     }
 }
 
-// --- LIVELLO 4: DETTAGLIO PIATTO ---
 function openItemDetails(id) {
     const item = fullData.find(x => x._id === id);
     if (!item) return;
@@ -431,7 +450,6 @@ function openItemDetails(id) {
     if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">Bio</span>`; 
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
-    // Il bottone AR qui mantiene 20px per staccarsi dal testo
     const arHtml = item.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;"><a href="${escapeHTML(item.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto in AR</a></div>` : '';
 
     const formattedDetails = escapeHTML(item.details).replace(/\n/g, '<br>');
@@ -475,7 +493,8 @@ function showPage(p) {
     const subHeader = document.getElementById('sub-header');
 
     if (backBtn) {
-        if (p === 'page-macro') { 
+        // 🆕 Nasconde il pulsante Indietro se ci troviamo nel livello di base configurato
+        if (p === navigationStack[0]) { 
             backBtn.classList.remove('active'); 
             if(wrapper) wrapper.style.paddingLeft = '0px'; 
         } else { 
