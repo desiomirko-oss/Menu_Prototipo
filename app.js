@@ -1,4 +1,4 @@
-const VERSION = "11.7-FAILSAFE-VAULT";
+const VERSION = "11.8-MASTER-VAULT";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -10,11 +10,10 @@ let currentMacro = '';
 let currentCat = '';
 let activeFilters = [];
 
-// TIMER DI EMERGENZA: Nasconde il caricamento comunque dopo 6 secondi
+// FAILSAFE: Sblocca la schermata se il caricamento fallisce
 const failsafeTimeout = setTimeout(() => {
     const loader = document.getElementById('loading-screen');
     if (loader && !loader.classList.contains('hidden')) {
-        console.warn("Failsafe attivato: il caricamento era bloccato.");
         loader.classList.add('hidden');
         if (fullData.length > 0) renderLevel1();
     }
@@ -58,28 +57,22 @@ function parseColor(colorVal, opacityVal = 1) {
 
 // --- INIT ---
 async function init() {
-    try {
-        if (!document.getElementById('sub-header')) {
-            const sh = document.createElement('div'); sh.id = 'sub-header';
-            sh.innerHTML = `<h2 id="sub-header-title"></h2><div id="sub-header-filters" class="filters-container"></div>`;
-            document.body.appendChild(sh);
-        }
-        if (!document.getElementById('pwa-prompt')) {
-            const pwa = document.createElement('div'); pwa.id = 'pwa-prompt';
-            pwa.innerHTML = `<div class="pwa-box"><button class="pwa-close" onclick="closePWA()">×</button><div class="pwa-title">Installa l'App</div><div class="pwa-instruction">Tocca l'icona di condivisione e seleziona <b>Aggiungi a Home</b></div></div>`;
-            document.body.appendChild(pwa);
-        }
-
-        if (!SHEET_ID) return;
-        await fetchConfig(); 
-        applyConfig();       
-        setupAutoTranslate(); 
-        await fetchMenu();
-        checkPWA();
-    } catch (err) {
-        console.error("Errore critico durante init:", err);
-        document.getElementById('loading-screen').classList.add('hidden');
+    if (!document.getElementById('sub-header')) {
+        const sh = document.createElement('div'); sh.id = 'sub-header';
+        sh.innerHTML = `<h2 id="sub-header-title"></h2><div id="sub-header-filters" class="filters-container"></div>`;
+        document.body.appendChild(sh);
     }
+    if (!document.getElementById('pwa-prompt')) {
+        const pwa = document.createElement('div'); pwa.id = 'pwa-prompt';
+        pwa.innerHTML = `<div class="pwa-box"><button class="pwa-close" onclick="closePWA()">×</button><div class="pwa-title">Installa l'App</div><div class="pwa-instruction">Tocca l'icona di condivisione e seleziona <b>Aggiungi a Home</b></div></div>`;
+        document.body.appendChild(pwa);
+    }
+    if (!SHEET_ID) return;
+    await fetchConfig(); 
+    applyConfig();       
+    setupAutoTranslate(); // Attiva traduzione intelligente
+    await fetchMenu();
+    checkPWA();
 }
 
 async function fetchConfig() {
@@ -93,34 +86,39 @@ async function fetchConfig() {
     });
 }
 
+// --- TRADUTTORE INTELLIGENTE (RE-INTEGRATO) ---
 function setupAutoTranslate() {
-    try {
-        const sourceLang = getVal('Lang_Source', 'it').toLowerCase(); 
-        let userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
-        if (userLang === sourceLang) return;
+    const sourceLang = getVal('Lang_Source', 'it').toLowerCase(); 
+    const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase(); 
+    let userLang = (navigator.language || navigator.userLanguage).slice(0, 2).toLowerCase();
 
-        const style = document.createElement('style');
-        style.innerHTML = `iframe.goog-te-banner-frame, .goog-te-banner-frame { display: none !important; height: 0 !important; } body { top: 0px !important; position: static !important; } #google_translate_element { display: none !important; }`;
-        document.head.appendChild(style);
-        document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
+    if (userLang === sourceLang) return; 
+    if (targetLangsStr !== 'ALL') {
+        const allowed = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
+        if (!allowed.includes(userLang)) return;
+    }
 
-        const widgetDiv = document.createElement('div');
-        widgetDiv.id = 'google_translate_element';
-        widgetDiv.style.display = 'none';
-        document.body.appendChild(widgetDiv);
+    document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
+    const widgetDiv = document.createElement('div');
+    widgetDiv.id = 'google_translate_element';
+    widgetDiv.style.display = 'none';
+    document.body.appendChild(widgetDiv);
 
-        window.googleTranslateElementInit = function() { new google.translate.TranslateElement({ pageLanguage: sourceLang, autoDisplay: false }, 'google_translate_element'); };
-        const script = document.createElement('script');
-        script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
-        document.body.appendChild(script);
+    window.googleTranslateElementInit = function() { 
+        new google.translate.TranslateElement({ pageLanguage: sourceLang, autoDisplay: false }, 'google_translate_element'); 
+    };
 
-        const killer = setInterval(() => {
-            const frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
-            frames.forEach(f => f.style.display = 'none');
-            if (document.body.style.top !== '0px') document.body.style.top = '0px';
-        }, 100);
-        setTimeout(() => clearInterval(killer), 5000);
-    } catch (e) { console.error("Errore traduttore:", e); }
+    const script = document.createElement('script');
+    script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
+    document.body.appendChild(script);
+
+    // Cecchino Javascript anti-banner
+    const killer = setInterval(() => {
+        const frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
+        frames.forEach(f => f.style.display = 'none');
+        if (document.body.style.top !== '0px') document.body.style.top = '0px';
+    }, 100);
+    setTimeout(() => clearInterval(killer), 6000);
 }
 
 function applyConfig() {
@@ -135,8 +133,10 @@ function applyConfig() {
     root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
     root.style.setProperty('--macro-text-shadow', isTruthy(getVal('Macro_Text_Shadow', 'TRUE')) ? '0px 2px 6px rgba(0,0,0,0.8)' : 'none');
-    root.style.setProperty('--macro-align-v', getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
-    root.style.setProperty('--macro-align-h', getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'left' ? 'flex-start' : (getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'right' ? 'flex-end' : 'center'));
+    const vPos = getVal('Macro_Text_VAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-v', vPos === 'top' ? 'flex-start' : (vPos === 'bottom' ? 'flex-end' : 'center'));
+    const hPos = getVal('Macro_Text_HAlign', 'center').toLowerCase();
+    root.style.setProperty('--macro-align-h', hPos === 'left' ? 'flex-start' : (hPos === 'right' ? 'flex-end' : 'center'));
     root.style.setProperty('--cat-cols', getVal('Cat_Layout', 'list').toLowerCase() === 'grid' ? '2' : '1');
     root.style.setProperty('--cat-bg', parseColor(getVal('Cat_Bg_Color', '#ffffff')));
     root.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
@@ -145,8 +145,10 @@ function applyConfig() {
     root.style.setProperty('--cat-text-color', parseColor(getVal('Cat_Text_Color', '#1f2937')));
     root.style.setProperty('--cat-text-font', getVal('Cat_Text_Font', 'sans-serif'));
     root.style.setProperty('--cat-text-weight', isTruthy(getVal('Cat_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
-    root.style.setProperty('--cat-align-v', getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
-    root.style.setProperty('--cat-align-h', getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'center' ? 'center' : (getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'right' ? 'flex-end' : 'flex-start'));
+    const cvPos = getVal('Cat_Text_VAlign', 'center').toLowerCase();
+    root.style.setProperty('--cat-align-v', cvPos === 'top' ? 'flex-start' : (cvPos === 'bottom' ? 'flex-end' : 'center'));
+    const chPos = getVal('Cat_Text_HAlign', 'left').toLowerCase();
+    root.style.setProperty('--cat-align-h', chPos === 'center' ? 'center' : (chPos === 'right' ? 'flex-end' : 'flex-start'));
     if (getVal('App_Bg_Type', 'color').toLowerCase() === 'image' && getVal('App_Bg_Image_URL', '')) {
         root.style.setProperty('--app-bg-image', `url('${escapeHTML(getVal('App_Bg_Image_URL', ''))}')`);
         root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
@@ -225,7 +227,7 @@ async function fetchMenu() {
         }
     }
     fullData = fullData.filter(i => isTruthy(i.active));
-    clearTimeout(failsafeTimeout); // Dati arrivati: cancelliamo il timer di emergenza
+    clearTimeout(failsafeTimeout);
     document.getElementById('loading-screen').classList.add('hidden');
     renderLevel1();
 }
@@ -299,6 +301,7 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.veg)) b += `<span class="badge badge-veg">Vegetariano</span>`;
         if(isTruthy(i.noalc)) b += `<span class="badge badge-noalc">Analcolico</span>`;
         const ar = i.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;"><a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto</a></div>` : '';
+        // NOTRANSLATE solo su NOME e PREZZO
         container.innerHTML += `<div class="menu-card"><div class="item-card"><div style="flex-grow:1;"><div class="item-name notranslate">${escapeHTML(i.name)}</div><div class="item-desc">${escapeHTML(i.desc)}</div><div class="item-price notranslate">${escapeHTML(i.price)}</div></div>${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}</div><div class="badge-container">${b}</div>${ar}</div>`;
     });
     if(!isFiltering && navigationStack[navigationStack.length-1] !== 'page-items') navigationStack.push('page-items'); 
@@ -319,7 +322,6 @@ function showPage(p) {
 }
 
 function goBack() { if(navigationStack.length > 1) { navigationStack.pop(); showPage(navigationStack[navigationStack.length-1]); } }
-
 function closePWA() { localStorage.setItem('pwa_dismissed', 'true'); document.getElementById('pwa-prompt').classList.remove('visible'); }
 function checkPWA() {
     if (!isTruthy(getVal('PWA_Install_Prompt', 'FALSE'))) return;
