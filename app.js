@@ -1,4 +1,4 @@
-const VERSION = "11.9-MASTER-MACRO-FIX";
+const VERSION = "11.9-MASTER-DETAILS-PAGE";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -46,7 +46,7 @@ function parseColor(colorVal, opacityVal = 1) {
     return c; 
 }
 
-// --- INIT ---
+// --- INIT E TRADUTTORE ---
 async function init() {
     if (!document.getElementById('sub-header')) {
         const sh = document.createElement('div');
@@ -74,16 +74,13 @@ async function fetchConfig() {
     } catch(e) { console.error(e); }
 }
 
-// --- TRADUTTORE INTELLIGENTE ---
 function setupAutoTranslate() {
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase(); 
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase(); 
-    
     let userLang = navigator.language || navigator.userLanguage;
     userLang = userLang.slice(0, 2).toLowerCase();
 
     if (userLang === sourceLang) return; 
-
     if (targetLangsStr !== 'ALL') {
         const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
         if (!allowedLangs.includes(userLang)) return;
@@ -109,10 +106,7 @@ function setupAutoTranslate() {
     document.body.appendChild(widgetDiv);
 
     window.googleTranslateElementInit = function() { 
-        new google.translate.TranslateElement({ 
-            pageLanguage: sourceLang, 
-            autoDisplay: false 
-        }, 'google_translate_element'); 
+        new google.translate.TranslateElement({ pageLanguage: sourceLang, autoDisplay: false }, 'google_translate_element'); 
     };
 
     const script = document.createElement('script');
@@ -127,6 +121,7 @@ function setupAutoTranslate() {
     setTimeout(() => clearInterval(killerInterval), 6000);
 }
 
+// --- CSS CONFIG ---
 function applyConfig() {
     const root = document.documentElement;
 
@@ -134,7 +129,6 @@ function applyConfig() {
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
     
-    // SETUP MACRO (Bg Color + Shadow configurabili)
     root.style.setProperty('--macro-cols', getVal('Macro_Layout', 'grid').toLowerCase() === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
     root.style.setProperty('--macro-bg-color', parseColor(getVal('Macro_Bg_Color', '#d1d5db')));
@@ -148,7 +142,6 @@ function applyConfig() {
     root.style.setProperty('--macro-align-v', getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--macro-align-h', getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'left' ? 'flex-start' : (getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'right' ? 'flex-end' : 'center'));
 
-    // SETUP CATEGORIE
     root.style.setProperty('--cat-cols', getVal('Cat_Layout', 'list').toLowerCase() === 'grid' ? '2' : '1');
     root.style.setProperty('--cat-bg', parseColor(getVal('Cat_Bg_Color', '#ffffff')));
     root.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
@@ -175,7 +168,6 @@ function applyConfig() {
     const align = getVal('Logo_Align', 'center').toLowerCase();
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
-    logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
@@ -234,7 +226,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- FETCH MENU ---
+// --- FETCH MENU (Aggiornato per includere la colonna Dettagli) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -245,9 +237,10 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
+                // Aggiungiamo un _id univoco e catturiamo la colonna 13 (Dettagli)
                 fullData.push({ 
-                    macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10]||'TRUE', photo: c[11], ar: c[12] 
+                    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10]||'TRUE', photo: c[11], ar: c[12], details: c[13] || '' 
                 });
             }
         }
@@ -264,10 +257,8 @@ function renderLevel1() {
     macros.forEach(m => {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
-        
-        // LOGICA MACRO CARD (Con Immagine o Solo Colore)
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
-        const noImageClass = imgUrl ? '' : 'no-image'; // Se non c'è immagine, toglie l'overlay nero
+        const noImageClass = imgUrl ? '' : 'no-image'; 
         
         container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card ${noImageClass}" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
     });
@@ -291,10 +282,7 @@ function renderLevel2(m) {
         }
         container.innerHTML += `<div onclick="renderLevel3('${escapeJS(m)}','${escapeJS(c)}')" class="cat-card layout-${layout}">${innerHtml}</div>`;
     });
-    
-    if (navigationStack[navigationStack.length-1] !== 'page-categories') {
-        navigationStack.push('page-categories'); 
-    }
+    if (navigationStack[navigationStack.length-1] !== 'page-categories') navigationStack.push('page-categories'); 
     showPage('page-categories');
 }
 
@@ -303,30 +291,25 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
+// LOGICA PIATTI (Aggiornata per riconoscere i dettagli)
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
     
     const container = document.getElementById('page-items');
     container.innerHTML = '';
-    
     let allCategoryItems = fullData.filter(i => i.macro === m && i.cat === c);
     
     if (!isFiltering) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
-        
         const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
         if (isDrinks) {
-            const hasNoAlc = allCategoryItems.some(i => isTruthy(i.noalc));
-            if(hasNoAlc) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.noalc))) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
         } else {
-            const hasGf = allCategoryItems.some(i => isTruthy(i.gf)); 
-            const hasVegan = allCategoryItems.some(i => isTruthy(i.vegan)); 
-            const hasVeg = allCategoryItems.some(i => isTruthy(i.veg));
-            if(hasGf) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
-            if(hasVegan) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
-            if(hasVeg) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.gf))) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.vegan))) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.veg))) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
         }
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
@@ -346,22 +329,19 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
-        
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
-        const arHtml = i.ar ? `
-            <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;">
-                <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                    </svg> Vedi Piatto
-                </a>
-            </div>` : '';
+        const arHtml = i.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;"><a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto</a></div>` : '';
+
+        // SE LA COLONNA DETTAGLI È COMPILATA, RENDE LA CARD CLICCABILE
+        const hasDetails = i.details.trim() !== '';
+        const cardClass = hasDetails ? 'menu-card clickable-card' : 'menu-card';
+        const clickAction = hasDetails ? `onclick="openItemDetails(${i._id})"` : '';
+        const chevronHtml = hasDetails ? `<svg class="chevron-icon" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>` : '';
 
         container.innerHTML += `
-        <div class="menu-card">
+        <div class="${cardClass}" ${clickAction}>
+            ${chevronHtml}
             <div class="item-card">
                 <div style="flex-grow:1;">
                     <div class="item-name notranslate">${escapeHTML(i.name)}</div>
@@ -376,15 +356,56 @@ function renderLevel3(m, c, isFiltering = false) {
     });
 
     if(!isFiltering) { 
-        if (navigationStack[navigationStack.length-1] !== 'page-items') {
-            navigationStack.push('page-items'); 
-        }
+        if (navigationStack[navigationStack.length-1] !== 'page-items') navigationStack.push('page-items'); 
         showPage('page-items'); 
     }
 }
 
+// --- LIVELLO 4: COSTRUZIONE PAGINA DETTAGLIO ---
+function openItemDetails(id) {
+    const item = fullData.find(x => x._id === id);
+    if (!item) return;
+
+    const container = document.getElementById('page-item-details');
+    
+    let badges = '';
+    if(isTruthy(item.gf)) badges += `<span class="badge badge-gf">Senza Glutine</span>`;
+    if(isTruthy(item.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
+    if(isTruthy(item.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
+    if(isTruthy(item.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
+    const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;">${badges}</div>` : '';
+
+    const arHtml = item.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;"><a href="${escapeHTML(item.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto in AR</a></div>` : '';
+
+    // Il testo della spiegazione andrà a capo in automatico se usi \n nel foglio Google
+    const formattedDetails = escapeHTML(item.details).replace(/\n/g, '<br>');
+
+    // Costruisce la pagina in grande
+    container.innerHTML = `
+        <div class="details-page-card">
+            ${item.photo ? `<img src="${escapeHTML(item.photo)}" class="detail-photo">` : ''}
+            <div style="padding: 0 20px;">
+                ${badgeHtml}
+                <div class="detail-title notranslate">${escapeHTML(item.name)}</div>
+                <div class="detail-price notranslate">${escapeHTML(item.price)}</div>
+                <div class="detail-desc">${escapeHTML(item.desc)}</div>
+                
+                <div class="detail-long-text">${formattedDetails}</div>
+                
+                ${arHtml}
+            </div>
+        </div>
+    `;
+
+    if (navigationStack[navigationStack.length-1] !== 'page-item-details') {
+        navigationStack.push('page-item-details');
+    }
+    showPage('page-item-details');
+}
+
+// --- NAVIGAZIONE GLOBALE A 4 LIVELLI ---
 function showPage(p) {
-    const pageIds = ['page-macro', 'page-categories', 'page-items'];
+    const pageIds = ['page-macro', 'page-categories', 'page-items', 'page-item-details'];
     
     pageIds.forEach(id => { 
         const el = document.getElementById(id); 
@@ -409,6 +430,7 @@ function showPage(p) {
         }
     }
     
+    // Mostriamo il Sub-Header (Filtri) solo nel livello 3 (Lista Piatti)
     if (subHeader) {
         if (p === 'page-items') subHeader.style.display = 'flex';
         else subHeader.style.display = 'none';
