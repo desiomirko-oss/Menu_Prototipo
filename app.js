@@ -1,4 +1,4 @@
-const VERSION = "11.9-MASTER-BG-FIX";
+const VERSION = "11.9-MASTER-BIO-DRINKS";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -121,7 +121,7 @@ function setupAutoTranslate() {
     setTimeout(() => clearInterval(killerInterval), 6000);
 }
 
-// --- CSS CONFIG (FIX SFONDO) ---
+// --- CSS CONFIG ---
 function applyConfig() {
     const root = document.documentElement;
 
@@ -153,15 +153,11 @@ function applyConfig() {
     root.style.setProperty('--cat-align-v', getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Cat_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--cat-align-h', getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'center' ? 'center' : (getVal('Cat_Text_HAlign', 'left').toLowerCase() === 'right' ? 'flex-end' : 'flex-start'));
 
-    // 🚨 CHIRURGIA: Rimossa la funzione escapeHTML per non rompere i link dell'immagine di sfondo
-    if (getVal('App_Bg_Type', 'color').trim().toLowerCase() === 'image' && getVal('App_Bg_Image_URL', '') !== '') {
+    if (getVal('App_Bg_Type', 'color').toLowerCase() === 'image' && getVal('App_Bg_Image_URL', '')) {
         root.style.setProperty('--app-bg-image', `url('${getVal('App_Bg_Image_URL', '')}')`);
         root.style.setProperty('--app-bg-size', getVal('App_Bg_Image_Size', 'cover'));
         root.style.setProperty('--app-bg-position', getVal('App_Bg_Image_Position', 'center'));
-    } else {
-        root.style.setProperty('--app-bg-image', 'none');
-    }
-    
+    } else root.style.setProperty('--app-bg-image', 'none');
     root.style.setProperty('--app-bg-color', parseColor(getVal('App_Bg_Color', '#f9fafb')));
 
     root.style.setProperty('--header-bg', parseColor(getVal('Header_Color', '#ffffff'), isTruthy(getVal('Header_Transparent', 'FALSE')) ? '0.5' : '1'));
@@ -172,6 +168,7 @@ function applyConfig() {
     const align = getVal('Logo_Align', 'center').toLowerCase();
     logoCont.style.justifyContent = align === 'left' ? 'flex-start' : (align === 'right' ? 'flex-end' : 'center');
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
+    logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
@@ -232,7 +229,7 @@ function updateLayout() {
     }, 50);
 }
 
-// --- FETCH MENU ---
+// --- FETCH MENU (Aggiunta colonna Bio) ---
 async function fetchMenu() {
     const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=menu&t=${Date.now()}`;
     try {
@@ -243,9 +240,10 @@ async function fetchMenu() {
         for(let i=1; i<rows.length; i++){
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
+                // Catturiamo la colonna 15 (Bio)
                 fullData.push({ 
                     _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10]||'TRUE', photo: c[11], ar: c[12], details: c[13] || '' 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], active: c[10]||'TRUE', photo: c[11], ar: c[12], details: c[13] || '', bio: c[14] 
                 });
             }
         }
@@ -296,6 +294,7 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
+// --- LOGICA PIATTI E BEVANDE (Con Bio e GF per entrambi) ---
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -308,17 +307,22 @@ function renderLevel3(m, c, isFiltering = false) {
         document.getElementById('sub-header-title').innerText = c;
         let filtersHtml = '';
         const isDrinks = m.toLowerCase().match(/bevand|bebid|drink/);
+        
+        // 🆕 Logica filtri aggiornata: GF e Bio valgono per tutto, NoAlc solo per le bevande, Vegano/Vegetariano solo per il cibo
         if (isDrinks) {
             if(allCategoryItems.some(i => isTruthy(i.noalc))) filtersHtml += `<button onclick="toggleFilter('noalc')" id="btn-noalc" class="filter-btn">Analcolico</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.gf))) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.bio))) filtersHtml += `<button onclick="toggleFilter('bio')" id="btn-bio" class="filter-btn">Bio</button>`;
         } else {
             if(allCategoryItems.some(i => isTruthy(i.gf))) filtersHtml += `<button onclick="toggleFilter('gf')" id="btn-gf" class="filter-btn">Senza Glutine</button>`;
             if(allCategoryItems.some(i => isTruthy(i.vegan))) filtersHtml += `<button onclick="toggleFilter('vegan')" id="btn-vegan" class="filter-btn">Vegano</button>`;
             if(allCategoryItems.some(i => isTruthy(i.veg))) filtersHtml += `<button onclick="toggleFilter('veg')" id="btn-veg" class="filter-btn">Vegetariano</button>`;
+            if(allCategoryItems.some(i => isTruthy(i.bio))) filtersHtml += `<button onclick="toggleFilter('bio')" id="btn-bio" class="filter-btn">Bio</button>`;
         }
         document.getElementById('sub-header-filters').innerHTML = filtersHtml;
     }
 
-    ['gf', 'vegan', 'veg', 'noalc'].forEach(f => {
+    ['gf', 'vegan', 'veg', 'noalc', 'bio'].forEach(f => {
         const btn = document.getElementById(`btn-${f}`);
         if(btn) { activeFilters.includes(f) ? btn.classList.add('active') : btn.classList.remove('active'); }
     });
@@ -333,6 +337,7 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
+        if(isTruthy(i.bio)) badges += `<span class="badge badge-bio">Bio</span>`; // 🆕 Aggiunta
         
         const hasDetails = i.details.trim() !== '';
         const cardClass = hasDetails ? 'menu-card clickable-card' : 'menu-card';
@@ -383,6 +388,7 @@ function openItemDetails(id) {
     if(isTruthy(item.vegan)) badges += `<span class="badge badge-vegan">Vegano</span>`;
     if(isTruthy(item.veg)) badges += `<span class="badge badge-veg">Vegetariano</span>`;
     if(isTruthy(item.noalc)) badges += `<span class="badge badge-noalc">Analcolico</span>`;
+    if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">Bio</span>`; // 🆕 Aggiunta
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
     const arHtml = item.ar ? `<div style="width: 100%; display: flex; justify-content: center; margin-top: 20px;"><a href="${escapeHTML(item.ar)}" target="_blank" class="ar-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Vedi Piatto in AR</a></div>` : '';
