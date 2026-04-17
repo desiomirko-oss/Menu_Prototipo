@@ -1,4 +1,4 @@
-const VERSION = "14.1-FIX-3-LEVELS";
+const VERSION = "14.1-FIX-PWA-PROMPT";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -46,21 +46,21 @@ function parseColor(colorVal, opacityVal = 1) {
     return c; 
 }
 
-// --- INIT E STRUTTURE DINAMICHE ---
+// --- INIT (Iniezione Strutture Dinamiche) ---
 async function init() {
-    // Sub-Header
+    // 1. Inietta Sub-Header
     if (!document.getElementById('sub-header')) {
         const sh = document.createElement('div'); sh.id = 'sub-header';
         sh.innerHTML = `<h2 id="sub-header-title" class="notranslate"></h2><div id="sub-header-filters" class="filters-container"></div>`;
         document.body.appendChild(sh);
     }
-    // Sipario Portrait Lock
+    // 2. Inietta Sipario Portrait Lock
     if (!document.getElementById('portrait-warning')) {
         const pw = document.createElement('div'); pw.id = 'portrait-warning';
         pw.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg><h2 style="margin-bottom: 10px; font-family: sans-serif;">Ruota il dispositivo</h2><p style="font-family: sans-serif; color: #9ca3af; font-size: 14px;">Il menu è ottimizzato per la visualizzazione in verticale.</p>`;
         document.body.appendChild(pw);
     }
-    // Prompt Installazione PWA
+    // 3. Inietta Prompt PWA Apple Style (Testo Aggiornato)
     if (!document.getElementById('pwa-prompt')) {
         const pwa = document.createElement('div'); pwa.id = 'pwa-prompt';
         pwa.innerHTML = `<div class="pwa-box"><button class="pwa-close" onclick="closePWA()">×</button><div class="pwa-title">Installa l'App</div><div class="pwa-desc">Aggiungi questo menu alla schermata Home per un'esperienza offline e a schermo intero.</div><div class="pwa-instruction">Tocca <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> e seleziona "Aggiungi a Home"</div></div>`;
@@ -72,7 +72,7 @@ async function init() {
     applyConfig();       
     setupAutoTranslate(); 
     await fetchMenu();
-    checkPWA(); 
+    checkPWA(); // Avvia controllo popup PWA
 }
 
 async function fetchConfig() {
@@ -94,18 +94,22 @@ function closePWA() {
     document.getElementById('pwa-prompt').classList.remove('visible');
 }
 function checkPWA() {
+    // Controlla se abilitato da Google Sheets
     if (!isTruthy(getVal('PWA_Install_Prompt', 'FALSE'))) return;
+    // Controlla se l'app è già installata (Standalone mode)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) return;
+    // Controlla se l'utente lo ha già chiuso in precedenza
     if (localStorage.getItem('pwa_prompt_dismissed')) return;
 
+    // Mostra con un elegante ritardo di 3 secondi
     setTimeout(() => {
         const pwaEl = document.getElementById('pwa-prompt');
         if (pwaEl) pwaEl.classList.add('visible');
     }, 3000);
 }
 
-// --- TRANSLATOR KILLER ---
+// --- TRANSLATOR KILLER AGGRESSIVO E NOTRANSLATE ---
 function setupAutoTranslate() {
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase();
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase();
@@ -134,6 +138,7 @@ function setupAutoTranslate() {
     script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     document.body.appendChild(script);
 
+    // KILLER: Resetta forzatamente l'html e il body se Google cerca di spostarli
     const killerInterval = setInterval(() => {
         const frames = document.querySelectorAll('.goog-te-banner-frame');
         frames.forEach(f => { f.style.display = 'none'; f.style.visibility = 'hidden'; f.style.height = '0px'; });
@@ -143,7 +148,6 @@ function setupAutoTranslate() {
     setTimeout(() => clearInterval(killerInterval), 8000);
 }
 
-// --- CSS VARIABLES ---
 function applyConfig() {
     const root = document.documentElement;
 
@@ -269,7 +273,7 @@ async function fetchMenu() {
     } catch(e) { console.error(e); }
 }
 
-// --- RENDER 3 LIVELLI ---
+// --- RENDER 3 LIVELLI SEPARATI ---
 function renderLevel1() {
     const container = document.getElementById('macro-layout-container');
     const macros = [...new Set(fullData.map(i => i.macro))];
@@ -278,6 +282,7 @@ function renderLevel1() {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
+        // MACRO TITLE NOTRANSLATE
         container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside notranslate">${escapeHTML(m)}</span></div>`;
     });
     showPage('page-macro');
@@ -292,6 +297,7 @@ function renderLevel2(m) {
     cats.forEach(c => {
         const imgUrl = getVal('Cat_Img_' + c.replace(/\s+/g, '_'), '');
         let innerHtml = '';
+        // CATEGORY TITLE NOTRANSLATE
         if (imgUrl) {
             if (layout === 'grid') innerHtml = `<div class="cat-img-wrapper"><img src="${escapeHTML(imgUrl)}" class="cat-img-grid" loading="lazy"></div><div class="cat-text-wrapper"><span class="cat-text notranslate">${escapeHTML(c)}</span></div>`;
             else innerHtml = `<div class="cat-text-wrapper"><span class="cat-text notranslate">${escapeHTML(c)}</span></div><div class="cat-img-wrapper"><img src="${escapeHTML(imgUrl)}" class="cat-img-list" loading="lazy"></div>`;
@@ -300,7 +306,10 @@ function renderLevel2(m) {
         }
         container.innerHTML += `<div onclick="renderLevel3('${escapeJS(m)}','${escapeJS(c)}')" class="cat-card layout-${layout}">${innerHtml}</div>`;
     });
-    navigationStack.push('page-categories'); 
+    // AGGIUNTA SICURA AL NAVIGATION STACK
+    if (navigationStack[navigationStack.length-1] !== 'page-categories') {
+        navigationStack.push('page-categories'); 
+    }
     showPage('page-categories');
 }
 
@@ -309,6 +318,7 @@ function toggleFilter(filterType) {
     renderLevel3(currentMacro, currentCat, true);
 }
 
+// --- RENDER PIATTI (AR Badge Centrato in basso) ---
 function renderLevel3(m, c, isFiltering = false) {
     currentMacro = m; currentCat = c;
     if (!isFiltering) activeFilters = []; 
@@ -355,8 +365,10 @@ function renderLevel3(m, c, isFiltering = false) {
         
         const badgeHtml = badges ? `<div class="badge-container">${badges}</div>` : '';
         
+        // Costruzione del bottone AR. 
+        // Viene wrappato in un div largo 100% con flexbox per centrarlo perfettamente sotto al piatto.
         const arHtml = i.ar ? `
-            <div style="width: 100%; display: flex; justify-content: center; margin-top: 15px;">
+            <div style="width: 100%; display: flex; justify-content: center;">
                 <a href="${escapeHTML(i.ar)}" target="_blank" class="ar-btn">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
@@ -366,6 +378,7 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
+        // ITEM NAME E ITEM PRICE HANNO class="notranslate"
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
@@ -373,15 +386,20 @@ function renderLevel3(m, c, isFiltering = false) {
                     <div class="item-name notranslate">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
                     <div class="item-price notranslate">${escapeHTML(i.price)}</div>
+                    ${badgeHtml}
                 </div>
                 ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
-            ${badgeHtml}
             ${arHtml}
         </div>`;
     });
 
-    if(!isFiltering) { navigationStack.push('page-items'); showPage('page-items'); }
+    if(!isFiltering) { 
+        if (navigationStack[navigationStack.length-1] !== 'page-items') {
+            navigationStack.push('page-items'); 
+        }
+        showPage('page-items'); 
+    }
 }
 
 // --- NAVIGAZIONE BLINDATA E SICURA ---
