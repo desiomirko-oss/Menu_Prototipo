@@ -113,7 +113,7 @@ body::before {
 .layout-grid .cat-img-wrapper { width: 100%; height: 60%; }
 .cat-img-list, .cat-img-grid { width: 100%; height: 100%; object-fit: cover; }
 
-/* ITEM CARD (CLIP 3) - Padding inferiore ridotto a 15px */
+/* ITEM CARD */
 .menu-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); padding: 15px 20px; border-radius: 24px; margin-bottom: 1rem; position: relative; border: var(--item-border); }
 .clickable-card { cursor: pointer; transition: transform 0.2s; }
 .clickable-card:active { transform: scale(0.98); }
@@ -123,14 +123,14 @@ body::before {
 .item-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: var(--item-desc-size); font-weight: var(--item-desc-weight); display: block; margin-bottom: 8px; line-height: 1.4; }
 .item-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: var(--item-price-size); font-weight: var(--item-price-weight); display: block; }
 
-/* BADGES & CHEVRON (CLIP 3) - Margin top ridotto a 6px */
+/* BADGES & CHEVRON */
 .badge-container { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 6px; flex-wrap: wrap; }
 .badge-group { display: flex; gap: 4px; flex-wrap: wrap; }
 .badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
 .badge-gf { background: #eab308; } .badge-vegan { background: #22c55e; } .badge-veg { background: #84cc16; } .badge-noalc { background: #3b82f6; } .badge-bio { background: #065f46; }
 .inline-chevron { color: var(--chevron-color); font-size: 24px; line-height: 1; font-weight: bold; margin-left: auto; }
 
-/* AR BUTTON - Eliminato il margin-top dalla classe base */
+/* AR BUTTON */
 .ar-btn { display: inline-flex; align-items: center; gap: 4px; background: var(--ar-btn-bg); color: var(--ar-btn-color); padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
 .ar-btn:active { transform: scale(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .ar-btn svg { width: 14px; height: 14px; } 
