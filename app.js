@@ -1,4 +1,4 @@
-const VERSION = "12.1-TRANSLATOR-KILLER";
+const VERSION = "12.2-TRANSLATOR-NUKE";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -57,7 +57,7 @@ async function init() {
     if (!SHEET_ID) return;
     await fetchConfig(); 
     applyConfig();       
-    setupAutoTranslate(); // Avvia il traduttore killer dopo aver letto le impostazioni
+    setupAutoTranslate(); 
     await fetchMenu();
 }
 
@@ -74,27 +74,22 @@ async function fetchConfig() {
     } catch(e) { console.error(e); }
 }
 
-// --- MODULO 12.1: TRANSLATOR KILLER ---
+// --- MODULO 12.2: TRANSLATOR KILLER AGGRESSIVO E NOTRANSLATE ---
 function setupAutoTranslate() {
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase();
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase();
     let userLang = navigator.language || navigator.userLanguage;
     userLang = userLang.slice(0, 2).toLowerCase();
 
-    // Se lingua telefono = lingua app, spegni tutto
     if (userLang === sourceLang) return;
 
-    // Se la lingua telefono non è tra quelle permesse, spegni tutto
     if (targetLangsStr !== 'ALL') {
         const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
         if (!allowedLangs.includes(userLang)) return;
     }
 
-    // Forza aggressivamente il cookie per tradurre senza chiedere
     document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/`;
-    document.cookie = `googtrans=/${sourceLang}/${userLang}; domain=${window.location.hostname}; path=/`;
 
-    // Inietta il contenitore nascosto di Google
     const widgetDiv = document.createElement('div');
     widgetDiv.id = 'google_translate_element';
     widgetDiv.style.display = 'none';
@@ -111,17 +106,20 @@ function setupAutoTranslate() {
     script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     document.body.appendChild(script);
 
-    // IL CECCHINO: Controlla ogni 100ms se Google prova a sfasare la pagina e lo blocca. Si spegne dopo 5 secondi.
+    // KILLER: Resetta forzatamente l'html e il body se Google cerca di spostarli
     const killerInterval = setInterval(() => {
-        const frames = document.querySelectorAll('iframe.goog-te-banner-frame');
-        frames.forEach(f => f.style.display = 'none');
+        const frames = document.querySelectorAll('.goog-te-banner-frame');
+        frames.forEach(f => {
+            f.style.display = 'none';
+            f.style.visibility = 'hidden';
+            f.style.height = '0px';
+        });
         
-        if (document.body.style.top !== '0px' && document.body.style.top !== '') {
-            document.body.style.top = '0px';
-        }
-    }, 100);
+        if (document.body.style.top !== '0px') document.body.style.top = '0px';
+        if (document.documentElement.style.marginTop !== '0px') document.documentElement.style.marginTop = '0px';
+    }, 50);
 
-    setTimeout(() => clearInterval(killerInterval), 5000);
+    setTimeout(() => clearInterval(killerInterval), 8000);
 }
 
 function applyConfig() {
@@ -169,6 +167,7 @@ function applyConfig() {
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
     logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
+        // AGGIUNTO class="notranslate" al LOGO
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
     }
@@ -344,6 +343,7 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
+        // AGGIUNTA CLASSE notranslate A NOME E PREZZO
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
