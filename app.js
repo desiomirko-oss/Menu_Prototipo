@@ -1,4 +1,4 @@
-const VERSION = "11.9-MASTER-TRANSLATE";
+const VERSION = "11.9-MASTER-MACRO-FIX";
 console.log("App Version: " + VERSION);
 
 const urlParams = new URLSearchParams(window.location.search);
@@ -74,36 +74,21 @@ async function fetchConfig() {
     } catch(e) { console.error(e); }
 }
 
-// --- TRADUTTORE INTELLIGENTE (REGOLE RIGIDE) ---
+// --- TRADUTTORE INTELLIGENTE ---
 function setupAutoTranslate() {
-    // Legge la lingua del menu (default: spagnolo)
     const sourceLang = getVal('Lang_Source', 'es').toLowerCase(); 
     const targetLangsStr = getVal('Lang_Targets', 'ALL').toUpperCase(); 
     
-    // Rileva la lingua del telefono (es: 'it')
     let userLang = navigator.language || navigator.userLanguage;
     userLang = userLang.slice(0, 2).toLowerCase();
 
-    console.log(`[Translate Check] Menu: ${sourceLang} | User: ${userLang} | Targets: ${targetLangsStr}`);
+    if (userLang === sourceLang) return; 
 
-    // REGOLA 1: Se la lingua è uguale, spegni il motore.
-    if (userLang === sourceLang) {
-        console.log("Stessa lingua rilevata. Traduzione ignorata.");
-        return; 
-    }
-
-    // REGOLA 2: Se ci sono limiti, spegni il motore per le lingue non autorizzate.
     if (targetLangsStr !== 'ALL') {
         const allowedLangs = targetLangsStr.toLowerCase().split(',').map(l => l.trim());
-        if (!allowedLangs.includes(userLang)) {
-            console.log(`Lingua ${userLang} non autorizzata. Traduzione ignorata.`);
-            return;
-        }
+        if (!allowedLangs.includes(userLang)) return;
     }
 
-    console.log("Avvio traduzione invisibile in background...");
-
-    // Scudo Anti-Banner Google
     const antiBannerStyle = document.createElement('style');
     antiBannerStyle.innerHTML = `
         iframe.goog-te-banner-frame, .goog-te-banner-frame { display: none !important; visibility: hidden !important; height: 0 !important; width: 0 !important; border: none !important; }
@@ -115,7 +100,6 @@ function setupAutoTranslate() {
     `;
     document.head.appendChild(antiBannerStyle);
 
-    // Forza i cookie eliminando vecchie preferenze bloccate
     document.cookie = `googtrans=/${sourceLang}/${userLang}; path=/; expires=Session`;
     document.cookie = `googtrans=/${sourceLang}/${userLang}; domain=${window.location.hostname}; path=/; expires=Session`;
 
@@ -135,7 +119,6 @@ function setupAutoTranslate() {
     script.src = "https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit";
     document.body.appendChild(script);
 
-    // Killer loop: annulla i margini applicati forzatamente da Google
     const killerInterval = setInterval(() => {
         const frames = document.querySelectorAll('.goog-te-banner-frame, iframe.goog-te-banner-frame');
         frames.forEach(f => { f.style.display = 'none'; f.style.height = '0px'; });
@@ -151,9 +134,13 @@ function applyConfig() {
     root.style.setProperty('--back-color', parseColor(getVal('Back_Btn_Color', '#ffffff')));
     root.style.setProperty('--back-shadow', getVal('Back_Btn_Shadow_Intensity', 'none') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
     
+    // SETUP MACRO (Bg Color + Shadow configurabili)
     root.style.setProperty('--macro-cols', getVal('Macro_Layout', 'grid').toLowerCase() === 'list' ? '1' : '2');
     root.style.setProperty('--macro-height', getVal('Macro_Height', '180px'));
-    root.style.setProperty('--macro-shadow', getVal('Macro_Shadow_Intensity', 'medium') !== 'none' ? '0 4px 6px rgba(0,0,0,0.1)' : 'none');
+    root.style.setProperty('--macro-bg-color', parseColor(getVal('Macro_Bg_Color', '#d1d5db')));
+    const mInt = getVal('Macro_Shadow_Intensity', 'medium').toLowerCase();
+    root.style.setProperty('--macro-shadow', mInt === 'none' ? 'none' : (mInt === 'light' ? '0 2px 4px rgba(0,0,0,0.05)' : (mInt === 'strong' ? '0 10px 15px rgba(0,0,0,0.2)' : '0 4px 6px rgba(0,0,0,0.1)')));
+    
     root.style.setProperty('--macro-text-color', parseColor(getVal('Macro_Text_Color', '#ffffff')));
     root.style.setProperty('--macro-text-font', getVal('Macro_Text_Font', 'sans-serif'));
     root.style.setProperty('--macro-text-weight', isTruthy(getVal('Macro_Text_Bold', 'TRUE')) ? 'bold' : 'normal');
@@ -161,6 +148,7 @@ function applyConfig() {
     root.style.setProperty('--macro-align-v', getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'top' ? 'flex-start' : (getVal('Macro_Text_VAlign', 'center').toLowerCase() === 'bottom' ? 'flex-end' : 'center'));
     root.style.setProperty('--macro-align-h', getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'left' ? 'flex-start' : (getVal('Macro_Text_HAlign', 'center').toLowerCase() === 'right' ? 'flex-end' : 'center'));
 
+    // SETUP CATEGORIE
     root.style.setProperty('--cat-cols', getVal('Cat_Layout', 'list').toLowerCase() === 'grid' ? '2' : '1');
     root.style.setProperty('--cat-bg', parseColor(getVal('Cat_Bg_Color', '#ffffff')));
     root.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
@@ -189,7 +177,6 @@ function applyConfig() {
     logoCont.style.marginTop = getVal('Logo_Margin_Top', '0px');
     logoCont.style.marginBottom = '0px'; 
     if (logoUrl) {
-        // REGOLA 1: LOGO PROTETTO
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
     }
@@ -277,8 +264,12 @@ function renderLevel1() {
     macros.forEach(m => {
         const searchKey = 'Macro_Img_' + m.replace(/\s+/g, '_');
         const imgUrl = getVal(searchKey, '');
+        
+        // LOGICA MACRO CARD (Con Immagine o Solo Colore)
         const bgStyle = imgUrl ? `background-image: url('${escapeHTML(imgUrl)}');` : '';
-        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
+        const noImageClass = imgUrl ? '' : 'no-image'; // Se non c'è immagine, toglie l'overlay nero
+        
+        container.innerHTML += `<div onclick="renderLevel2('${escapeJS(m)}')" class="macro-card ${noImageClass}" style="${bgStyle}"><div class="macro-overlay"></div><span class="macro-text-inside">${escapeHTML(m)}</span></div>`;
     });
     showPage('page-macro');
 }
@@ -369,7 +360,6 @@ function renderLevel3(m, c, isFiltering = false) {
                 </a>
             </div>` : '';
 
-        // REGOLA 2 E 3: NOME E PREZZO PROTETTI DA TRADUZIONE
         container.innerHTML += `
         <div class="menu-card">
             <div class="item-card">
