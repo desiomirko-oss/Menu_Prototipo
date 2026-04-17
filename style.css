@@ -16,19 +16,22 @@
     --ar-btn-bg: #111827; --ar-btn-color: #ffffff;
 }
 
-/* BLOCCO TRADUTTORE INVISIBILE (KILLER) */
-iframe.goog-te-banner-frame { display: none !important; visibility: hidden !important; }
-.goog-te-banner-frame { display: none !important; visibility: hidden !important; }
-body { top: 0 !important; position: static !important; }
+/* 🚨 BLOCCO TRADUTTORE INVISIBILE - DISTRUZIONE TOTALE 🚨 */
+iframe.goog-te-banner-frame, .goog-te-banner-frame { 
+    display: none !important; visibility: hidden !important; 
+    height: 0 !important; width: 0 !important; border: none !important; 
+}
+html { margin-top: 0px !important; height: 100% !important; }
+body { top: 0px !important; position: static !important; min-height: 100vh !important; }
 #goog-gt-tt, .goog-tooltip, .goog-tooltip:hover { display: none !important; visibility: hidden !important; }
 .goog-text-highlight { background-color: transparent !important; border: none !important; box-shadow: none !important; }
-#google_translate_element { display: none !important; }
+#google_translate_element { display: none !important; height: 0 !important; }
 
 body {
     background-color: var(--app-bg-color, #f9fafb); background-image: var(--app-bg-image, none);
     background-size: var(--app-bg-size, cover); background-position: var(--app-bg-position, center);
     background-repeat: no-repeat; background-attachment: fixed; 
-    min-height: 100vh; font-family: ui-sans-serif, system-ui, sans-serif; color: #111827;
+    font-family: ui-sans-serif, system-ui, sans-serif; color: #111827;
 }
 
 #main-header {
@@ -95,9 +98,17 @@ body {
 .item-desc { color: var(--item-desc-color); font-family: var(--item-desc-font); font-size: var(--item-desc-size); font-weight: var(--item-desc-weight); display: block; margin-bottom: 8px; line-height: 1.4; }
 .item-price { color: var(--item-price-color); font-family: var(--item-price-font); font-size: var(--item-price-size); font-weight: var(--item-price-weight); display: block; }
 
-.ar-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--ar-btn-bg); color: var(--ar-btn-color); padding: 8px 16px; border-radius: 20px; text-decoration: none; font-size: 14px; font-weight: bold; margin-top: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
-.ar-btn:active { transform: scale(0.95); box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
-.ar-btn svg { width: 18px; height: 18px; }
+/* AR BUTTON - Forma Badge e Centrato in Basso */
+.ar-btn { 
+    display: inline-flex; align-items: center; gap: 4px; 
+    background: var(--ar-btn-bg); color: var(--ar-btn-color); 
+    padding: 5px 12px; border-radius: 6px; 
+    text-decoration: none; font-size: 11px; 
+    font-weight: bold; text-transform: uppercase;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; 
+}
+.ar-btn:active { transform: scale(0.95); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.ar-btn svg { width: 14px; height: 14px; } 
 
 /* BADGES */
 .badge-container { display: flex; gap: 4px; margin-top: 10px; flex-wrap: wrap; }
