@@ -120,17 +120,47 @@ body::before {
 .macro-card.no-image .macro-overlay { display: none; }
 .macro-text-inside { color: var(--macro-text-color); font-family: var(--macro-text-font); font-weight: var(--macro-text-weight); text-shadow: var(--macro-text-shadow); text-align: var(--macro-align-h); z-index: 10; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 1px; }
 
-/* CATEGORY CARD */
-.cat-container { display: grid; grid-template-columns: repeat(var(--cat-cols), 1fr); gap: 1rem; }
-.cat-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); border-radius: 1.25rem; cursor: pointer; overflow: hidden; display: flex; height: var(--cat-height); transition: transform 0.2s; border: var(--cat-border); }
-.cat-card:active { transform: scale(0.98); }
+/* CATEGORY CARD POTENZIATA */
+.cat-container { 
+    display: grid; 
+    grid-template-columns: repeat(var(--cat-cols), 1fr); 
+    gap: 1rem; 
+}
+
+.cat-card { 
+    background: var(--cat-bg); 
+    box-shadow: var(--cat-shadow); 
+    border-radius: 1.25rem; 
+    cursor: pointer; 
+    overflow: hidden; 
+    display: flex; 
+    height: var(--cat-height); 
+    transition: transform 0.2s; 
+    border: var(--cat-border); 
+}
+
 .cat-card.layout-list { flex-direction: row; }
-.cat-card.layout-grid { flex-direction: column; }
-.cat-text-wrapper { flex-grow: 1; display: flex; padding: 15px 20px; align-items: var(--cat-align-v); justify-content: var(--cat-align-h); }
-.cat-text { color: var(--cat-text-color); font-family: var(--cat-text-font); font-weight: var(--cat-text-weight); text-align: var(--cat-align-h); font-size: 1.25rem; }
-.cat-img-wrapper { flex-shrink: 0; display: flex; width: 40%; max-width: 140px; }
-.layout-grid .cat-img-wrapper { width: 100%; height: 60%; }
-.cat-img-list, .cat-img-grid { width: 100%; height: 100%; object-fit: cover; }
+.cat-card.layout-grid { flex-direction: column; height: auto; min-height: var(--cat-height); }
+
+.cat-text-wrapper { 
+    flex-grow: 1; 
+    display: flex; 
+    padding: 15px 20px; 
+    align-items: var(--cat-align-v); 
+    justify-content: var(--cat-align-h); 
+}
+
+.cat-img-wrapper { 
+    flex-shrink: 0; 
+    display: flex; 
+    overflow: hidden;
+}
+
+.cat-img-list, .cat-img-grid { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+}
 
 /* ITEM CARD */
 .menu-card { background: var(--cat-bg); box-shadow: var(--cat-shadow); padding: 15px 20px; border-radius: 24px; margin-bottom: 1rem; position: relative; border: var(--item-border); }
