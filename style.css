@@ -46,11 +46,21 @@ body { top: 0px !important; position: static !important; min-height: 100vh !impo
 font { background: transparent !important; background-color: transparent !important; box-shadow: none !important; }
 .filter-btn * { background-color: transparent !important; color: inherit !important; }
 
-/* FIX: Forza le maiuscole corrette a prescindere da cosa decide Google Translate */
-/* text-transform: capitalize; farà sì che la prima lettera di ogni parola sia SEMPRE maiuscola */
-.filter-btn { text-transform: capitalize !important; }
-.item-name { text-transform: capitalize !important; }
+/* FIX SCUDO TOTALE MAIUSCOLE: Forza la prima lettera maiuscola su filtri, piatti, categorie e dettagli */
+.filter-btn, 
+.item-name, 
+.cat-text, 
+.detail-title { 
+    text-transform: capitalize !important; 
+}
 
+/* FIX SCUDO TOTALE TUTTO MAIUSCOLO: Forza il tutto maiuscolo su macro, badge, bottone AR e sottotitolo */
+.macro-text-inside, 
+#sub-header-title, 
+.badge, 
+.ar-btn {
+    text-transform: uppercase !important;
+}
 /* SFONDO APP FISSO PER MOBILE */
 body {
     background-color: var(--app-bg-color);
