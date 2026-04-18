@@ -1,13 +1,15 @@
-const CACHE_NAME = 'pwa-menu-v1.2';
-// Lista dei file statici da blindare in cache (grafica)
+const CACHE_NAME = 'pwa-cafe-iberico-v1';
+
 const STATIC_ASSETS = [
   'index.html',
-  '../style.css',
-  '../app.js',
+  '../style.css',       // Esce e pesca lo stile
+  '../app.js',          // Esce e pesca il motore
   'manifest.json',
-  'icon-192.png',
-  'icon-512.png'
+  'Image/icon-192.png', // Entra in Image e pesca l'icona
+  'Image/icon-512.png'  // Entra in Image e pesca l'icona
 ];
+
+// ... il resto del codice sw.js rimane identico a prima (install, activate, fetch)
 
 // Installazione: salva la carrozzeria dell'app
 self.addEventListener('install', (event) => {
