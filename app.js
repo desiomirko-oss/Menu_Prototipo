@@ -577,8 +577,10 @@ function initInstallPopup() {
     const title = getVal('Popup_Text', 'Salva sulla Home');
     const iconPath = 'Image/icon-192.png'; // Pesca l'icona del cliente
 
+    const iosShareSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; vertical-align: bottom; margin: 0 4px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
+
     let instructions = isiOS 
-        ? `Tocca l'icona <img src="https://img.icons8.com/ios/50/007aff/export.png" class="ios-share-icon"> in basso e seleziona <b>"Aggiungi a schermata Home"</b>.`
+        ? `Tocca l'icona ${iosShareSvg} in basso e seleziona <b>"Aggiungi a schermata Home"</b>.`
         : `Aggiungi il menu alla tua schermata home per aprirlo velocemente come un'App.`;
 
     popup.innerHTML = `
