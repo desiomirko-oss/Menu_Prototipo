@@ -240,6 +240,7 @@ function applyConfig() {
     root.style.setProperty('--ar-btn-color', parseColor(getVal('Item_AR_Btn_Color', '#ffffff')));
     
     root.style.setProperty('--chevron-color', parseColor(getVal('Chevron_Color', '#9ca3af')));
+    setTimeout(initInstallPopup, 1000);
 }
 
 function updateLayout() {
@@ -548,6 +549,69 @@ function goBack() {
         navigationStack.pop(); 
         showPage(navigationStack[navigationStack.length-1]); 
     } 
+}
+let deferredPrompt;
+
+// 1. Cattura l'evento installazione (solo Android)
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+});
+
+function initInstallPopup() {
+    // Controlla se è attivo nel Config
+    if (getVal('Show_Install_Popup', 'NO') !== 'SI') return;
+
+    // Controlla se l'app è già installata (modalità standalone)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isStandalone) return;
+
+    // Controlla se l'utente lo ha già chiuso di recente
+    if (localStorage.getItem('pwa_popup_dismissed')) return;
+
+    // Crea l'HTML del popup al volo
+    const popup = document.createElement('div');
+    popup.id = 'pwa-install-popup';
+    
+    const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const title = getVal('Popup_Text', 'Salva sulla Home');
+    const iconPath = 'Image/icon-192.png'; // Pesca l'icona del cliente
+
+    let instructions = isiOS 
+        ? `Tocca l'icona <img src="https://img.icons8.com/ios/50/007aff/export.png" class="ios-share-icon"> in basso e seleziona <b>"Aggiungi a schermata Home"</b>.`
+        : `Aggiungi il menu alla tua schermata home per aprirlo velocemente come un'App.`;
+
+    popup.innerHTML = `
+        <img src="${iconPath}" class="pwa-icon-box">
+        <div class="pwa-title">${title}</div>
+        <div class="pwa-desc">${instructions}</div>
+        <div class="pwa-btns">
+            <button class="pwa-btn-close" onclick="dismissPwaPopup()">Non ora</button>
+            ${isiOS ? '' : `<button class="pwa-btn-main" onclick="triggerAndroidInstall()">Installa</button>`}
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    // Mostra il popup dopo il delay
+    setTimeout(() => {
+        popup.classList.add('show');
+    }, parseInt(getVal('Popup_Delay', '5000')));
+}
+
+function dismissPwaPopup() {
+    document.getElementById('pwa-install-popup').classList.remove('show');
+    // Salva la scelta per 7 giorni per non disturbare
+    localStorage.setItem('pwa_popup_dismissed', 'true');
+}
+
+async function triggerAndroidInstall() {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') dismissPwaPopup();
+        deferredPrompt = null;
+    }
 }
 
 init();
