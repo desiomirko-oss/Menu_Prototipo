@@ -1,6 +1,6 @@
 {
-  "name": "Café Ibérico Menu",
-  "short_name": "Café Ibérico",
+  "name": "Menu Demo",
+  "short_name": "Prototipo",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
