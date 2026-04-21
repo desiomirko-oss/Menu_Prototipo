@@ -192,6 +192,8 @@ body::before {
 .badge { padding: 3px 6px; border-radius: 6px; font-size: 10px; color: white; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
 .badge-gf { background: #eab308; } .badge-vegan { background: #22c55e; } .badge-veg { background: #84cc16; } .badge-noalc { background: #3b82f6; } .badge-bio { background: #065f46; }
 .inline-chevron { color: var(--chevron-color); font-size: 24px; line-height: 1; font-weight: bold; margin-left: auto; }
+.badge-special { background: #f59e0b; color: white; border: 1px solid #d97706; box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3); } 
+.badge-discount { background: #ef4444; color: white; font-weight: 900; }
 
 /* AR BUTTON */
 .ar-btn { display: inline-flex; align-items: center; gap: 4px; background: var(--ar-btn-bg); color: var(--ar-btn-color); padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: bold; text-transform: uppercase; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
