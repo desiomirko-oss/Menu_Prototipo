@@ -415,20 +415,14 @@ function renderLevel3(m, c, isFiltering = false) {
     if (itemsToShow.length === 0) container.innerHTML = `<div style="text-align:center; padding: 20px; color:#9ca3af; font-weight:bold;">Nessun piatto trovato.</div>`;
 
     itemsToShow.forEach(i => {
-        let badges = '';
-        // 🆕 Nuovi Badge Marketing (In cima per massima visibilità)
-        if(isTruthy(i.special || (typeof item !== 'undefined' && item.special))) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
-        
-        let disc = i.discount || (typeof item !== 'undefined' ? item.discount : '');
-        if(disc && disc.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(disc)}%</span>`;
-
-        // Badge classici
-        let target = typeof item !== 'undefined' ? item : i;
-        if(isTruthy(target.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
-        if(isTruthy(target.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
-        if(isTruthy(target.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
-        if(isTruthy(target.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
-        if(isTruthy(target.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`; 
+       let badges = '';
+        if(isTruthy(i.special)) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
+        if(i.discount && i.discount.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(i.discount)}%</span>`;
+        if(isTruthy(i.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
+        if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
+        if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
+        if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
+        if(isTruthy(i.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`; 
         
         const hasDetails = i.details.trim() !== '';
         const cardClass = hasDetails ? 'menu-card clickable-card' : 'menu-card';
@@ -487,19 +481,13 @@ function openItemDetails(id) {
     const labels = getFilterLabels(); // 🆕 Carica i nomi personalizzati
     
     let badges = '';
-        // 🆕 Nuovi Badge Marketing (In cima per massima visibilità)
-        if(isTruthy(i.special || (typeof item !== 'undefined' && item.special))) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
-        
-        let disc = i.discount || (typeof item !== 'undefined' ? item.discount : '');
-        if(disc && disc.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(disc)}%</span>`;
-
-        // Badge classici
-        let target = typeof item !== 'undefined' ? item : i;
-        if(isTruthy(target.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
-        if(isTruthy(target.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
-        if(isTruthy(target.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
-        if(isTruthy(target.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
-        if(isTruthy(target.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`;
+    if(isTruthy(item.special)) badges += `<span class="badge badge-special notranslate">${escapeHTML(labels.special)}</span>`;
+    if(item.discount && item.discount.trim() !== '') badges += `<span class="badge badge-discount notranslate">${escapeHTML(labels.discount)} ${escapeHTML(item.discount)}%</span>`;
+    if(isTruthy(item.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
+    if(isTruthy(item.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
+    if(isTruthy(item.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
+    if(isTruthy(item.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
+    if(isTruthy(item.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`;
     
     const badgeHtml = badges ? `<div class="badge-container" style="justify-content:center; margin-bottom:15px;"><div class="badge-group">${badges}</div></div>` : '';
 
