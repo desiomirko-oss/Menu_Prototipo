@@ -236,6 +236,10 @@ body::before {
 .pwa-icon-box { width: 60px; height: 60px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
 .pwa-title { font-weight: bold; font-size: 1.1rem; color: #000; margin-bottom: 5px; }
 .pwa-desc { font-size: 0.9rem; color: #444; margin-bottom: 15px; line-height: 1.3; }
+.pwa-desc b {
+    font-weight: 700 !important;
+    color: #111; /* Opzionale: rende il testo tra virgolette un po' più scuro per farlo risaltare */
+}
 
 /* Pulsanti */
 .pwa-btns { display: flex; width: 100%; gap: 10px; }
