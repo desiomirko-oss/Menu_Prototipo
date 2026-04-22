@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>Visualizzatore AR</title>
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background-color: #111827; display: flex; flex-direction: column; height: 100vh; font-family: sans-serif; overflow: hidden; }
+        model-viewer { width: 100%; height: 100%; outline: none; }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 15px; border-radius: 20px; z-index: 100; text-decoration: none; font-weight: bold; font-size: 14px; }
+        
+        /* Il bottone magico che appare sopra il modello 3D */
+        #ar-prompt { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: #007AFF; color: white; padding: 16px 32px; border-radius: 30px; font-weight: bold; font-size: 16px; border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer; text-transform: uppercase; }
+        #ar-prompt:active { transform: translateX(-50%) scale(0.95); }
+    </style>
+</head>
+<body>
+    <a href="javascript:window.close();" class="close-btn">Chiudi ✕</a>
+    
+    <model-viewer id="viewer" 
+                  ar 
+                  ar-modes="webxr scene-viewer quick-look" 
+                  camera-controls 
+                  shadow-intensity="1"
+                  auto-rotate>
+        <button slot="ar-button" id="ar-prompt">Avvia Fotocamera AR</button>
+    </model-viewer>
+
+    <script>
+        // Legge quale piatto ha richiesto il menu
+        const urlParams = new URLSearchParams(window.location.search);
+        const modelUrl = urlParams.get('model');
+        
+        if(modelUrl) {
+            const viewer = document.getElementById('viewer');
+            viewer.setAttribute('src', modelUrl);
+            
+            // Trucco per iOS: Se in futuro carichi anche file .usdz con lo stesso nome, li userà in automatico
+            viewer.setAttribute('ios-src', modelUrl.replace('.glb', '.usdz'));
+        }
+    </script>
+</body>
+</html>
