@@ -247,6 +247,8 @@ function applyConfig() {
         sub.style.color = 'var(--subtitle-color)'; sub.style.fontSize = getVal('Subtitle_Size', '14px');
         sub.style.fontFamily = 'var(--subtitle-font)'; sub.style.fontWeight = isTruthy(getVal('Subtitle_Bold', 'FALSE')) ? 'bold' : 'normal';
         sub.style.textAlign = getVal('Subtitle_Align', 'center').toLowerCase(); sub.style.marginTop = getVal('Subtitle_Margin_Top', '5px');
+        // Aggiungi questa riga dentro applyConfig()
+    document.documentElement.style.setProperty('--subtitle-spacing', getVal('App_Subtitle_Spacing', 'normal'));
     } else sub.style.display = 'none';
 
     root.style.setProperty('--filter-margin', getVal('SubHeader_Filter_Margin', '12px'));
