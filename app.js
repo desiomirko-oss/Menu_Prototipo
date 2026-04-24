@@ -241,7 +241,7 @@ function applyConfig() {
     const sub = document.getElementById('subtitle-container');
     const subText = getVal('Subtitle_Text', '');
     root.style.setProperty('--subtitle-color', parseColor(getVal('Subtitle_Color', '#6b7280')));
-    root.style.setProperty('--subtitle-spacing', getVal('App_Subtitle_Spacing', 'normal'));
+    root.style.setProperty('--subtitle-spacing', getVal('Subtitle_Spacing', 'normal'));
     root.style.setProperty('--subtitle-font', getVal('Subtitle_Font', 'sans-serif'));
     if (subText !== '') {
         sub.style.display = 'block'; sub.innerText = subText;
