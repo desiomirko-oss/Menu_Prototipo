@@ -236,6 +236,10 @@ function applyConfig() {
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
+        // AGGIUNGI QUESTA RIGA QUI:
+    loadGoogleFonts();
+
+    const root = document.documentElement;
     }
 
     const sub = document.getElementById('subtitle-container');
