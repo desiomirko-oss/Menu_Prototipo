@@ -313,7 +313,7 @@ async function fetchMenu() {
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
                     _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '' 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14], price2: c[15] || '' 
                 });
             }
         }
@@ -489,7 +489,10 @@ function renderLevel3(m, c, isFiltering = false) {
                 <div style="flex-grow:1;">
                     <div class="item-name notranslate">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
-                    <div class="item-price notranslate">${escapeHTML(i.price)}</div>
+                    <div class="price-container">
+    <div class="item-price notranslate">${escapeHTML(i.price)}</div>
+    ${i.price2 ? `<div class="item-price-second notranslate">${escapeHTML(i.price2)}</div>` : ''}
+</div>
                 </div>
                 ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
@@ -542,7 +545,10 @@ function openItemDetails(id) {
             <div style="padding: 0 20px;">
                 ${badgeHtml}
                 <div class="detail-title notranslate">${escapeHTML(item.name)}</div>
-                <div class="detail-price notranslate">${escapeHTML(item.price)}</div>
+                <div class="price-container">
+    <div class="detail-price notranslate">${escapeHTML(item.price)}</div>
+    ${item.price2 ? `<div class="item-price-second notranslate">${escapeHTML(item.price2)}</div>` : ''}
+</div>
                 <div class="detail-desc">${escapeHTML(item.desc)}</div>
                 
                 <div class="detail-long-text">${formattedDetails}</div>
