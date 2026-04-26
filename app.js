@@ -69,7 +69,7 @@ function parseColor(colorVal, opacityVal = 1) {
     return c; 
 }
 
-// 🆕 FUNZIONE LABELS FILTRI (Prende i nomi da Config per tradurli bene)
+// 🆕 FUNZIONE LABELS FILTRI
 function getFilterLabels() {
     return {
         gf: getVal('Filter_Name_GF', 'Senza Glutine'),
@@ -236,7 +236,6 @@ function applyConfig() {
     if (logoUrl) {
         logoCont.innerHTML = `<img src="${escapeHTML(logoUrl)}" id="app-logo" style="max-height:${escapeHTML(getVal('Logo_Height', '80px'))}; object-fit:contain;" translate="no" class="notranslate">`;
         document.getElementById('app-logo').onload = updateLayout;
-   
     }
 
     const sub = document.getElementById('subtitle-container');
@@ -271,9 +270,13 @@ function applyConfig() {
     root.style.setProperty('--ar-btn-bg', parseColor(getVal('Item_AR_Btn_Bg', '#111827')));
     root.style.setProperty('--ar-btn-color', parseColor(getVal('Item_AR_Btn_Color', '#ffffff')));
 
-   // --- CONTROLLO POSIZIONE PREZZO ---
+    // --- CONTROLLO POSIZIONE PREZZO FIXATO ---
     let pAlign = getVal('Price_Align', 'left').toLowerCase();
     root.style.setProperty('--price-text-align', pAlign);
+    
+    // Questa riga allinea correttamente anche il contenitore Flex!
+    let flexAlign = pAlign === 'right' ? 'flex-end' : (pAlign === 'center' ? 'center' : 'flex-start');
+    root.style.setProperty('--price-flex-align', flexAlign);
     
     root.style.setProperty('--chevron-color', parseColor(getVal('Chevron_Color', '#9ca3af')));
     setTimeout(initInstallPopup, 1000);
@@ -312,10 +315,10 @@ async function fetchMenu() {
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
-    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '',
-    price2: c[15] || ''
-});
+                    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
+                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '',
+                    price2: c[15] || ''
+                });
             }
         }
         fullData = fullData.filter(i => isTruthy(i.active));
@@ -358,12 +361,10 @@ function renderLevel2(m) {
     container.className = 'cat-container'; 
     container.innerHTML = '';
 
-    // Legge le nuove impostazioni dal Config
     const layout = getVal('Cat_Layout', 'list').toLowerCase();
     const showImg = isTruthy(getVal('Cat_Show_Image', 'SI'));
     const imgWidth = getVal('Cat_Image_Width', '40%');
     
-    // Applica altezza dinamica al CSS
     document.documentElement.style.setProperty('--cat-height', getVal('Cat_Height', '120px'));
     document.documentElement.style.setProperty('--cat-img-w', imgWidth);
 
@@ -371,7 +372,6 @@ function renderLevel2(m) {
         const imgUrl = getVal('Cat_Img_' + c.replace(/\s+/g, '_'), '');
         let innerHtml = '';
         
-        // Logica: Mostra immagine solo se abilitata e se esiste l'URL
         if (showImg && imgUrl) {
             if (layout === 'grid') {
                 innerHtml = `
@@ -391,7 +391,6 @@ function renderLevel2(m) {
                     </div>`;
             }
         } else {
-            // Se l'immagine è disabilitata o manca, mostra solo il testo a tutta larghezza
             innerHtml = `<div class="cat-text-wrapper" style="width:100%;"><span class="cat-text">${escapeHTML(c)}</span></div>`;
         }
         
@@ -420,7 +419,7 @@ function renderLevel3(m, c, isFiltering = false) {
     if (m !== '' && c !== '') allCategoryItems = fullData.filter(i => i.macro === m && i.cat === c);
     else if (m === '' && c !== '') allCategoryItems = fullData.filter(i => i.cat === c);
     
-    const labels = getFilterLabels(); // 🆕 Carica i nomi personalizzati
+    const labels = getFilterLabels(); 
     
     if (!isFiltering) {
         let titleText = c !== '' ? c : (m !== '' ? m : getVal('Subtitle_Text', 'Menu'));
@@ -449,7 +448,6 @@ function renderLevel3(m, c, isFiltering = false) {
 
     itemsToShow.forEach(i => {
         let badges = '';
-        // 🆕 Inietta i nomi presi dal Config nei Badge
         if(isTruthy(i.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
         if(isTruthy(i.vegan)) badges += `<span class="badge badge-vegan">${escapeHTML(labels.vegan)}</span>`;
         if(isTruthy(i.veg)) badges += `<span class="badge badge-veg">${escapeHTML(labels.veg)}</span>`;
@@ -491,9 +489,9 @@ function renderLevel3(m, c, isFiltering = false) {
                     <div class="item-name notranslate">${escapeHTML(i.name)}</div>
                     <div class="item-desc">${escapeHTML(i.desc)}</div>
                     <div class="price-container">
-    <div class="item-price notranslate">${escapeHTML(i.price)}</div>
-    ${i.price2 ? `<div class="item-price-second notranslate">${escapeHTML(i.price2)}</div>` : ''}
-</div>
+                        <div class="item-price notranslate">${escapeHTML(i.price)}</div>
+                        ${i.price2 ? `<div class="item-price-second notranslate">${escapeHTML(i.price2)}</div>` : ''}
+                    </div>
                 </div>
                 ${i.photo ? `<img src="${escapeHTML(i.photo)}" class="item-photo" style="margin-left: 10px;" loading="lazy">` : ''}
             </div>
@@ -515,7 +513,7 @@ function openItemDetails(id) {
     if (!item) return;
 
     const container = document.getElementById('page-item-details');
-    const labels = getFilterLabels(); // 🆕 Carica i nomi personalizzati
+    const labels = getFilterLabels(); 
     
     let badges = '';
     if(isTruthy(item.gf)) badges += `<span class="badge badge-gf">${escapeHTML(labels.gf)}</span>`;
@@ -546,10 +544,10 @@ function openItemDetails(id) {
             <div style="padding: 0 20px;">
                 ${badgeHtml}
                 <div class="detail-title notranslate">${escapeHTML(item.name)}</div>
-                <div class="price-container">
-    <div class="detail-price notranslate">${escapeHTML(item.price)}</div>
-    ${item.price2 ? `<div class="item-price-second notranslate">${escapeHTML(item.price2)}</div>` : ''}
-</div>
+                <div class="price-container" style="align-items: center; text-align: center;">
+                    <div class="detail-price notranslate">${escapeHTML(item.price)}</div>
+                    ${item.price2 ? `<div class="item-price-second notranslate">${escapeHTML(item.price2)}</div>` : ''}
+                </div>
                 <div class="detail-desc">${escapeHTML(item.desc)}</div>
                 
                 <div class="detail-long-text">${formattedDetails}</div>
@@ -608,43 +606,35 @@ function goBack() {
 }
 let deferredPrompt;
 
-// 1. Cattura l'evento installazione (solo Android)
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
 });
 
 function initInstallPopup() {
-    // Controlla se è attivo nel Config
     if (getVal('Show_Install_Popup', 'NO') !== 'SI') return;
 
-    // Controlla se l'app è già installata (modalità standalone)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isStandalone) return;
 
-    // Controlla se l'utente lo ha già chiuso di recente
     if (localStorage.getItem('pwa_popup_dismissed')) return;
 
-    // Crea l'HTML del popup al volo
     const popup = document.createElement('div');
     popup.id = 'pwa-install-popup';
     
     const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const title = getVal('Popup_Text', 'Salva sulla Home');
-    const iconPath = 'Image/icon-192.png'; // Pesca l'icona del cliente
+    const iconPath = 'Image/icon-192.png'; 
 
     const iosShareSvg = `<svg viewBox="0 0 24 24" fill="none" stroke="#007AFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; vertical-align: bottom; margin: 0 4px;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>`;
 
- // Recupa il testo intero e la parola specifica da fare in grassetto dal Config
     let rawText = getVal('Popup_Descrizione', 'Aggiungi il menu alla schermata home.');
     let boldTarget = getVal('Popup_Testo_Bold', ''); 
     let instructions = rawText;
 
-    // Se hai specificato una parola nel Config, la trasforma in grassetto
     if (boldTarget && rawText.includes(boldTarget)) {
         instructions = rawText.replace(boldTarget, `<b>${boldTarget}</b>`);
     } else {
-        // Fallback: se la parola non è specificata, prova a usare le virgolette come prima
         instructions = rawText.replace(/["“”](.*?)["“”]/g, '<b>$1</b>');
     }
 
@@ -660,7 +650,6 @@ function initInstallPopup() {
 
     document.body.appendChild(popup);
 
-    // Mostra il popup dopo il delay
     setTimeout(() => {
         popup.classList.add('show');
     }, parseInt(getVal('Popup_Delay', '5000')));
@@ -668,7 +657,6 @@ function initInstallPopup() {
 
 function dismissPwaPopup() {
     document.getElementById('pwa-install-popup').classList.remove('show');
-    // Salva la scelta per 7 giorni per non disturbare
     localStorage.setItem('pwa_popup_dismissed', 'true');
 }
 
