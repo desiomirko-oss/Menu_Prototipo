@@ -1,8 +1,7 @@
 const VERSION = "12.3-TRANSLATING-FILTERS";
 console.log("App Version: " + VERSION);
 
-const urlParams = new URLSearchParams(window.location.search);
-const SHEET_ID = urlParams.get('id'); 
+const SHEET_ID = (typeof sheetId !== 'undefined') ? sheetId : new URLSearchParams(window.location.search).get('id'); 
 let appConfig = {};
 let fullData = [];
 let navigationStack = [];
