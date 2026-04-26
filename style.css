@@ -288,10 +288,10 @@ body::before {
 
 .item-price {
     /* Legge la parola scritta in Excel (left, center, right) */
-    text-align: var(--price-text-align, left);
+    text-align: var(--price-text-align, left) !important;
     
     /* Si allarga per permettere al testo di centrarsi o andare a destra */
-    flex-grow: 1; 
+    flex-grow: 1 !important; 
     
     /* Lascia un po' di spazio se c'è il bottone AR vicino */
     padding-right: 10px; 
