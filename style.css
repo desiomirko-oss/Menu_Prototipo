@@ -277,5 +277,23 @@ body::before {
         height: 250px; /* Le foto possono essere leggermente più grandi su PC */
         object-fit: cover;
     }
+
+    /* --- CONTENITORE DOPPIO PREZZO --- */
+.price-container {
+    display: flex;
+    flex-direction: column;
+    /* Mantiene l'allineamento che hai scelto dal Config */
+    align-items: var(--price-flex-align, flex-start);
+    text-align: var(--price-text-align, left);
+    flex-grow: 1;
+    margin-top: 5px;
+}
+
+.item-price-second {
+    font-size: 0.85rem;
+    color: #6b7280; /* Grigio elegante per differenziarlo dal principale */
+    margin-top: 2px;
+    font-weight: 500;
+}
    
 }
