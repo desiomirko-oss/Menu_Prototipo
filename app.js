@@ -312,9 +312,10 @@ async function fetchMenu() {
             const c = safeParseCSVRow(rows[i]);
             if(c.length >= 3 && c[0]) {
                 fullData.push({ 
-                    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
-                    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14], price2: c[15] || '' 
-                });
+    _id: i, macro: c[0], cat: c[1], name: c[2], desc: c[3], allerg: c[4], price: c[5], 
+    gf: c[6], vegan: c[7], veg: c[8], noalc: c[9], bio: c[10], active: c[11]||'TRUE', photo: c[12], ar: c[13], details: c[14] || '',
+    price2: c[15] || ''
+});
             }
         }
         fullData = fullData.filter(i => isTruthy(i.active));
