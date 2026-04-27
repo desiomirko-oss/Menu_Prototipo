@@ -472,7 +472,8 @@ function renderLevel3(m, c, isFiltering = false) {
         if(isTruthy(i.noalc)) badges += `<span class="badge badge-noalc">${escapeHTML(labels.noalc)}</span>`;
         if(isTruthy(i.bio)) badges += `<span class="badge badge-bio">${escapeHTML(labels.bio)}</span>`; 
         
-        const hasDetails = i.details.trim() !== '';
+        // Ora la card si clicca se c'è un dettaglio OPPURE se c'è una foto!
+        const hasDetails = (i.details && i.details.trim() !== '') || (i.photo && i.photo.trim() !== '');
         const cardClass = hasDetails ? 'menu-card clickable-card' : 'menu-card';
         const clickAction = hasDetails ? `onclick="openItemDetails(${i._id})"` : '';
         
