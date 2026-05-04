@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kronox Menu</title> 
+    
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="Image/icon-192.png">
+    <meta name="theme-color" content="#ffffff">
+
+    <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+    <header id="main-header">
+        <div id="header-content-wrapper">
+            <button id="back-button" onclick="goBack()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+            <div id="logo-container"></div>
+            <div id="subtitle-container"></div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <div class="container">
+            <div id="page-macro" class="hidden">
+                <div id="macro-layout-container" class="macro-container"></div>
+            </div>
+            
+            <div id="page-categories" class="hidden"></div>
+            
+            <div id="page-items" class="hidden"></div>
+
+            <div id="page-item-details" class="hidden"></div>
+        </div>
+    </main>
+
+    <div id="loading-screen" style="position:fixed; inset:0; background:#fff; z-index:9999; display:flex; align-items:center; justify-content:center;">
+        <span class="notranslate" style="font-family:sans-serif; font-weight:bold; color:#111827;">...</span>
+    </div>
+
+   <script>
+    const sheetId = "17cqElWAsBe-MccaoWHuIYmy_AjxRUYnRXtbfDIg4cfA";
+</script>
+
+    <script src="../app.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js');
+            });
+        }
+    </script>
+
+</body>
+</html>
